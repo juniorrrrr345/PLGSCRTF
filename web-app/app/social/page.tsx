@@ -8,8 +8,10 @@ import Link from 'next/link'
 const fetcher = (url: string) => fetch(url).then(res => res.json())
 
 export default function SocialPage() {
-  const { data: social } = useSWR('/api/social', fetcher)
+  const { data: settings } = useSWR('/api/settings', fetcher)
   const [hoveredIndex, setHoveredIndex] = useState<number | null>(null)
+  
+  const social = settings?.socialNetworks
 
   // Convertir les réseaux sociaux du format objet
   const socialPlatforms = social ? Object.entries(social).map(([key, value]: [string, any]) => {
