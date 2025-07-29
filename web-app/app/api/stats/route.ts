@@ -12,8 +12,7 @@ export async function GET() {
     
     return NextResponse.json({
       userCount,
-      plugCount,
-      timestamp: new Date().toISOString()
+      plugCount
     })
   } catch (error) {
     console.error('Stats API error:', error)
