@@ -107,7 +107,7 @@ async function handleAdminCallbacks(bot, callbackQuery) {
   }
   
   await bot.answerCallbackQuery(callbackQuery.id);
-});
+}
 
 async function showSettingsMenu(bot, chatId) {
   const settings = await Settings.findOne();
