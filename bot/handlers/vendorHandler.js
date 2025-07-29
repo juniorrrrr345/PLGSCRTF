@@ -41,6 +41,7 @@ async function handleVendorApplication(bot, chatId, userStates, action = null, m
     userState.stepIndex--;
     userState.step = vendorSteps[userState.stepIndex];
   } else if (action === 'vendor_next') {
+    // Pour "Suivant", on passe à l'étape suivante même si rien n'est sélectionné
     if (userState.stepIndex < vendorSteps.length - 1) {
       userState.stepIndex++;
       userState.step = vendorSteps[userState.stepIndex];
@@ -189,12 +190,57 @@ async function displayVendorStep(bot, chatId, userState) {
       break;
       
     case 'confirm':
-      message = '✅ <b>Confirmation</b>\n\n';
-      message += 'Votre candidature est prête à être envoyée.\n';
-      message += 'Voulez-vous la soumettre ?';
+      message = '✅ <b>Confirmation - Résumé de votre candidature</b>\n\n';
+      message += '━━━━━━━━━━━━━━━━\n';
+      
+      // Résumé des réseaux sociaux
+      message += '📱 <b>Réseaux sociaux:</b>\n';
+      if (userState.data.socialNetworks.primary.length > 0) {
+        userState.data.socialNetworks.primary.forEach(network => {
+          message += `• ${network}\n`;
+        });
+      } else {
+        message += '• <i>Aucun réseau principal sélectionné</i>\n';
+      }
+      if (userState.data.socialNetworks.others) {
+        message += `• Autres: ${userState.data.socialNetworks.others}\n`;
+      }
+      message += '\n';
+      
+      // Résumé des méthodes
+      message += '📦 <b>Méthodes de vente:</b>\n';
+      const selectedMethods = [];
+      if (userState.data.methods.delivery) selectedMethods.push('🚚 Livraison');
+      if (userState.data.methods.shipping) selectedMethods.push('📮 Envoi');
+      if (userState.data.methods.meetup) selectedMethods.push('🤝 Meetup');
+      if (selectedMethods.length > 0) {
+        selectedMethods.forEach(method => message += `• ${method}\n`);
+      } else {
+        message += '• <i>Aucune méthode sélectionnée</i>\n';
+      }
+      message += '\n';
+      
+      // Résumé de la localisation
+      message += '📍 <b>Localisation:</b>\n';
+      if (userState.data.country) {
+        message += `• Pays: ${userState.data.country}\n`;
+        message += `• Département: ${userState.data.department || 'Non spécifié'}\n`;
+        message += `• Code postal: ${userState.data.postalCode || 'Non spécifié'}\n`;
+      } else {
+        message += '• <i>Localisation non spécifiée</i>\n';
+      }
+      message += '\n';
+      
+      // Photo et description
+      message += `📸 <b>Photo:</b> ${userState.data.photo ? 'Ajoutée ✅' : 'Non ajoutée ❌'}\n`;
+      message += `📝 <b>Description:</b> ${userState.data.description ? 'Complétée ✅' : 'Non complétée ❌'}\n\n`;
+      
+      message += '━━━━━━━━━━━━━━━━\n';
+      message += 'Voulez-vous soumettre cette candidature ?';
       
       keyboard.inline_keyboard = [
         [{ text: '✅ Envoyer', callback_data: 'vendor_submit' }],
+        [{ text: '⬅️ Modifier', callback_data: 'vendor_back' }],
         [{ text: '❌ Annuler', callback_data: 'vendor_cancel' }]
       ];
       
@@ -210,7 +256,18 @@ async function displayVendorStep(bot, chatId, userState) {
   if (userState.stepIndex > 0) {
     navButtons.push({ text: '⬅️ Retour', callback_data: 'vendor_back' });
   }
-  navButtons.push({ text: '⏭ Passer', callback_data: 'vendor_skip' });
+  
+  // Boutons spécifiques selon l'étape
+  if (userState.step === 'social_primary' || userState.step === 'methods') {
+    // Pour les étapes avec sélection multiple, ajouter un bouton "Suivant"
+    navButtons.push({ text: '✅ Suivant', callback_data: 'vendor_next' });
+  }
+  
+  // Toujours montrer "Passer" sauf sur la dernière étape
+  if (userState.step !== 'confirm') {
+    navButtons.push({ text: '⏭ Passer', callback_data: 'vendor_skip' });
+  }
+  
   navButtons.push({ text: '❌ Annuler', callback_data: 'vendor_cancel' });
   
   keyboard.inline_keyboard.push(navButtons);

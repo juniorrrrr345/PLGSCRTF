@@ -2,12 +2,15 @@ import type { Metadata } from 'next'
 import { Inter } from 'next/font/google'
 import '../styles/globals.css'
 import { Toaster } from 'react-hot-toast'
+import Navbar from '@/components/Navbar'
+import Footer from '@/components/Footer'
+import ScrollIndicator from '@/components/ScrollIndicator'
 
 const inter = Inter({ subsets: ['latin'] })
 
 export const metadata: Metadata = {
-  title: 'Telegram Shop - Boutique',
-  description: 'Boutique Telegram avec système de plugs',
+  title: 'PLUGS CRTFS - Marketplace des vendeurs certifiés',
+  description: 'La plateforme exclusive pour trouver des vendeurs certifiés et de confiance',
   viewport: 'width=device-width, initial-scale=1, maximum-scale=1',
 }
 
@@ -18,17 +21,23 @@ export default function RootLayout({
 }) {
   return (
     <html lang="fr">
-      <body className={inter.className}>
+      <body className={`${inter.className} bg-dark text-white min-h-screen`}>
+        <Navbar />
+        <main className="relative">
+          {children}
+        </main>
+        <Footer />
+        <ScrollIndicator />
         <Toaster 
           position="top-center"
           toastOptions={{
             style: {
-              background: '#2c2c2e',
+              background: '#1a1a1a',
               color: '#fff',
+              border: '1px solid rgba(255, 255, 255, 0.1)',
             },
           }}
         />
-        {children}
       </body>
     </html>
   )
