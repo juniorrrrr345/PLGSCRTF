@@ -1,4 +1,5 @@
 const Plug = require('../models/Plug');
+const User = require('../models/User');
 
 async function handlePlugsMenu(bot, chatId) {
   try {
@@ -11,7 +12,7 @@ async function handlePlugsMenu(bot, chatId) {
       await bot.sendMessage(chatId, '❌ Aucun plug disponible pour le moment.', {
         reply_markup: {
           inline_keyboard: [
-            [{ text: '⬅️ Retour', callback_data: 'back_to_menu' }]
+            [{ text: '⬅️ Retour', callback_data: 'main_menu' }]
           ]
         }
       });
@@ -43,7 +44,7 @@ async function handlePlugsMenu(bot, chatId) {
     // Ajouter le bouton retour
     keyboard.inline_keyboard.push([{
       text: '⬅️ Retour au menu',
-      callback_data: 'back_to_menu'
+      callback_data: 'main_menu'
     }]);
     
     message += '👆 Cliquez sur un plug pour voir les détails';
@@ -59,4 +60,180 @@ async function handlePlugsMenu(bot, chatId) {
   }
 }
 
-module.exports = { handlePlugsMenu };
+async function handlePlugDetails(bot, chatId, plugId) {
+  try {
+    const plug = await Plug.findById(plugId);
+    
+    if (!plug) {
+      await bot.sendMessage(chatId, '❌ Plug introuvable.');
+      return;
+    }
+    
+    let message = `🔌 <b>${plug.name}</b>\n`;
+    message += `━━━━━━━━━━━━━━━━\n\n`;
+    
+    // Localisation
+    message += `📍 <b>Localisation:</b> ${plug.location.country} - ${plug.location.department}\n`;
+    message += `📮 <b>Zone:</b> ${plug.location.postalCode}\n\n`;
+    
+    // Méthodes
+    message += `📦 <b>Méthodes:</b>\n`;
+    if (plug.methods.delivery) message += '• 🚚 Livraison\n';
+    if (plug.methods.shipping) message += '• 📮 Envoi\n';
+    if (plug.methods.meetup) message += '• 🤝 Meetup\n';
+    message += '\n';
+    
+    // Réseaux sociaux
+    if (plug.socialNetworks.primary.length > 0) {
+      message += `📱 <b>Réseaux sociaux:</b>\n`;
+      plug.socialNetworks.primary.forEach(network => {
+        message += `• ${network}\n`;
+      });
+      if (plug.socialNetworks.others) {
+        message += `• ${plug.socialNetworks.others}\n`;
+      }
+      message += '\n';
+    }
+    
+    // Description
+    if (plug.description) {
+      message += `📝 <b>Description:</b>\n${plug.description}\n\n`;
+    }
+    
+    // Stats
+    message += `❤️ <b>Likes:</b> ${plug.likes}\n`;
+    message += `🔗 <b>Parrainages:</b> ${plug.referralCount || 0}\n`;
+    
+    // Photo
+    const keyboard = {
+      inline_keyboard: [
+        [
+          { text: `❤️ Like (${plug.likes})`, callback_data: `like_${plug._id}` },
+          { text: '🔗 Partager', url: plug.referralLink || `https://t.me/${process.env.TELEGRAM_BOT_USERNAME}?start=plug_${plug._id}` }
+        ],
+        [
+          { text: '⬅️ Retour aux plugs', callback_data: 'plugs' },
+          { text: '🏠 Menu principal', callback_data: 'main_menu' }
+        ]
+      ]
+    };
+    
+    if (plug.photo) {
+      await bot.sendPhoto(chatId, plug.photo, {
+        caption: message,
+        reply_markup: keyboard,
+        parse_mode: 'HTML'
+      });
+    } else {
+      await bot.sendMessage(chatId, message, {
+        reply_markup: keyboard,
+        parse_mode: 'HTML'
+      });
+    }
+    
+  } catch (error) {
+    console.error('Erreur dans handlePlugDetails:', error);
+    await bot.sendMessage(chatId, '❌ Une erreur est survenue lors du chargement des détails.');
+  }
+}
+
+async function handleLike(bot, callbackQuery, plugId) {
+  const chatId = callbackQuery.message.chat.id;
+  const userId = callbackQuery.from.id;
+  
+  try {
+    // Vérifier l'utilisateur
+    let user = await User.findOne({ telegramId: userId });
+    if (!user) {
+      await bot.answerCallbackQuery(callbackQuery.id, {
+        text: '❌ Veuillez d\'abord démarrer le bot avec /start',
+        show_alert: true
+      });
+      return;
+    }
+    
+    // Vérifier le cooldown
+    const lastLike = user.lastLikeTime || new Date(0);
+    const cooldownMinutes = 30;
+    const timeSinceLastLike = (new Date() - lastLike) / 1000 / 60;
+    
+    if (timeSinceLastLike < cooldownMinutes) {
+      const remainingTime = Math.ceil(cooldownMinutes - timeSinceLastLike);
+      await bot.answerCallbackQuery(callbackQuery.id, {
+        text: `⏱ Vous devez attendre ${remainingTime} minutes avant de liker à nouveau`,
+        show_alert: true
+      });
+      return;
+    }
+    
+    // Mettre à jour le plug
+    const plug = await Plug.findByIdAndUpdate(
+      plugId,
+      { $inc: { likes: 1 } },
+      { new: true }
+    );
+    
+    if (!plug) {
+      await bot.answerCallbackQuery(callbackQuery.id, {
+        text: '❌ Plug introuvable',
+        show_alert: true
+      });
+      return;
+    }
+    
+    // Mettre à jour l'utilisateur
+    user.lastLikeTime = new Date();
+    if (!user.likedPlugs) user.likedPlugs = [];
+    if (!user.likedPlugs.includes(plugId)) {
+      user.likedPlugs.push(plugId);
+    }
+    await user.save();
+    
+    // Répondre avec succès SANS supprimer le message
+    await bot.answerCallbackQuery(callbackQuery.id, {
+      text: `❤️ Vous avez liké ${plug.name} ! Total: ${plug.likes} likes`,
+      show_alert: false
+    });
+    
+    // Mettre à jour le bouton like dans le message existant
+    const keyboard = callbackQuery.message.reply_markup;
+    if (keyboard && keyboard.inline_keyboard) {
+      // Mettre à jour le texte du bouton like
+      keyboard.inline_keyboard[0][0].text = `❤️ Like (${plug.likes})`;
+      
+      // Éditer le message pour mettre à jour le nombre de likes
+      if (callbackQuery.message.photo) {
+        // Si c'est une photo, mettre à jour la caption
+        let newCaption = callbackQuery.message.caption;
+        newCaption = newCaption.replace(/❤️ <b>Likes:<\/b> \d+/, `❤️ <b>Likes:</b> ${plug.likes}`);
+        
+        await bot.editMessageCaption(newCaption, {
+          chat_id: chatId,
+          message_id: callbackQuery.message.message_id,
+          reply_markup: keyboard,
+          parse_mode: 'HTML'
+        });
+      } else {
+        // Si c'est un message texte
+        let newText = callbackQuery.message.text;
+        newText = newText.replace(/❤️ <b>Likes:<\/b> \d+/, `❤️ <b>Likes:</b> ${plug.likes}`);
+        
+        await bot.editMessageText(newText, {
+          chat_id: chatId,
+          message_id: callbackQuery.message.message_id,
+          reply_markup: keyboard,
+          parse_mode: 'HTML'
+        });
+      }
+    }
+    
+  } catch (error) {
+    console.error('Erreur dans handleLike:', error);
+    await bot.answerCallbackQuery(callbackQuery.id, {
+      text: '❌ Une erreur est survenue',
+      show_alert: true
+    });
+  }
+}
+
+module.exports = { handlePlugsMenu, handlePlugDetails, handleLike };
