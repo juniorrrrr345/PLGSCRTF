@@ -237,7 +237,7 @@ async function initiateBroadcast(bot, chatId) {
         adminStates.delete(chatId);
       }
     }
-  }
+  });
   
   return true;
 }
