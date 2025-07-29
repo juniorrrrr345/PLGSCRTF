@@ -40,8 +40,22 @@ async function handleVendorApplication(bot, chatId, userStates, action = null, m
   if (action === 'vendor_back' && userState.stepIndex > 0) {
     userState.stepIndex--;
     userState.step = vendorSteps[userState.stepIndex];
-  } else if (action === 'vendor_next' || action === 'vendor_skip') {
+  } else if (action === 'vendor_next') {
     if (userState.stepIndex < vendorSteps.length - 1) {
+      userState.stepIndex++;
+      userState.step = vendorSteps[userState.stepIndex];
+    }
+  } else if (action === 'vendor_skip') {
+    // Pour skip, on passe à l'étape suivante en gardant les valeurs par défaut
+    if (userState.stepIndex < vendorSteps.length - 1) {
+      // Définir des valeurs par défaut pour les étapes optionnelles
+      if (userState.step === 'social_other') {
+        userState.data.socialNetworks.others = '';
+      } else if (userState.step === 'photo') {
+        userState.data.photo = '';
+      } else if (userState.step === 'description') {
+        userState.data.description = 'Non spécifié';
+      }
       userState.stepIndex++;
       userState.step = vendorSteps[userState.stepIndex];
     }
