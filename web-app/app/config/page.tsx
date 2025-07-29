@@ -343,10 +343,11 @@ export default function ConfigPage() {
               initial={{ x: -300 }}
               animate={{ x: 0 }}
               exit={{ x: -300 }}
-              className="fixed lg:relative w-64 h-screen bg-darker border-r border-white/10 z-40"
+              className="fixed lg:relative w-64 h-screen bg-gray-900 border-r border-gray-700 z-40 shadow-2xl"
             >
               <div className="p-6">
-                <h2 className="text-2xl font-bold gradient-text mb-8">Admin Panel</h2>
+                <h2 className="text-3xl font-black text-white mb-2">Admin Panel</h2>
+                <p className="text-gray-400 text-sm mb-8">Gestion de la boutique</p>
                 
                 <nav className="space-y-2">
                   {tabs.map(tab => (
@@ -356,10 +357,10 @@ export default function ConfigPage() {
                         setActiveTab(tab.id)
                         setMobileMenuOpen(false)
                       }}
-                      className={`w-full flex items-center gap-3 px-4 py-3 rounded-lg transition-all ${
+                      className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl transition-all font-medium ${
                         activeTab === tab.id 
-                          ? 'bg-primary text-black font-semibold' 
-                          : 'hover:bg-white/10 text-gray-400 hover:text-white'
+                          ? 'bg-gradient-to-r from-blue-600 to-purple-600 text-white shadow-lg transform scale-105' 
+                          : 'bg-gray-800 hover:bg-gray-700 text-gray-300 hover:text-white border border-gray-700'
                       }`}
                     >
                       <tab.icon className="w-5 h-5" />
@@ -370,8 +371,9 @@ export default function ConfigPage() {
                 
                 <button
                   onClick={handleLogout}
-                  className="w-full mt-8 px-4 py-3 bg-red-500/20 text-red-500 rounded-lg hover:bg-red-500/30 transition-colors"
+                  className="w-full mt-8 px-4 py-3 bg-red-600 hover:bg-red-700 text-white rounded-xl font-medium transition-all flex items-center justify-center gap-2 shadow-lg"
                 >
+                  <ArrowLeftIcon className="w-5 h-5" />
                   Déconnexion
                 </button>
               </div>
@@ -648,16 +650,92 @@ export default function ConfigPage() {
                   
                   {/* Image Management */}
                   <div className="glass-card p-6">
-                    <h2 className="text-xl font-bold mb-4">Gestion des images</h2>
-                    <div className="space-y-3">
-                      <button className="btn-secondary w-full">
-                        <PhotoIcon className="w-5 h-5 mr-2" />
-                        Changer l'image d'accueil
-                      </button>
-                      <button className="btn-secondary w-full">
-                        <PhotoIcon className="w-5 h-5 mr-2" />
-                        Changer le fond de la boutique
-                      </button>
+                    <h2 className="text-xl font-bold mb-6">Personnalisation visuelle</h2>
+                    
+                    <div className="space-y-6">
+                      {/* Logo de la boutique */}
+                      <div>
+                        <h3 className="text-lg font-semibold mb-3 flex items-center gap-2">
+                          <span className="text-2xl">🏪</span> Logo de la boutique
+                        </h3>
+                        <div className="bg-gray-800 border-2 border-gray-600 rounded-xl p-4">
+                          <ImageUpload
+                            onUpload={async (url) => {
+                              try {
+                                const res = await fetch('/api/settings/background', {
+                                  method: 'POST',
+                                  headers: { 'Content-Type': 'application/json' },
+                                  body: JSON.stringify({ logoImage: url })
+                                })
+                                if (res.ok) {
+                                  toast.success('Logo mis à jour !')
+                                }
+                              } catch (error) {
+                                toast.error('Erreur lors de la mise à jour')
+                              }
+                            }}
+                          />
+                          <p className="text-xs text-gray-400 mt-2">
+                            Recommandé : Image carrée, 500x500px minimum
+                          </p>
+                        </div>
+                      </div>
+
+                      {/* Fond de la boutique */}
+                      <div>
+                        <h3 className="text-lg font-semibold mb-3 flex items-center gap-2">
+                          <span className="text-2xl">🎨</span> Fond de la boutique
+                        </h3>
+                        <div className="bg-gray-800 border-2 border-gray-600 rounded-xl p-4">
+                          <ImageUpload
+                            onUpload={async (url) => {
+                              try {
+                                const res = await fetch('/api/settings/background', {
+                                  method: 'POST',
+                                  headers: { 'Content-Type': 'application/json' },
+                                  body: JSON.stringify({ backgroundImage: url })
+                                })
+                                if (res.ok) {
+                                  toast.success('Fond mis à jour !')
+                                }
+                              } catch (error) {
+                                toast.error('Erreur lors de la mise à jour')
+                              }
+                            }}
+                          />
+                          <p className="text-xs text-gray-400 mt-2">
+                            Recommandé : Image haute résolution, 1920x1080px minimum
+                          </p>
+                        </div>
+                      </div>
+
+                      {/* Image d'accueil du bot */}
+                      <div>
+                        <h3 className="text-lg font-semibold mb-3 flex items-center gap-2">
+                          <span className="text-2xl">🤖</span> Image d'accueil du bot
+                        </h3>
+                        <div className="bg-gray-800 border-2 border-gray-600 rounded-xl p-4">
+                          <ImageUpload
+                            onUpload={async (url) => {
+                              try {
+                                const res = await fetch('/api/settings', {
+                                  method: 'POST',
+                                  headers: { 'Content-Type': 'application/json' },
+                                  body: JSON.stringify({ welcomeImage: url })
+                                })
+                                if (res.ok) {
+                                  toast.success('Image d\'accueil mise à jour !')
+                                }
+                              } catch (error) {
+                                toast.error('Erreur lors de la mise à jour')
+                              }
+                            }}
+                          />
+                          <p className="text-xs text-gray-400 mt-2">
+                            Cette image sera affichée dans le message d'accueil du bot Telegram
+                          </p>
+                        </div>
+                      </div>
                     </div>
                   </div>
                 </div>

@@ -3,38 +3,32 @@ import mongoose from 'mongoose'
 const settingsSchema = new mongoose.Schema({
   welcomeMessage: {
     type: String,
-    default: 'Bienvenue sur notre boutique ! 🛍️'
+    default: '🔌 Bienvenue sur PLUGS CRTFS !\n\nLa marketplace exclusive des vendeurs certifiés.'
   },
-  welcomeImage: String,
-  infoText: {
+  welcomeImage: {
     type: String,
-    default: 'Informations sur notre service'
+    default: ''
   },
-  backgroundImage: String,
-  socialNetworks: {
-    snap: String,
-    instagram: String,
-    whatsapp: String,
-    signal: String,
-    threema: String,
-    potato: String,
-    telegram: String,
-    other: String
+  backgroundImage: {
+    type: String,
+    default: ''
+  },
+  logoImage: {
+    type: String,
+    default: ''
   },
   countries: [{
     code: String,
     name: String,
-    flag: String,
-    departments: [{
-      code: String,
-      name: String
-    }]
+    flag: String
   }],
-  postalCodes: [{
+  departments: [{
+    country: String,
     code: String,
-    city: String,
-    department: String
+    name: String
   }]
+}, {
+  timestamps: true
 })
 
 export default mongoose.models.Settings || mongoose.model('Settings', settingsSchema)
