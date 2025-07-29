@@ -45,7 +45,7 @@ export default function ConfigPage() {
   const [newPlug, setNewPlug] = useState<{
     name: string
     photo: string
-    socialNetworks: { primary: string[], others: string }
+    socialNetworks: any
     methods: { delivery: boolean, shipping: boolean, meetup: boolean }
     deliveryDepartments: string[]
     location: { country: string, department: string, postalCode: string }
@@ -53,7 +53,7 @@ export default function ConfigPage() {
   }>({
     name: '',
     photo: '',
-    socialNetworks: { primary: [], others: '' },
+    socialNetworks: {},
     methods: { delivery: false, shipping: false, meetup: false },
     deliveryDepartments: [],
     location: { country: 'FR', department: '', postalCode: '' },
@@ -169,10 +169,19 @@ export default function ConfigPage() {
   
   const handleAddPlug = async () => {
     try {
+      // Formater les données du plug
+      const plugData = {
+        ...newPlug,
+        country: newPlug.location.country,
+        department: newPlug.location.department,
+        postalCode: newPlug.location.postalCode,
+        countryFlag: getCountryFlag(newPlug.location.country)
+      }
+      
       const res = await fetch('/api/plugs', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(newPlug)
+        body: JSON.stringify(plugData)
       })
       
       if (res.ok) {
@@ -181,7 +190,7 @@ export default function ConfigPage() {
         setNewPlug({
           name: '',
           photo: '',
-          socialNetworks: { primary: [], others: '' },
+          socialNetworks: {},
           methods: { delivery: false, shipping: false, meetup: false },
           deliveryDepartments: [],
           location: { country: 'FR', department: '', postalCode: '' },
@@ -191,6 +200,36 @@ export default function ConfigPage() {
       }
     } catch (error) {
       toast.error('Erreur lors de l\'ajout')
+    }
+  }
+  
+  const getCountryFlag = (country: string) => {
+    const flags: { [key: string]: string } = {
+      'FR': '🇫🇷',
+      'BE': '🇧🇪',
+      'CH': '🇨🇭',
+      'CA': '🇨🇦',
+      'LU': '🇱🇺'
+    }
+    return flags[country] || '🌍'
+  }
+
+  const handleUpdatePlug = async () => {
+    try {
+      const res = await fetch(`/api/plugs/${editingPlug._id}`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(editingPlug)
+      })
+
+      if (res.ok) {
+        toast.success('Plug mis à jour avec succès !')
+        setShowAddPlug(false)
+        setEditingPlug(null)
+        mutate('/api/plugs?all=true')
+      }
+    } catch (error) {
+      toast.error('Erreur lors de la mise à jour')
     }
   }
   
@@ -635,174 +674,397 @@ export default function ConfigPage() {
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
-            className="fixed inset-0 bg-black/80 backdrop-blur-sm z-50 flex items-center justify-center p-4"
-            onClick={() => {
-              setShowAddPlug(false)
-              setEditingPlug(null)
-            }}
+            className="fixed inset-0 bg-black/90 backdrop-blur-sm z-50 flex items-center justify-center p-4 overflow-y-auto"
           >
             <motion.div
-              initial={{ scale: 0.9, opacity: 0 }}
+              initial={{ scale: 0.95, opacity: 0 }}
               animate={{ scale: 1, opacity: 1 }}
-              exit={{ scale: 0.9, opacity: 0 }}
-              className="bg-darker rounded-2xl max-w-2xl w-full max-h-[90vh] overflow-y-auto"
+              exit={{ scale: 0.95, opacity: 0 }}
+              className="bg-gray-900 rounded-3xl w-full max-w-4xl my-8 shadow-2xl"
               onClick={(e) => e.stopPropagation()}
             >
-              <div className="p-6">
-                <h2 className="text-2xl font-bold mb-6">
-                  {editingPlug ? 'Modifier le plug' : 'Ajouter un plug'}
-                </h2>
-                
-                <div className="space-y-4">
-                  <div>
-                    <label className="block text-sm font-medium mb-2">Nom</label>
-                    <input
-                      type="text"
-                      value={editingPlug ? editingPlug.name : newPlug.name}
-                      onChange={(e) => editingPlug 
-                        ? setEditingPlug({...editingPlug, name: e.target.value})
-                        : setNewPlug({...newPlug, name: e.target.value})
-                      }
-                      className="w-full px-4 py-3 bg-white/10 border border-white/20 rounded-lg focus:border-primary focus:outline-none transition-colors"
-                    />
-                  </div>
-                  
-                  <div>
-                    <label className="block text-sm font-medium mb-2">Photo</label>
-                    <ImageUpload
-                      onUpload={(url) => editingPlug
-                        ? setEditingPlug({...editingPlug, photo: url})
-                        : setNewPlug({...newPlug, photo: url})
-                      }
-                    />
-                  </div>
-                  
-                  <div>
-                    <label className="block text-sm font-medium mb-2">Méthodes</label>
-                    <div className="flex gap-4">
-                      <label className="flex items-center gap-2">
-                        <input
-                          type="checkbox"
-                          checked={editingPlug ? editingPlug.methods.delivery : newPlug.methods.delivery}
-                          onChange={(e) => editingPlug
-                            ? setEditingPlug({...editingPlug, methods: {...editingPlug.methods, delivery: e.target.checked}})
-                            : setNewPlug({...newPlug, methods: {...newPlug.methods, delivery: e.target.checked}})
-                          }
-                        />
-                        🚚 Livraison
-                      </label>
-                      <label className="flex items-center gap-2">
-                        <input
-                          type="checkbox"
-                          checked={editingPlug ? editingPlug.methods.shipping : newPlug.methods.shipping}
-                          onChange={(e) => editingPlug
-                            ? setEditingPlug({...editingPlug, methods: {...editingPlug.methods, shipping: e.target.checked}})
-                            : setNewPlug({...newPlug, methods: {...newPlug.methods, shipping: e.target.checked}})
-                          }
-                        />
-                        📮 Envoi
-                      </label>
-                      <label className="flex items-center gap-2">
-                        <input
-                          type="checkbox"
-                          checked={editingPlug ? editingPlug.methods.meetup : newPlug.methods.meetup}
-                          onChange={(e) => editingPlug
-                            ? setEditingPlug({...editingPlug, methods: {...editingPlug.methods, meetup: e.target.checked}})
-                            : setNewPlug({...newPlug, methods: {...newPlug.methods, meetup: e.target.checked}})
-                          }
-                        />
-                        🤝 Meetup
-                      </label>
-                    </div>
-                  </div>
-                  
-                  {/* Départements de livraison */}
-                  {(editingPlug?.methods?.delivery || editingPlug?.methods?.shipping || 
-                    newPlug.methods.delivery || newPlug.methods.shipping) && (
-                    <div>
-                      <label className="block text-sm font-medium mb-2">
-                        Départements de livraison/envoi (séparés par des virgules)
-                      </label>
-                      <input
-                        type="text"
-                        placeholder="75, 92, 93, 94..."
-                        value={editingPlug 
-                          ? (editingPlug.deliveryDepartments || []).join(', ')
-                          : (newPlug.deliveryDepartments || []).join(', ')
-                        }
-                        onChange={(e) => {
-                          const departments = e.target.value.split(',').map(d => d.trim()).filter(d => d);
-                          if (editingPlug) {
-                            setEditingPlug({...editingPlug, deliveryDepartments: departments});
-                          } else {
-                            setNewPlug({...newPlug, deliveryDepartments: departments});
-                          }
-                        }}
-                        className="w-full px-4 py-3 bg-white/10 border border-white/20 rounded-lg focus:border-primary focus:outline-none transition-colors"
-                      />
-                      <p className="text-xs text-gray-400 mt-1">
-                        Entrez les numéros de départements où vous livrez/envoyez
-                      </p>
-                    </div>
-                  )}
-                  
-                  <div className="grid grid-cols-2 gap-4">
-                    <div>
-                      <label className="block text-sm font-medium mb-2">Département</label>
-                      <input
-                        type="text"
-                        value={editingPlug ? editingPlug.location.department : newPlug.location.department}
-                        onChange={(e) => editingPlug
-                          ? setEditingPlug({...editingPlug, location: {...editingPlug.location, department: e.target.value}})
-                          : setNewPlug({...newPlug, location: {...newPlug.location, department: e.target.value}})
-                        }
-                        className="w-full px-4 py-3 bg-white/10 border border-white/20 rounded-lg focus:border-primary focus:outline-none transition-colors"
-                      />
-                    </div>
-                    <div>
-                      <label className="block text-sm font-medium mb-2">Code postal</label>
-                      <input
-                        type="text"
-                        value={editingPlug ? editingPlug.location.postalCode : newPlug.location.postalCode}
-                        onChange={(e) => editingPlug
-                          ? setEditingPlug({...editingPlug, location: {...editingPlug.location, postalCode: e.target.value}})
-                          : setNewPlug({...newPlug, location: {...newPlug.location, postalCode: e.target.value}})
-                        }
-                        className="w-full px-4 py-3 bg-white/10 border border-white/20 rounded-lg focus:border-primary focus:outline-none transition-colors"
-                      />
-                    </div>
-                  </div>
-                  
-                  <div>
-                    <label className="block text-sm font-medium mb-2">Description</label>
-                    <textarea
-                      value={editingPlug ? editingPlug.description : newPlug.description}
-                      onChange={(e) => editingPlug
-                        ? setEditingPlug({...editingPlug, description: e.target.value})
-                        : setNewPlug({...newPlug, description: e.target.value})
-                      }
-                      className="w-full px-4 py-3 bg-white/10 border border-white/20 rounded-lg focus:border-primary focus:outline-none transition-colors"
-                      rows={4}
-                    />
-                  </div>
-                </div>
-                
-                <div className="flex gap-3 mt-6">
-                  <button
-                    onClick={editingPlug ? () => {} : handleAddPlug}
-                    className="btn-primary flex-1"
-                  >
-                    {editingPlug ? 'Enregistrer' : 'Ajouter'}
-                  </button>
+              {/* Header */}
+              <div className="bg-gradient-to-r from-blue-600 to-purple-600 p-6 rounded-t-3xl">
+                <div className="flex justify-between items-center">
+                  <h2 className="text-3xl font-bold text-white">
+                    {editingPlug ? '✏️ Modifier le plug' : '➕ Ajouter un nouveau plug'}
+                  </h2>
                   <button
                     onClick={() => {
                       setShowAddPlug(false)
                       setEditingPlug(null)
                     }}
-                    className="btn-secondary flex-1"
+                    className="p-2 hover:bg-white/20 rounded-lg transition-colors"
                   >
-                    Annuler
+                    <XMarkIcon className="w-6 h-6 text-white" />
                   </button>
+                </div>
+              </div>
+              
+              {/* Form Content */}
+              <div className="p-8 max-h-[calc(100vh-200px)] overflow-y-auto">
+                <div className="space-y-8">
+                  {/* Section 1: Informations de base */}
+                  <div className="bg-gray-800/50 rounded-2xl p-6 border border-gray-700">
+                    <h3 className="text-xl font-bold text-white mb-6 flex items-center gap-2">
+                      <span className="text-2xl">📝</span> Informations de base
+                    </h3>
+                    
+                    <div className="space-y-4">
+                      <div>
+                        <label className="block text-sm font-semibold text-gray-300 mb-2">
+                          Nom du plug *
+                        </label>
+                        <input
+                          type="text"
+                          placeholder="Ex: PlugsParis"
+                          value={editingPlug ? editingPlug.name : newPlug.name}
+                          onChange={(e) => editingPlug 
+                            ? setEditingPlug({...editingPlug, name: e.target.value})
+                            : setNewPlug({...newPlug, name: e.target.value})
+                          }
+                          className="w-full px-4 py-3 bg-gray-800 border-2 border-gray-600 rounded-xl text-white placeholder-gray-400 focus:border-blue-500 focus:outline-none transition-all"
+                        />
+                      </div>
+                      
+                      <div>
+                        <label className="block text-sm font-semibold text-gray-300 mb-2">
+                          Photo du plug
+                        </label>
+                        <div className="bg-gray-800 border-2 border-gray-600 rounded-xl p-4">
+                          <ImageUpload
+                            onUpload={(url) => editingPlug
+                              ? setEditingPlug({...editingPlug, photo: url})
+                              : setNewPlug({...newPlug, photo: url})
+                            }
+                          />
+                          {(editingPlug?.photo || newPlug.photo) && (
+                            <div className="mt-4">
+                              <img 
+                                src={editingPlug?.photo || newPlug.photo} 
+                                alt="Preview" 
+                                className="w-32 h-32 object-cover rounded-lg"
+                              />
+                            </div>
+                          )}
+                        </div>
+                      </div>
+
+                      <div>
+                        <label className="block text-sm font-semibold text-gray-300 mb-2">
+                          Description
+                        </label>
+                        <textarea
+                          placeholder="Décrivez votre service..."
+                          value={editingPlug ? editingPlug.description : newPlug.description}
+                          onChange={(e) => editingPlug
+                            ? setEditingPlug({...editingPlug, description: e.target.value})
+                            : setNewPlug({...newPlug, description: e.target.value})
+                          }
+                          rows={4}
+                          className="w-full px-4 py-3 bg-gray-800 border-2 border-gray-600 rounded-xl text-white placeholder-gray-400 focus:border-blue-500 focus:outline-none transition-all resize-none"
+                        />
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Section 2: Localisation */}
+                  <div className="bg-gray-800/50 rounded-2xl p-6 border border-gray-700">
+                    <h3 className="text-xl font-bold text-white mb-6 flex items-center gap-2">
+                      <span className="text-2xl">📍</span> Localisation du vendeur
+                    </h3>
+                    
+                    <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                      <div>
+                        <label className="block text-sm font-semibold text-gray-300 mb-2">
+                          Pays *
+                        </label>
+                        <select
+                          value={editingPlug?.location?.country || editingPlug?.country || newPlug.location.country}
+                          onChange={(e) => editingPlug
+                            ? setEditingPlug({...editingPlug, location: {...(editingPlug.location || {}), country: e.target.value}})
+                            : setNewPlug({...newPlug, location: {...newPlug.location, country: e.target.value}})
+                          }
+                          className="w-full px-4 py-3 bg-gray-800 border-2 border-gray-600 rounded-xl text-white focus:border-blue-500 focus:outline-none transition-all"
+                        >
+                          <option value="FR">🇫🇷 France</option>
+                          <option value="BE">🇧🇪 Belgique</option>
+                          <option value="CH">🇨🇭 Suisse</option>
+                          <option value="CA">🇨🇦 Canada</option>
+                          <option value="LU">🇱🇺 Luxembourg</option>
+                        </select>
+                      </div>
+                      
+                      <div>
+                        <label className="block text-sm font-semibold text-gray-300 mb-2">
+                          Département *
+                        </label>
+                        <input
+                          type="text"
+                          placeholder="Ex: 75"
+                          value={editingPlug?.location?.department || editingPlug?.department || newPlug.location.department}
+                          onChange={(e) => editingPlug
+                            ? setEditingPlug({...editingPlug, location: {...(editingPlug.location || {}), department: e.target.value}})
+                            : setNewPlug({...newPlug, location: {...newPlug.location, department: e.target.value}})
+                          }
+                          className="w-full px-4 py-3 bg-gray-800 border-2 border-gray-600 rounded-xl text-white placeholder-gray-400 focus:border-blue-500 focus:outline-none transition-all"
+                        />
+                      </div>
+                      
+                      <div>
+                        <label className="block text-sm font-semibold text-gray-300 mb-2">
+                          Code postal *
+                        </label>
+                        <input
+                          type="text"
+                          placeholder="Ex: 75001"
+                          value={editingPlug?.location?.postalCode || editingPlug?.postalCode || newPlug.location.postalCode}
+                          onChange={(e) => editingPlug
+                            ? setEditingPlug({...editingPlug, location: {...(editingPlug.location || {}), postalCode: e.target.value}})
+                            : setNewPlug({...newPlug, location: {...newPlug.location, postalCode: e.target.value}})
+                          }
+                          className="w-full px-4 py-3 bg-gray-800 border-2 border-gray-600 rounded-xl text-white placeholder-gray-400 focus:border-blue-500 focus:outline-none transition-all"
+                        />
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Section 3: Méthodes de livraison */}
+                  <div className="bg-gray-800/50 rounded-2xl p-6 border border-gray-700">
+                    <h3 className="text-xl font-bold text-white mb-6 flex items-center gap-2">
+                      <span className="text-2xl">🚚</span> Méthodes disponibles
+                    </h3>
+                    
+                    <div className="space-y-4">
+                      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                        <label className="flex items-center gap-3 p-4 bg-gray-800 border-2 border-gray-600 rounded-xl cursor-pointer hover:border-blue-500 transition-all">
+                          <input
+                            type="checkbox"
+                            checked={editingPlug?.methods?.delivery || newPlug.methods.delivery}
+                            onChange={(e) => editingPlug
+                              ? setEditingPlug({...editingPlug, methods: {...(editingPlug.methods || {}), delivery: e.target.checked}})
+                              : setNewPlug({...newPlug, methods: {...newPlug.methods, delivery: e.target.checked}})
+                            }
+                            className="w-5 h-5 text-blue-600"
+                          />
+                          <span className="text-lg">🚚 Livraison</span>
+                        </label>
+                        
+                        <label className="flex items-center gap-3 p-4 bg-gray-800 border-2 border-gray-600 rounded-xl cursor-pointer hover:border-green-500 transition-all">
+                          <input
+                            type="checkbox"
+                            checked={editingPlug?.methods?.shipping || newPlug.methods.shipping}
+                            onChange={(e) => editingPlug
+                              ? setEditingPlug({...editingPlug, methods: {...(editingPlug.methods || {}), shipping: e.target.checked}})
+                              : setNewPlug({...newPlug, methods: {...newPlug.methods, shipping: e.target.checked}})
+                            }
+                            className="w-5 h-5 text-green-600"
+                          />
+                          <span className="text-lg">📦 Envoi postal</span>
+                        </label>
+                        
+                        <label className="flex items-center gap-3 p-4 bg-gray-800 border-2 border-gray-600 rounded-xl cursor-pointer hover:border-purple-500 transition-all">
+                          <input
+                            type="checkbox"
+                            checked={editingPlug?.methods?.meetup || newPlug.methods.meetup}
+                            onChange={(e) => editingPlug
+                              ? setEditingPlug({...editingPlug, methods: {...(editingPlug.methods || {}), meetup: e.target.checked}})
+                              : setNewPlug({...newPlug, methods: {...newPlug.methods, meetup: e.target.checked}})
+                            }
+                            className="w-5 h-5 text-purple-600"
+                          />
+                          <span className="text-lg">🤝 Rencontre</span>
+                        </label>
+                      </div>
+
+                      {/* Départements de livraison/envoi */}
+                      {(editingPlug?.methods?.delivery || editingPlug?.methods?.shipping || 
+                        newPlug.methods.delivery || newPlug.methods.shipping) && (
+                        <div className="mt-6 p-4 bg-gray-800 rounded-xl border-2 border-green-600/30">
+                          <label className="block text-sm font-semibold text-gray-300 mb-2">
+                            📍 Départements où vous livrez/envoyez
+                          </label>
+                          <input
+                            type="text"
+                            placeholder="Ex: 75, 92, 93, 94, 77, 78..."
+                            value={editingPlug 
+                              ? (editingPlug.deliveryDepartments || []).join(', ')
+                              : (newPlug.deliveryDepartments || []).join(', ')
+                            }
+                            onChange={(e) => {
+                              const departments = e.target.value.split(',').map(d => d.trim()).filter(d => d);
+                              if (editingPlug) {
+                                setEditingPlug({...editingPlug, deliveryDepartments: departments});
+                              } else {
+                                setNewPlug({...newPlug, deliveryDepartments: departments});
+                              }
+                            }}
+                            className="w-full px-4 py-3 bg-gray-900 border-2 border-gray-600 rounded-xl text-white placeholder-gray-400 focus:border-green-500 focus:outline-none transition-all"
+                          />
+                          <p className="text-xs text-gray-400 mt-2">
+                            Séparez les départements par des virgules. Laissez vide si vous livrez partout.
+                          </p>
+                        </div>
+                      )}
+                    </div>
+                  </div>
+
+                  {/* Section 4: Réseaux sociaux */}
+                  <div className="bg-gray-800/50 rounded-2xl p-6 border border-gray-700">
+                    <h3 className="text-xl font-bold text-white mb-6 flex items-center gap-2">
+                      <span className="text-2xl">💬</span> Réseaux sociaux
+                    </h3>
+                    
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                      <div>
+                        <label className="block text-sm font-semibold text-gray-300 mb-2">
+                          👻 Snapchat
+                        </label>
+                        <input
+                          type="text"
+                          placeholder="username"
+                          value={editingPlug?.socialNetworks?.snap || ''}
+                          onChange={(e) => editingPlug
+                            ? setEditingPlug({...editingPlug, socialNetworks: {...(editingPlug.socialNetworks || {}), snap: e.target.value}})
+                            : setNewPlug({...newPlug, socialNetworks: {...newPlug.socialNetworks, snap: e.target.value}})
+                          }
+                          className="w-full px-4 py-3 bg-gray-800 border-2 border-gray-600 rounded-xl text-white placeholder-gray-400 focus:border-yellow-500 focus:outline-none transition-all"
+                        />
+                      </div>
+
+                      <div>
+                        <label className="block text-sm font-semibold text-gray-300 mb-2">
+                          📷 Instagram
+                        </label>
+                        <input
+                          type="text"
+                          placeholder="@username"
+                          value={editingPlug?.socialNetworks?.instagram || ''}
+                          onChange={(e) => editingPlug
+                            ? setEditingPlug({...editingPlug, socialNetworks: {...(editingPlug.socialNetworks || {}), instagram: e.target.value}})
+                            : setNewPlug({...newPlug, socialNetworks: {...newPlug.socialNetworks, instagram: e.target.value}})
+                          }
+                          className="w-full px-4 py-3 bg-gray-800 border-2 border-gray-600 rounded-xl text-white placeholder-gray-400 focus:border-purple-500 focus:outline-none transition-all"
+                        />
+                      </div>
+
+                      <div>
+                        <label className="block text-sm font-semibold text-gray-300 mb-2">
+                          💬 WhatsApp
+                        </label>
+                        <input
+                          type="text"
+                          placeholder="+33 6 12 34 56 78"
+                          value={editingPlug?.socialNetworks?.whatsapp || ''}
+                          onChange={(e) => editingPlug
+                            ? setEditingPlug({...editingPlug, socialNetworks: {...(editingPlug.socialNetworks || {}), whatsapp: e.target.value}})
+                            : setNewPlug({...newPlug, socialNetworks: {...newPlug.socialNetworks, whatsapp: e.target.value}})
+                          }
+                          className="w-full px-4 py-3 bg-gray-800 border-2 border-gray-600 rounded-xl text-white placeholder-gray-400 focus:border-green-500 focus:outline-none transition-all"
+                        />
+                      </div>
+
+                      <div>
+                        <label className="block text-sm font-semibold text-gray-300 mb-2">
+                          ✈️ Telegram
+                        </label>
+                        <input
+                          type="text"
+                          placeholder="@username"
+                          value={editingPlug?.socialNetworks?.telegram || ''}
+                          onChange={(e) => editingPlug
+                            ? setEditingPlug({...editingPlug, socialNetworks: {...(editingPlug.socialNetworks || {}), telegram: e.target.value}})
+                            : setNewPlug({...newPlug, socialNetworks: {...newPlug.socialNetworks, telegram: e.target.value}})
+                          }
+                          className="w-full px-4 py-3 bg-gray-800 border-2 border-gray-600 rounded-xl text-white placeholder-gray-400 focus:border-blue-500 focus:outline-none transition-all"
+                        />
+                      </div>
+
+                      <div>
+                        <label className="block text-sm font-semibold text-gray-300 mb-2">
+                          🔒 Signal
+                        </label>
+                        <input
+                          type="text"
+                          placeholder="+33 6 12 34 56 78"
+                          value={editingPlug?.socialNetworks?.signal || ''}
+                          onChange={(e) => editingPlug
+                            ? setEditingPlug({...editingPlug, socialNetworks: {...(editingPlug.socialNetworks || {}), signal: e.target.value}})
+                            : setNewPlug({...newPlug, socialNetworks: {...newPlug.socialNetworks, signal: e.target.value}})
+                          }
+                          className="w-full px-4 py-3 bg-gray-800 border-2 border-gray-600 rounded-xl text-white placeholder-gray-400 focus:border-blue-600 focus:outline-none transition-all"
+                        />
+                      </div>
+
+                      <div>
+                        <label className="block text-sm font-semibold text-gray-300 mb-2">
+                          🔐 Threema
+                        </label>
+                        <input
+                          type="text"
+                          placeholder="ABCD1234"
+                          value={editingPlug?.socialNetworks?.threema || ''}
+                          onChange={(e) => editingPlug
+                            ? setEditingPlug({...editingPlug, socialNetworks: {...(editingPlug.socialNetworks || {}), threema: e.target.value}})
+                            : setNewPlug({...newPlug, socialNetworks: {...newPlug.socialNetworks, threema: e.target.value}})
+                          }
+                          className="w-full px-4 py-3 bg-gray-800 border-2 border-gray-600 rounded-xl text-white placeholder-gray-400 focus:border-gray-500 focus:outline-none transition-all"
+                        />
+                      </div>
+
+                      <div>
+                        <label className="block text-sm font-semibold text-gray-300 mb-2">
+                          🥔 Potato
+                        </label>
+                        <input
+                          type="text"
+                          placeholder="username"
+                          value={editingPlug?.socialNetworks?.potato || ''}
+                          onChange={(e) => editingPlug
+                            ? setEditingPlug({...editingPlug, socialNetworks: {...(editingPlug.socialNetworks || {}), potato: e.target.value}})
+                            : setNewPlug({...newPlug, socialNetworks: {...newPlug.socialNetworks, potato: e.target.value}})
+                          }
+                          className="w-full px-4 py-3 bg-gray-800 border-2 border-gray-600 rounded-xl text-white placeholder-gray-400 focus:border-orange-500 focus:outline-none transition-all"
+                        />
+                      </div>
+
+                      <div>
+                        <label className="block text-sm font-semibold text-gray-300 mb-2">
+                          🌐 Autre
+                        </label>
+                        <input
+                          type="text"
+                          placeholder="Autre réseau social"
+                          value={editingPlug?.socialNetworks?.other || ''}
+                          onChange={(e) => editingPlug
+                            ? setEditingPlug({...editingPlug, socialNetworks: {...(editingPlug.socialNetworks || {}), other: e.target.value}})
+                            : setNewPlug({...newPlug, socialNetworks: {...newPlug.socialNetworks, other: e.target.value}})
+                          }
+                          className="w-full px-4 py-3 bg-gray-800 border-2 border-gray-600 rounded-xl text-white placeholder-gray-400 focus:border-gray-500 focus:outline-none transition-all"
+                        />
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Actions */}
+                  <div className="flex gap-4 pt-4">
+                    <button
+                      onClick={() => {
+                        setShowAddPlug(false)
+                        setEditingPlug(null)
+                      }}
+                      className="flex-1 px-6 py-3 bg-gray-700 hover:bg-gray-600 text-white rounded-xl font-semibold transition-all"
+                    >
+                      Annuler
+                    </button>
+                    <button
+                      onClick={editingPlug ? handleUpdatePlug : handleAddPlug}
+                      className="flex-1 px-6 py-3 bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white rounded-xl font-semibold transition-all flex items-center justify-center gap-2"
+                    >
+                      <CheckIcon className="w-5 h-5" />
+                      {editingPlug ? 'Mettre à jour' : 'Ajouter le plug'}
+                    </button>
+                  </div>
                 </div>
               </div>
             </motion.div>
