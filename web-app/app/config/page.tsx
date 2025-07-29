@@ -50,6 +50,8 @@ export default function ConfigPage() {
   const [welcomeMessage, setWelcomeMessage] = useState('')
   const [globalMessage, setGlobalMessage] = useState('')
   const [socialNetworks, setSocialNetworks] = useState<any>({})
+  const [shopSocialNetworks, setShopSocialNetworks] = useState<any[]>([])
+  const [showAddSocialNetwork, setShowAddSocialNetwork] = useState(false)
   const [newProduct, setNewProduct] = useState({
     title: '',
     description: '',
@@ -115,8 +117,41 @@ export default function ConfigPage() {
   useEffect(() => {
     if (settings) {
       setWelcomeMessage(settings.welcomeMessage || '')
+      
+      // Charger les réseaux sociaux
+      if (settings.socialNetworks) {
+        const networksArray = Object.entries(settings.socialNetworks).map(([key, value]: [string, any]) => ({
+          id: key,
+          name: typeof value === 'object' ? value.name : key.charAt(0).toUpperCase() + key.slice(1),
+          emoji: typeof value === 'object' ? value.emoji : getDefaultEmoji(key),
+          link: typeof value === 'object' ? value.link : value
+        }))
+        setShopSocialNetworks(networksArray)
+      }
     }
   }, [settings])
+
+  const getDefaultEmoji = (key: string) => {
+    const emojis: any = {
+      instagram: '📷',
+      snapchat: '👻',
+      telegram: '✈️',
+      whatsapp: '💬',
+      signal: '🔒',
+      tiktok: '🎵'
+    }
+    return emojis[key] || '🔗'
+  }
+
+  // Load products
+  useEffect(() => {
+    if (isAuthenticated) {
+      fetch('/api/products')
+        .then(res => res.json())
+        .then(data => setProducts(data || []))
+        .catch(err => console.error('Error loading products:', err))
+    }
+  }, [isAuthenticated])
   
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -290,6 +325,36 @@ export default function ConfigPage() {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ socialNetworks })
+      })
+      
+      if (res.ok) {
+        toast.success('Réseaux sociaux mis à jour !')
+        mutate('/api/settings')
+      }
+    } catch (error) {
+      toast.error('Erreur lors de la mise à jour')
+    }
+  }
+
+  const handleSaveShopSocialNetworks = async () => {
+    try {
+      // Convertir en format objet pour la compatibilité
+      const socialNetworksObject = shopSocialNetworks.reduce((acc, network) => {
+        if (network.name && network.link) {
+          const key = network.name.toLowerCase().replace(/\s+/g, '')
+          acc[key] = {
+            name: network.name,
+            emoji: network.emoji || '🔗',
+            link: network.link
+          }
+        }
+        return acc
+      }, {})
+
+      const res = await fetch('/api/settings', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ socialNetworks: socialNetworksObject })
       })
       
       if (res.ok) {
@@ -865,7 +930,16 @@ export default function ConfigPage() {
               {/* Social Networks */}
               {activeTab === 'social' && (
                 <div className="space-y-6 max-w-4xl">
-                  <h1 className="text-3xl font-bold">Réseaux Sociaux de la Boutique</h1>
+                  <div className="flex justify-between items-center">
+                    <h1 className="text-3xl font-bold">Réseaux Sociaux de la Boutique</h1>
+                    <button
+                      onClick={() => setShowAddSocialNetwork(true)}
+                      className="btn-primary flex items-center gap-2"
+                    >
+                      <PlusIcon className="w-5 h-5" />
+                      Ajouter un réseau
+                    </button>
+                  </div>
                   
                   <div className="glass-card p-6">
                     <h2 className="text-xl font-bold mb-6">Gérer les réseaux sociaux</h2>
@@ -874,34 +948,69 @@ export default function ConfigPage() {
                     </p>
                     
                     <div className="space-y-4">
-                      {[
-                        { key: 'instagram', label: 'Instagram', icon: '📷', placeholder: '@username' },
-                        { key: 'snapchat', label: 'Snapchat', icon: '👻', placeholder: 'username' },
-                        { key: 'telegram', label: 'Telegram', icon: '✈️', placeholder: '@username ou lien' },
-                        { key: 'whatsapp', label: 'WhatsApp', icon: '💬', placeholder: '+33612345678' },
-                        { key: 'signal', label: 'Signal', icon: '🔒', placeholder: '+33612345678' },
-                        { key: 'tiktok', label: 'TikTok', icon: '🎵', placeholder: '@username' }
-                      ].map((network) => (
-                        <div key={network.key} className="flex items-center gap-4">
-                          <span className="text-3xl w-12">{network.icon}</span>
-                          <div className="flex-1">
-                            <label className="block text-sm font-medium text-gray-300 mb-1">
-                              {network.label}
-                            </label>
-                            <input
-                              type="text"
-                              placeholder={network.placeholder}
-                              value={socialNetworks[network.key] || ''}
-                              onChange={(e) => handleUpdateSocialNetwork(network.key, e.target.value)}
-                              className="w-full px-4 py-2 bg-white/10 border border-white/20 rounded-lg focus:border-primary focus:outline-none transition-colors"
-                            />
-                          </div>
+                      {shopSocialNetworks.map((network, index) => (
+                        <div key={network.id || index} className="flex items-center gap-4 p-4 bg-gray-800 rounded-lg">
+                          {/* Emoji */}
+                          <input
+                            type="text"
+                            value={network.emoji}
+                            onChange={(e) => {
+                              const updated = [...shopSocialNetworks]
+                              updated[index].emoji = e.target.value.slice(-2)
+                              setShopSocialNetworks(updated)
+                            }}
+                            className="w-16 px-2 py-2 bg-white/10 border border-white/20 rounded-lg text-center text-2xl"
+                            maxLength={2}
+                          />
+                          
+                          {/* Name */}
+                          <input
+                            type="text"
+                            value={network.name}
+                            onChange={(e) => {
+                              const updated = [...shopSocialNetworks]
+                              updated[index].name = e.target.value
+                              setShopSocialNetworks(updated)
+                            }}
+                            placeholder="Nom du réseau"
+                            className="flex-1 px-4 py-2 bg-white/10 border border-white/20 rounded-lg"
+                          />
+                          
+                          {/* Link */}
+                          <input
+                            type="text"
+                            value={network.link}
+                            onChange={(e) => {
+                              const updated = [...shopSocialNetworks]
+                              updated[index].link = e.target.value
+                              setShopSocialNetworks(updated)
+                            }}
+                            placeholder="Lien ou @username"
+                            className="flex-1 px-4 py-2 bg-white/10 border border-white/20 rounded-lg"
+                          />
+                          
+                          {/* Delete */}
+                          <button
+                            onClick={() => {
+                              const updated = shopSocialNetworks.filter((_, i) => i !== index)
+                              setShopSocialNetworks(updated)
+                            }}
+                            className="p-2 bg-red-600/20 text-red-400 rounded-lg hover:bg-red-600/30 transition-colors"
+                          >
+                            <TrashIcon className="w-5 h-5" />
+                          </button>
                         </div>
                       ))}
+                      
+                      {shopSocialNetworks.length === 0 && (
+                        <p className="text-gray-500 text-center py-8">
+                          Aucun réseau social configuré. Cliquez sur "Ajouter un réseau" pour commencer.
+                        </p>
+                      )}
                     </div>
                     
                     <button
-                      onClick={handleSaveSocialNetworks}
+                      onClick={handleSaveShopSocialNetworks}
                       className="btn-primary mt-6 flex items-center gap-2"
                     >
                       <CheckIcon className="w-5 h-5" />
@@ -1535,6 +1644,66 @@ export default function ConfigPage() {
                     </button>
                   </div>
                 </div>
+              </div>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
+      {/* Add Social Network Modal */}
+      <AnimatePresence>
+        {showAddSocialNetwork && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="fixed inset-0 bg-black/80 backdrop-blur-sm z-50 flex items-center justify-center p-4"
+            onClick={() => setShowAddSocialNetwork(false)}
+          >
+            <motion.div
+              initial={{ scale: 0.95, opacity: 0 }}
+              animate={{ scale: 1, opacity: 1 }}
+              exit={{ scale: 0.95, opacity: 0 }}
+              className="bg-gray-900 rounded-2xl p-6 max-w-md w-full"
+              onClick={(e) => e.stopPropagation()}
+            >
+              <h3 className="text-xl font-bold mb-4">Ajouter un réseau social</h3>
+              
+              <div className="space-y-4">
+                {/* Emoji suggestions */}
+                <div>
+                  <label className="block text-sm font-medium text-gray-300 mb-2">
+                    Choisir un emoji
+                  </label>
+                  <div className="flex flex-wrap gap-2">
+                    {['📷', '👻', '✈️', '💬', '🎵', '🔗', '📱', '💼', '🛍️', '🎮', '📧', '🌐'].map(emoji => (
+                      <button
+                        key={emoji}
+                        type="button"
+                        onClick={() => {
+                          const newNetwork = {
+                            id: Date.now().toString(),
+                            emoji,
+                            name: '',
+                            link: ''
+                          }
+                          setShopSocialNetworks([...shopSocialNetworks, newNetwork])
+                          setShowAddSocialNetwork(false)
+                        }}
+                        className="p-3 bg-gray-800 hover:bg-gray-700 rounded-lg transition-colors text-2xl"
+                      >
+                        {emoji}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+                
+                <button
+                  onClick={() => setShowAddSocialNetwork(false)}
+                  className="w-full px-4 py-2 bg-gray-700 text-white rounded-lg hover:bg-gray-600 transition-colors"
+                >
+                  Annuler
+                </button>
               </div>
             </motion.div>
           </motion.div>

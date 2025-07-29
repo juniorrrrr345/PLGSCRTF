@@ -11,56 +11,79 @@ export default function SocialPage() {
   const { data: social } = useSWR('/api/social', fetcher)
   const [hoveredIndex, setHoveredIndex] = useState<number | null>(null)
 
-  const socialPlatforms = [
-    { 
-      name: 'Instagram', 
-      icon: '📷', 
-      color: 'from-purple-600 to-pink-600',
-      bgColor: 'bg-gradient-to-br from-purple-600 to-pink-600',
-      shadowColor: 'shadow-purple-500/50',
-      link: social?.instagram 
-    },
-    { 
-      name: 'Snapchat', 
-      icon: '👻', 
-      color: 'from-yellow-400 to-yellow-500',
-      bgColor: 'bg-gradient-to-br from-yellow-400 to-yellow-500',
-      shadowColor: 'shadow-yellow-400/50',
-      link: social?.snapchat 
-    },
-    { 
-      name: 'Telegram', 
-      icon: '✈️', 
-      color: 'from-blue-500 to-blue-600',
-      bgColor: 'bg-gradient-to-br from-blue-500 to-blue-600',
-      shadowColor: 'shadow-blue-500/50',
-      link: social?.telegram 
-    },
-    { 
-      name: 'WhatsApp', 
-      icon: '💬', 
-      color: 'from-green-500 to-green-600',
-      bgColor: 'bg-gradient-to-br from-green-500 to-green-600',
-      shadowColor: 'shadow-green-500/50',
-      link: social?.whatsapp 
-    },
-    { 
-      name: 'Signal', 
-      icon: '🔒', 
-      color: 'from-blue-600 to-indigo-700',
-      bgColor: 'bg-gradient-to-br from-blue-600 to-indigo-700',
-      shadowColor: 'shadow-indigo-600/50',
-      link: social?.signal 
-    },
-    { 
-      name: 'TikTok', 
-      icon: '🎵', 
-      color: 'from-pink-600 to-purple-700',
-      bgColor: 'bg-gradient-to-br from-pink-600 to-purple-700',
-      shadowColor: 'shadow-pink-600/50',
-      link: social?.tiktok 
+  // Convertir les réseaux sociaux du format objet
+  const socialPlatforms = social ? Object.entries(social).map(([key, value]: [string, any]) => {
+    // Si c'est un objet avec les nouvelles propriétés
+    if (typeof value === 'object' && value.name) {
+      return {
+        name: value.name,
+        icon: value.emoji || '🔗',
+        color: 'from-blue-600 to-purple-600',
+        bgColor: 'bg-gradient-to-br from-blue-600 to-purple-600',
+        shadowColor: 'shadow-blue-600/50',
+        link: value.link
+      }
     }
-  ]
+    
+    // Ancien format pour la compatibilité
+    const defaultData: any = {
+      instagram: { 
+        name: 'Instagram',
+        icon: '📷', 
+        color: 'from-purple-600 to-pink-600',
+        bgColor: 'bg-gradient-to-br from-purple-600 to-pink-600',
+        shadowColor: 'shadow-purple-500/50'
+      },
+      snapchat: { 
+        name: 'Snapchat',
+        icon: '👻', 
+        color: 'from-yellow-400 to-yellow-500',
+        bgColor: 'bg-gradient-to-br from-yellow-400 to-yellow-500',
+        shadowColor: 'shadow-yellow-400/50'
+      },
+      telegram: { 
+        name: 'Telegram',
+        icon: '✈️', 
+        color: 'from-blue-500 to-blue-600',
+        bgColor: 'bg-gradient-to-br from-blue-500 to-blue-600',
+        shadowColor: 'shadow-blue-500/50'
+      },
+      whatsapp: { 
+        name: 'WhatsApp',
+        icon: '💬', 
+        color: 'from-green-500 to-green-600',
+        bgColor: 'bg-gradient-to-br from-green-500 to-green-600',
+        shadowColor: 'shadow-green-500/50'
+      },
+      signal: { 
+        name: 'Signal',
+        icon: '🔒', 
+        color: 'from-blue-600 to-indigo-700',
+        bgColor: 'bg-gradient-to-br from-blue-600 to-indigo-700',
+        shadowColor: 'shadow-indigo-600/50'
+      },
+      tiktok: { 
+        name: 'TikTok',
+        icon: '🎵', 
+        color: 'from-pink-600 to-purple-700',
+        bgColor: 'bg-gradient-to-br from-pink-600 to-purple-700',
+        shadowColor: 'shadow-pink-600/50'
+      }
+    }
+    
+    const data = defaultData[key] || { 
+      name: key.charAt(0).toUpperCase() + key.slice(1),
+      icon: '🔗', 
+      color: 'from-gray-600 to-gray-700',
+      bgColor: 'bg-gradient-to-br from-gray-600 to-gray-700',
+      shadowColor: 'shadow-gray-600/50'
+    }
+    
+    return {
+      ...data,
+      link: value
+    }
+  }).filter(network => network.link) : []
 
   return (
     <div className="min-h-screen relative">
