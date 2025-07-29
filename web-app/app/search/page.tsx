@@ -67,6 +67,23 @@ export default function SearchPage() {
   // Obtenir les départements disponibles pour le pays sélectionné
   const availableDepartments = locations?.countries?.find((c: any) => c.code === selectedCountry)?.departments || []
 
+  const handleLike = async () => {
+    if (!selectedPlug) return
+    
+    try {
+      const res = await fetch(`/api/plugs/${selectedPlug._id}/like`, {
+        method: 'POST'
+      })
+      
+      if (res.ok) {
+        // Rafraîchir les données
+        mutate('/api/plugs')
+      }
+    } catch (error) {
+      console.error('Error liking plug:', error)
+    }
+  }
+
   return (
     <div className="min-h-screen pt-20 px-4">
       <div className="max-w-7xl mx-auto">
@@ -223,7 +240,10 @@ export default function SearchPage() {
             >
               <PlugCard 
                 plug={plug} 
-                onClick={() => setSelectedPlug(plug)}
+                onClick={() => {
+                  setSelectedPlug(plug)
+                  setIsModalOpen(true)
+                }}
               />
             </motion.div>
           ))}
@@ -241,12 +261,15 @@ export default function SearchPage() {
       </div>
 
       {/* Modal */}
-      {selectedPlug && (
-        <PlugModal
-          plug={selectedPlug}
-          onClose={() => setSelectedPlug(null)}
-        />
-      )}
+      <PlugModal
+        plug={selectedPlug}
+        isOpen={isModalOpen}
+        onClose={() => {
+          setIsModalOpen(false)
+          setSelectedPlug(null)
+        }}
+        onLike={handleLike}
+      />
     </div>
   )
 }
