@@ -20,6 +20,7 @@ export default function Navbar() {
   const navItems = [
     { href: '/', label: 'Accueil' },
     { href: '/plugs', label: 'Plugs' },
+    { href: '/products', label: 'Produits' },
     { href: '/search', label: 'Rechercher' },
     { href: '/social', label: 'Réseaux' },
   ]

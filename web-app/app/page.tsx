@@ -208,6 +208,9 @@ export default function Home() {
               <Link href="/plugs" className="glow-button">
                 Voir tous les Plugs
               </Link>
+              <Link href="/products" className="glow-button">
+                Découvrir les Produits
+              </Link>
               <Link href="/search" className="px-8 py-4 rounded-full border-2 border-white/20 text-white font-bold transition-all hover:border-accent hover:text-accent">
                 Rechercher par zone
               </Link>
