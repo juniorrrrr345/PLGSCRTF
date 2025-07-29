@@ -7,30 +7,27 @@ export default function SplashScreen({ onComplete }: { onComplete: () => void })
   const [progress, setProgress] = useState(0)
 
   useEffect(() => {
-    // Simuler le chargement
+    // Chargement plus rapide
     const interval = setInterval(() => {
       setProgress(prev => {
         if (prev >= 100) {
           clearInterval(interval)
-          setTimeout(onComplete, 500)
+          setTimeout(onComplete, 300)
           return 100
         }
-        return prev + 2
+        return prev + 5
       })
-    }, 30)
+    }, 20)
 
     return () => clearInterval(interval)
   }, [onComplete])
 
   return (
     <motion.div
-      initial={{ opacity: 0 }}
-      animate={{ opacity: 1 }}
+      initial={{ opacity: 1 }}
       exit={{ opacity: 0 }}
+      transition={{ duration: 0.5 }}
       className="fixed inset-0 z-50 flex items-center justify-center"
-      style={{
-        background: 'radial-gradient(circle at center, rgba(59, 130, 246, 0.1) 0%, rgba(0, 0, 0, 0.9) 100%)'
-      }}
     >
       <div className="text-center">
         {/* Logo animé */}
@@ -95,29 +92,7 @@ export default function SplashScreen({ onComplete }: { onComplete: () => void })
           </motion.p>
         </motion.div>
 
-        {/* Particules animées */}
-        <div className="absolute inset-0 overflow-hidden pointer-events-none">
-          {[...Array(20)].map((_, i) => (
-            <motion.div
-              key={i}
-              className="absolute w-2 h-2 bg-blue-500/30 rounded-full"
-              initial={{
-                x: Math.random() * window.innerWidth,
-                y: window.innerHeight + 100,
-              }}
-              animate={{
-                y: -100,
-                x: Math.random() * window.innerWidth,
-              }}
-              transition={{
-                duration: Math.random() * 5 + 5,
-                repeat: Infinity,
-                delay: Math.random() * 5,
-                ease: "linear"
-              }}
-            />
-          ))}
-        </div>
+
       </div>
     </motion.div>
   )

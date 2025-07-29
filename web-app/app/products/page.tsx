@@ -63,12 +63,7 @@ export default function ProductsPage() {
                   />
                 )}
                 
-                {/* Price Badge */}
-                {product.price > 0 && (
-                  <div className="absolute top-2 right-2 bg-gradient-to-r from-blue-600 to-purple-600 text-white px-3 py-1 rounded-full text-sm font-bold">
-                    {product.price}€
-                  </div>
-                )}
+
               </div>
 
               {/* Info */}
@@ -77,7 +72,10 @@ export default function ProductsPage() {
                 <p className="text-gray-400 text-sm mb-3 line-clamp-2">{product.description}</p>
                 
                 <div className="flex items-center justify-between">
-                  <span className="text-sm text-gray-500">{product.socialNetwork}</span>
+                  <div className="flex items-center gap-2">
+                    <span className="text-lg">{product.socialEmoji || '🔗'}</span>
+                    <span className="text-sm text-gray-500">{product.socialNetwork}</span>
+                  </div>
                   <motion.div
                     whileHover={{ scale: 1.1 }}
                     whileTap={{ scale: 0.95 }}
@@ -137,11 +135,7 @@ export default function ProductsPage() {
               <h2 className="text-2xl font-bold mb-3">{selectedProduct.title}</h2>
               <p className="text-gray-400 mb-6">{selectedProduct.description}</p>
               
-              {selectedProduct.price > 0 && (
-                <div className="text-3xl font-bold gradient-text mb-6">
-                  {selectedProduct.price}€
-                </div>
-              )}
+
 
               <a
                 href={selectedProduct.socialLink}
@@ -149,7 +143,7 @@ export default function ProductsPage() {
                 rel="noopener noreferrer"
                 className="btn-primary w-full flex items-center justify-center gap-2"
               >
-                <LinkIcon className="w-5 h-5" />
+                <span className="text-xl">{selectedProduct.socialEmoji || '🔗'}</span>
                 Contacter sur {selectedProduct.socialNetwork}
               </a>
             </div>

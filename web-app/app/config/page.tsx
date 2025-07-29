@@ -826,9 +826,9 @@ export default function ConfigPage() {
                           href={product.socialLink}
                           target="_blank"
                           rel="noopener noreferrer"
-                          className="text-blue-400 hover:text-blue-300 text-sm flex items-center gap-1 mb-4"
+                          className="text-blue-400 hover:text-blue-300 text-sm flex items-center gap-2 mb-4"
                         >
-                          <LinkIcon className="w-4 h-4" />
+                          <span className="text-lg">{product.socialEmoji || '🔗'}</span>
                           {product.socialNetwork}
                         </a>
                         
@@ -1332,7 +1332,7 @@ export default function ConfigPage() {
               initial={{ scale: 0.95, opacity: 0 }}
               animate={{ scale: 1, opacity: 1 }}
               exit={{ scale: 0.95, opacity: 0 }}
-              className="bg-gray-900 rounded-3xl w-full max-w-2xl my-8 shadow-2xl"
+              className="bg-gray-900 rounded-3xl w-full max-w-2xl max-h-[90vh] overflow-y-auto my-8 shadow-2xl mx-4"
               onClick={(e) => e.stopPropagation()}
             >
               {/* Header */}
@@ -1427,71 +1427,92 @@ export default function ConfigPage() {
                     </p>
                   </div>
                   
-                  {/* Social Link */}
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    <div>
-                      <label className="block text-sm font-medium text-gray-300 mb-2">
-                        Réseau social *
-                      </label>
-                      <select
-                        value={editingProduct?.socialNetwork || newProduct?.socialNetwork || 'Instagram'}
-                        onChange={(e) => {
-                          if (editingProduct) {
-                            setEditingProduct({...editingProduct, socialNetwork: e.target.value})
-                          } else {
-                            setNewProduct({...newProduct, socialNetwork: e.target.value})
-                          }
-                        }}
-                        className="w-full px-4 py-3 bg-white/10 border border-white/20 rounded-lg focus:border-primary focus:outline-none transition-colors"
-                      >
-                        <option value="Instagram">Instagram</option>
-                        <option value="Snapchat">Snapchat</option>
-                        <option value="Telegram">Telegram</option>
-                        <option value="WhatsApp">WhatsApp</option>
-                        <option value="TikTok">TikTok</option>
-                        <option value="Link">Autre lien</option>
-                      </select>
-                    </div>
+                  {/* Social Network */}
+                  <div className="space-y-4">
+                    <h4 className="text-sm font-semibold text-gray-300">Réseau social du produit *</h4>
                     
-                    <div>
-                      <label className="block text-sm font-medium text-gray-300 mb-2">
-                        Lien du réseau *
-                      </label>
-                      <input
-                        type="url"
-                        placeholder="https://..."
-                        value={editingProduct?.socialLink || newProduct?.socialLink || ''}
-                        onChange={(e) => {
-                          if (editingProduct) {
-                            setEditingProduct({...editingProduct, socialLink: e.target.value})
-                          } else {
-                            setNewProduct({...newProduct, socialLink: e.target.value})
-                          }
-                        }}
-                        className="w-full px-4 py-3 bg-white/10 border border-white/20 rounded-lg focus:border-primary focus:outline-none transition-colors"
-                        required
-                      />
+                    <div className="space-y-4 sm:space-y-0 sm:grid sm:grid-cols-3 sm:gap-4">
+                      {/* Emoji */}
+                      <div>
+                        <label className="block text-sm font-medium text-gray-300 mb-2">
+                          Emoji
+                        </label>
+                        <input
+                          type="text"
+                          placeholder="📷"
+                          value={editingProduct?.socialEmoji || newProduct?.socialEmoji || ''}
+                          onChange={(e) => {
+                            const emoji = e.target.value.slice(-2) // Garder seulement le dernier emoji
+                            if (editingProduct) {
+                              setEditingProduct({...editingProduct, socialEmoji: emoji})
+                            } else {
+                              setNewProduct({...newProduct, socialEmoji: emoji})
+                            }
+                          }}
+                          className="w-full px-4 py-3 bg-white/10 border border-white/20 rounded-lg focus:border-primary focus:outline-none transition-colors text-center text-2xl"
+                          maxLength={2}
+                        />
+                        <div className="flex flex-wrap gap-2 mt-2">
+                          {['📷', '👻', '✈️', '💬', '🎵', '🔗', '📱', '💼', '🛍️', '🎮'].map(emoji => (
+                            <button
+                              key={emoji}
+                              type="button"
+                              onClick={() => {
+                                if (editingProduct) {
+                                  setEditingProduct({...editingProduct, socialEmoji: emoji})
+                                } else {
+                                  setNewProduct({...newProduct, socialEmoji: emoji})
+                                }
+                              }}
+                              className="p-2 bg-gray-800 hover:bg-gray-700 rounded transition-colors text-xl"
+                            >
+                              {emoji}
+                            </button>
+                          ))}
+                        </div>
+                      </div>
+                      
+                      {/* Nom du réseau */}
+                      <div>
+                        <label className="block text-sm font-medium text-gray-300 mb-2">
+                          Nom du réseau
+                        </label>
+                        <input
+                          type="text"
+                          placeholder="Instagram"
+                          value={editingProduct?.socialNetwork || newProduct?.socialNetwork || ''}
+                          onChange={(e) => {
+                            if (editingProduct) {
+                              setEditingProduct({...editingProduct, socialNetwork: e.target.value})
+                            } else {
+                              setNewProduct({...newProduct, socialNetwork: e.target.value})
+                            }
+                          }}
+                          className="w-full px-4 py-3 bg-white/10 border border-white/20 rounded-lg focus:border-primary focus:outline-none transition-colors"
+                        />
+                      </div>
+                      
+                      {/* Lien */}
+                      <div>
+                        <label className="block text-sm font-medium text-gray-300 mb-2">
+                          Lien du réseau
+                        </label>
+                        <input
+                          type="url"
+                          placeholder="https://..."
+                          value={editingProduct?.socialLink || newProduct?.socialLink || ''}
+                          onChange={(e) => {
+                            if (editingProduct) {
+                              setEditingProduct({...editingProduct, socialLink: e.target.value})
+                            } else {
+                              setNewProduct({...newProduct, socialLink: e.target.value})
+                            }
+                          }}
+                          className="w-full px-4 py-3 bg-white/10 border border-white/20 rounded-lg focus:border-primary focus:outline-none transition-colors"
+                          required
+                        />
+                      </div>
                     </div>
-                  </div>
-                  
-                  {/* Price (optional) */}
-                  <div>
-                    <label className="block text-sm font-medium text-gray-300 mb-2">
-                      Prix (optionnel)
-                    </label>
-                    <input
-                      type="number"
-                      placeholder="0"
-                      value={editingProduct?.price || newProduct?.price || ''}
-                      onChange={(e) => {
-                        if (editingProduct) {
-                          setEditingProduct({...editingProduct, price: parseFloat(e.target.value) || 0})
-                        } else {
-                          setNewProduct({...newProduct, price: parseFloat(e.target.value) || 0})
-                        }
-                      }}
-                      className="w-full px-4 py-3 bg-white/10 border border-white/20 rounded-lg focus:border-primary focus:outline-none transition-colors"
-                    />
                   </div>
                   
                   {/* Submit Button */}

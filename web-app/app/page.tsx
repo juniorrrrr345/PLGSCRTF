@@ -42,13 +42,17 @@ export default function Home() {
 
   return (
     <>
-      <AnimatePresence>
+      <AnimatePresence mode="wait">
         {showSplash && (
           <SplashScreen onComplete={() => setShowSplash(false)} />
         )}
       </AnimatePresence>
       
-      <div className="relative min-h-screen">
+      <motion.div 
+        initial={{ opacity: showSplash ? 0 : 1 }}
+        animate={{ opacity: showSplash ? 0 : 1 }}
+        transition={{ duration: 0.5 }}
+        className="relative min-h-screen">
       {/* Animated Background - Plus sombre pour meilleur contraste */}
       <div className="fixed inset-0 -z-10">
         <motion.div
@@ -145,7 +149,7 @@ export default function Home() {
           </motion.div>
         </div>
       </section>
-    </div>
+    </motion.div>
     </>
   )
 }
