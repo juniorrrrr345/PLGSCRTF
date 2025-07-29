@@ -33,7 +33,7 @@ export default function ScrollIndicator() {
 
   const scrollToBottom = () => {
     window.scrollTo({
-      top: document.documentElement.scrollHeight,
+      top: window.innerHeight * 0.8,
       behavior: 'smooth'
     })
   }
