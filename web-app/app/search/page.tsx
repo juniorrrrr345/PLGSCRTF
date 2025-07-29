@@ -64,7 +64,8 @@ export default function SearchPage() {
     }
   }, [plugs, searchTerm, selectedCountry, selectedDepartment, selectedMethods])
 
-  const availableDepartments = settings?.countries?.find((c: any) => c.code === selectedCountry)?.departments || []
+  // Obtenir les départements disponibles pour le pays sélectionné
+  const availableDepartments = locations?.countries?.find((c: any) => c.code === selectedCountry)?.departments || []
 
   return (
     <div className="min-h-screen pt-20 px-4">
