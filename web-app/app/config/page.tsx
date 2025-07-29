@@ -26,7 +26,8 @@ import {
   MapPinIcon,
   PhotoIcon,
   PaperAirplaneIcon,
-  Bars3Icon
+  Bars3Icon,
+  ShoppingBagIcon
 } from '@heroicons/react/24/outline'
 
 const fetcher = (url: string) => fetch(url).then(res => res.json())
@@ -39,6 +40,9 @@ export default function ConfigPage() {
   const [activeTab, setActiveTab] = useState('dashboard')
   const [showAddPlug, setShowAddPlug] = useState(false)
   const [editingPlug, setEditingPlug] = useState<any>(null)
+  const [showAddProduct, setShowAddProduct] = useState(false)
+  const [editingProduct, setEditingProduct] = useState<any>(null)
+  const [products, setProducts] = useState<any[]>([])
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
   const [isDesktop, setIsDesktop] = useState(false)
   
@@ -46,6 +50,15 @@ export default function ConfigPage() {
   const [welcomeMessage, setWelcomeMessage] = useState('')
   const [globalMessage, setGlobalMessage] = useState('')
   const [socialNetworks, setSocialNetworks] = useState<any>({})
+  const [newProduct, setNewProduct] = useState({
+    title: '',
+    description: '',
+    media: '',
+    mediaType: 'image',
+    socialLink: '',
+    socialNetwork: 'Instagram',
+    price: 0
+  })
   const [newPlug, setNewPlug] = useState<{
     name: string
     photo: string
@@ -288,6 +301,80 @@ export default function ConfigPage() {
     }
   }
 
+  const handleAddProduct = async () => {
+    if (!newProduct.title || !newProduct.description || !newProduct.media || !newProduct.socialLink) {
+      toast.error('Veuillez remplir tous les champs obligatoires')
+      return
+    }
+
+    try {
+      const res = await fetch('/api/products', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(newProduct)
+      })
+
+      if (res.ok) {
+        const product = await res.json()
+        setProducts([...products, product])
+        toast.success('Produit ajouté avec succès !')
+        setShowAddProduct(false)
+        setNewProduct({
+          title: '',
+          description: '',
+          media: '',
+          mediaType: 'image',
+          socialLink: '',
+          socialNetwork: 'Instagram',
+          price: 0
+        })
+      }
+    } catch (error) {
+      toast.error('Erreur lors de l\'ajout du produit')
+    }
+  }
+
+  const handleUpdateProduct = async () => {
+    if (!editingProduct.title || !editingProduct.description || !editingProduct.media || !editingProduct.socialLink) {
+      toast.error('Veuillez remplir tous les champs obligatoires')
+      return
+    }
+
+    try {
+      const res = await fetch(`/api/products/${editingProduct._id}`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(editingProduct)
+      })
+
+      if (res.ok) {
+        const updatedProduct = await res.json()
+        setProducts(products.map(p => p._id === updatedProduct._id ? updatedProduct : p))
+        toast.success('Produit mis à jour !')
+        setEditingProduct(null)
+      }
+    } catch (error) {
+      toast.error('Erreur lors de la mise à jour')
+    }
+  }
+
+  const handleDeleteProduct = async (productId: string) => {
+    if (!confirm('Êtes-vous sûr de vouloir supprimer ce produit ?')) return
+    
+    try {
+      const res = await fetch(`/api/products/${productId}`, {
+        method: 'DELETE'
+      })
+      
+      if (res.ok) {
+        toast.success('Produit supprimé')
+        setProducts(products.filter(p => p._id !== productId))
+      }
+    } catch (error) {
+      toast.error('Erreur lors de la suppression')
+    }
+  }
+
   const handleDeletePlug = async (plugId: string) => {
     if (!confirm('Êtes-vous sûr de vouloir supprimer ce plug ?')) return
     
@@ -376,6 +463,7 @@ export default function ConfigPage() {
   const tabs = [
     { id: 'dashboard', label: 'Tableau de bord', icon: ChartBarIcon },
     { id: 'plugs', label: 'Plugs', icon: BoltIcon },
+    { id: 'products', label: 'Produits', icon: ShoppingBagIcon },
     { id: 'applications', label: 'Candidatures', icon: DocumentTextIcon },
     { id: 'social', label: 'Réseaux Sociaux', icon: LinkIcon },
     { id: 'settings', label: 'Paramètres', icon: CogIcon }
@@ -689,6 +777,86 @@ export default function ConfigPage() {
                           </div>
                         </motion.div>
                       ))}
+                    </div>
+                  )}
+                </div>
+              )}
+              
+              {/* Products */}
+              {activeTab === 'products' && (
+                <div className="space-y-6">
+                  <div className="flex justify-between items-center">
+                    <h1 className="text-3xl font-bold">Produits</h1>
+                    <button
+                      onClick={() => setShowAddProduct(true)}
+                      className="btn-primary flex items-center gap-2"
+                    >
+                      <PlusIcon className="w-5 h-5" />
+                      Ajouter un produit
+                    </button>
+                  </div>
+                  
+                  {/* Products Grid */}
+                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                    {products?.map((product: any) => (
+                      <div key={product._id} className="glass-card p-4">
+                        {/* Product Media */}
+                        <div className="relative aspect-square mb-4 rounded-lg overflow-hidden bg-gray-800">
+                          {product.mediaType === 'video' ? (
+                            <video 
+                              src={product.media} 
+                              controls
+                              className="w-full h-full object-cover"
+                            />
+                          ) : (
+                            <img 
+                              src={product.media} 
+                              alt={product.title}
+                              className="w-full h-full object-cover"
+                            />
+                          )}
+                        </div>
+                        
+                        {/* Product Info */}
+                        <h3 className="font-bold text-lg mb-2">{product.title}</h3>
+                        <p className="text-gray-400 text-sm mb-3 line-clamp-2">{product.description}</p>
+                        
+                        {/* Social Link */}
+                        <a 
+                          href={product.socialLink}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="text-blue-400 hover:text-blue-300 text-sm flex items-center gap-1 mb-4"
+                        >
+                          <LinkIcon className="w-4 h-4" />
+                          {product.socialNetwork}
+                        </a>
+                        
+                        {/* Actions */}
+                        <div className="flex gap-2">
+                          <button
+                            onClick={() => setEditingProduct(product)}
+                            className="flex-1 px-3 py-2 bg-blue-600/20 text-blue-400 rounded-lg hover:bg-blue-600/30 transition-colors flex items-center justify-center gap-2"
+                          >
+                            <PencilIcon className="w-4 h-4" />
+                            Modifier
+                          </button>
+                          <button
+                            onClick={() => handleDeleteProduct(product._id)}
+                            className="flex-1 px-3 py-2 bg-red-600/20 text-red-400 rounded-lg hover:bg-red-600/30 transition-colors flex items-center justify-center gap-2"
+                          >
+                            <TrashIcon className="w-4 h-4" />
+                            Supprimer
+                          </button>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                  
+                  {products?.length === 0 && (
+                    <div className="text-center py-12 text-gray-400">
+                      <ShoppingBagIcon className="w-16 h-16 mx-auto mb-4 opacity-50" />
+                      <p>Aucun produit pour le moment</p>
                     </div>
                   )}
                 </div>
@@ -1138,6 +1306,211 @@ export default function ConfigPage() {
                     >
                       <CheckIcon className="w-5 h-5" />
                       {editingPlug ? 'Mettre à jour' : 'Ajouter le plug'}
+                    </button>
+                  </div>
+                </div>
+              </div>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
+      {/* Add/Edit Product Modal */}
+      <AnimatePresence>
+        {(showAddProduct || editingProduct) && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="fixed inset-0 bg-black/90 backdrop-blur-sm z-50 flex items-center justify-center p-4 overflow-y-auto"
+            onClick={() => {
+              setShowAddProduct(false)
+              setEditingProduct(null)
+            }}
+          >
+            <motion.div
+              initial={{ scale: 0.95, opacity: 0 }}
+              animate={{ scale: 1, opacity: 1 }}
+              exit={{ scale: 0.95, opacity: 0 }}
+              className="bg-gray-900 rounded-3xl w-full max-w-2xl my-8 shadow-2xl"
+              onClick={(e) => e.stopPropagation()}
+            >
+              {/* Header */}
+              <div className="bg-gradient-to-r from-purple-600 to-pink-600 p-6 rounded-t-3xl">
+                <div className="flex justify-between items-center">
+                  <h2 className="text-3xl font-bold text-white">
+                    {editingProduct ? '✏️ Modifier le produit' : '➕ Ajouter un produit'}
+                  </h2>
+                  <button
+                    onClick={() => {
+                      setShowAddProduct(false)
+                      setEditingProduct(null)
+                    }}
+                    className="p-2 hover:bg-white/20 rounded-lg transition-colors"
+                  >
+                    <XMarkIcon className="w-6 h-6 text-white" />
+                  </button>
+                </div>
+              </div>
+              
+              {/* Form Content */}
+              <div className="p-8">
+                <div className="space-y-6">
+                  {/* Title */}
+                  <div>
+                    <label className="block text-sm font-medium text-gray-300 mb-2">
+                      Titre du produit *
+                    </label>
+                    <input
+                      type="text"
+                      placeholder="Ex: Pack Premium Instagram"
+                      value={editingProduct?.title || newProduct?.title || ''}
+                      onChange={(e) => {
+                        if (editingProduct) {
+                          setEditingProduct({...editingProduct, title: e.target.value})
+                        } else {
+                          setNewProduct({...newProduct, title: e.target.value})
+                        }
+                      }}
+                      className="w-full px-4 py-3 bg-white/10 border border-white/20 rounded-lg focus:border-primary focus:outline-none transition-colors"
+                      required
+                    />
+                  </div>
+                  
+                  {/* Description */}
+                  <div>
+                    <label className="block text-sm font-medium text-gray-300 mb-2">
+                      Description *
+                    </label>
+                    <textarea
+                      placeholder="Décrivez votre produit..."
+                      value={editingProduct?.description || newProduct?.description || ''}
+                      onChange={(e) => {
+                        if (editingProduct) {
+                          setEditingProduct({...editingProduct, description: e.target.value})
+                        } else {
+                          setNewProduct({...newProduct, description: e.target.value})
+                        }
+                      }}
+                      rows={3}
+                      className="w-full px-4 py-3 bg-white/10 border border-white/20 rounded-lg focus:border-primary focus:outline-none transition-colors resize-none"
+                      required
+                    />
+                  </div>
+                  
+                  {/* Media Upload */}
+                  <div>
+                    <label className="block text-sm font-medium text-gray-300 mb-2">
+                      Photo ou Vidéo *
+                    </label>
+                    <ImageUpload
+                      currentImage={editingProduct?.media || newProduct?.media}
+                      onUpload={(url) => {
+                        const isVideo = url.includes('.mp4') || url.includes('.webm') || url.includes('.mov')
+                        if (editingProduct) {
+                          setEditingProduct({
+                            ...editingProduct, 
+                            media: url,
+                            mediaType: isVideo ? 'video' : 'image'
+                          })
+                        } else {
+                          setNewProduct({
+                            ...newProduct, 
+                            media: url,
+                            mediaType: isVideo ? 'video' : 'image'
+                          })
+                        }
+                      }}
+                    />
+                    <p className="text-xs text-gray-400 mt-2">
+                      Formats acceptés: Images (JPG, PNG) ou Vidéos (MP4, WebM)
+                    </p>
+                  </div>
+                  
+                  {/* Social Link */}
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div>
+                      <label className="block text-sm font-medium text-gray-300 mb-2">
+                        Réseau social *
+                      </label>
+                      <select
+                        value={editingProduct?.socialNetwork || newProduct?.socialNetwork || 'Instagram'}
+                        onChange={(e) => {
+                          if (editingProduct) {
+                            setEditingProduct({...editingProduct, socialNetwork: e.target.value})
+                          } else {
+                            setNewProduct({...newProduct, socialNetwork: e.target.value})
+                          }
+                        }}
+                        className="w-full px-4 py-3 bg-white/10 border border-white/20 rounded-lg focus:border-primary focus:outline-none transition-colors"
+                      >
+                        <option value="Instagram">Instagram</option>
+                        <option value="Snapchat">Snapchat</option>
+                        <option value="Telegram">Telegram</option>
+                        <option value="WhatsApp">WhatsApp</option>
+                        <option value="TikTok">TikTok</option>
+                        <option value="Link">Autre lien</option>
+                      </select>
+                    </div>
+                    
+                    <div>
+                      <label className="block text-sm font-medium text-gray-300 mb-2">
+                        Lien du réseau *
+                      </label>
+                      <input
+                        type="url"
+                        placeholder="https://..."
+                        value={editingProduct?.socialLink || newProduct?.socialLink || ''}
+                        onChange={(e) => {
+                          if (editingProduct) {
+                            setEditingProduct({...editingProduct, socialLink: e.target.value})
+                          } else {
+                            setNewProduct({...newProduct, socialLink: e.target.value})
+                          }
+                        }}
+                        className="w-full px-4 py-3 bg-white/10 border border-white/20 rounded-lg focus:border-primary focus:outline-none transition-colors"
+                        required
+                      />
+                    </div>
+                  </div>
+                  
+                  {/* Price (optional) */}
+                  <div>
+                    <label className="block text-sm font-medium text-gray-300 mb-2">
+                      Prix (optionnel)
+                    </label>
+                    <input
+                      type="number"
+                      placeholder="0"
+                      value={editingProduct?.price || newProduct?.price || ''}
+                      onChange={(e) => {
+                        if (editingProduct) {
+                          setEditingProduct({...editingProduct, price: parseFloat(e.target.value) || 0})
+                        } else {
+                          setNewProduct({...newProduct, price: parseFloat(e.target.value) || 0})
+                        }
+                      }}
+                      className="w-full px-4 py-3 bg-white/10 border border-white/20 rounded-lg focus:border-primary focus:outline-none transition-colors"
+                    />
+                  </div>
+                  
+                  {/* Submit Button */}
+                  <div className="flex justify-end gap-4 pt-4">
+                    <button
+                      onClick={() => {
+                        setShowAddProduct(false)
+                        setEditingProduct(null)
+                      }}
+                      className="px-6 py-3 bg-gray-700 text-white rounded-lg hover:bg-gray-600 transition-colors"
+                    >
+                      Annuler
+                    </button>
+                    <button
+                      onClick={editingProduct ? handleUpdateProduct : handleAddProduct}
+                      className="btn-primary flex items-center gap-2"
+                    >
+                      <CheckIcon className="w-5 h-5" />
+                      {editingProduct ? 'Mettre à jour' : 'Ajouter le produit'}
                     </button>
                   </div>
                 </div>

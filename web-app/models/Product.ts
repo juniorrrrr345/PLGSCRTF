@@ -1,7 +1,7 @@
 import mongoose from 'mongoose'
 
 const productSchema = new mongoose.Schema({
-  name: {
+  title: {
     type: String,
     required: true
   },
@@ -9,48 +9,34 @@ const productSchema = new mongoose.Schema({
     type: String,
     required: true
   },
-  videos: [{
-    url: String,
-    publicId: String,
-    thumbnail: String
-  }],
-  images: [{
-    url: String,
-    publicId: String
-  }],
-  plugId: {
-    type: mongoose.Schema.Types.ObjectId,
-    ref: 'Plug',
+  media: {
+    type: String, // URL de la photo ou vidéo
     required: true
   },
-  socialNetworks: {
-    instagram: String,
-    snapchat: String,
-    telegram: String,
-    whatsapp: String,
-    other: String
+  mediaType: {
+    type: String,
+    enum: ['image', 'video'],
+    default: 'image'
+  },
+  socialLink: {
+    type: String, // Lien réseau social personnalisé
+    required: true
+  },
+  socialNetwork: {
+    type: String, // Nom du réseau (ex: Instagram, Telegram, etc)
+    default: 'Link'
   },
   price: {
-    type: Number,
-    required: true
-  },
-  category: {
-    type: String,
-    enum: ['electronics', 'fashion', 'accessories', 'other'],
-    default: 'other'
-  },
-  tags: [String],
-  views: {
-    type: Number,
-    default: 0
-  },
-  likes: {
     type: Number,
     default: 0
   },
   isActive: {
     type: Boolean,
     default: true
+  },
+  order: {
+    type: Number,
+    default: 0
   },
   createdAt: {
     type: Date,
@@ -62,7 +48,11 @@ const productSchema = new mongoose.Schema({
   }
 })
 
-productSchema.index({ name: 'text', description: 'text' })
+// Update the updatedAt field on save
+productSchema.pre('save', function(next) {
+  this.updatedAt = new Date()
+  next()
+})
 
 const Product = mongoose.models.Product || mongoose.model('Product', productSchema)
 

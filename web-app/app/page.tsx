@@ -1,10 +1,11 @@
 'use client'
 
 import { useEffect, useState } from 'react'
-import { motion } from 'framer-motion'
+import { motion, AnimatePresence } from 'framer-motion'
 import Link from 'next/link'
 import useSWR from 'swr'
 import { ArrowRightIcon } from '@heroicons/react/24/outline'
+import SplashScreen from '@/components/SplashScreen'
 
 const fetcher = (url: string) => fetch(url).then(res => res.json())
 
@@ -14,9 +15,17 @@ export default function Home() {
   })
 
   const [mounted, setMounted] = useState(false)
+  const [showSplash, setShowSplash] = useState(true)
 
   useEffect(() => {
     setMounted(true)
+    // Vérifier si c'est la première visite
+    const hasVisited = sessionStorage.getItem('hasVisited')
+    if (hasVisited) {
+      setShowSplash(false)
+    } else {
+      sessionStorage.setItem('hasVisited', 'true')
+    }
   }, [])
 
   if (!mounted) {
@@ -32,7 +41,14 @@ export default function Home() {
   }
 
   return (
-    <div className="relative min-h-screen">
+    <>
+      <AnimatePresence>
+        {showSplash && (
+          <SplashScreen onComplete={() => setShowSplash(false)} />
+        )}
+      </AnimatePresence>
+      
+      <div className="relative min-h-screen">
       {/* Animated Background - Plus sombre pour meilleur contraste */}
       <div className="fixed inset-0 -z-10">
         <motion.div
@@ -130,5 +146,6 @@ export default function Home() {
         </div>
       </section>
     </div>
+    </>
   )
 }
