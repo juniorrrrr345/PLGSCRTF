@@ -2,11 +2,16 @@ import { NextRequest, NextResponse } from 'next/server'
 import { connectToDatabase } from '@/lib/mongodb'
 import Plug from '@/models/Plug'
 
-export async function GET() {
+export async function GET(request: NextRequest) {
   try {
     await connectToDatabase()
     
-    const plugs = await Plug.find({ isActive: true })
+    const { searchParams } = new URL(request.url)
+    const showAll = searchParams.get('all') === 'true'
+    
+    const query = showAll ? {} : { isActive: true }
+    
+    const plugs = await Plug.find(query)
       .sort({ likes: -1, referralCount: -1 })
       .limit(100)
     
