@@ -1,0 +1,27 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  body {
+    @apply bg-telegram-bg text-telegram-text;
+  }
+}
+
+@layer components {
+  .card {
+    @apply bg-telegram-secondary rounded-lg p-4 shadow-lg;
+  }
+  
+  .btn-primary {
+    @apply bg-telegram-accent text-white px-4 py-2 rounded-lg font-medium transition-all hover:opacity-90 active:scale-95;
+  }
+  
+  .btn-secondary {
+    @apply bg-telegram-secondary text-telegram-text px-4 py-2 rounded-lg font-medium transition-all hover:bg-opacity-80 active:scale-95;
+  }
+  
+  .badge {
+    @apply inline-block px-3 py-1 bg-telegram-accent bg-opacity-20 text-telegram-accent rounded-full text-sm;
+  }
+}
