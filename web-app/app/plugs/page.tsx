@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react'
 import { motion } from 'framer-motion'
-import useSWR from 'swr'
+import useSWR, { mutate } from 'swr'
 import PlugCard from '@/components/PlugCard'
 import PlugModal from '@/components/PlugModal'
 import { MagnifyingGlassIcon } from '@heroicons/react/24/outline'
@@ -12,8 +12,9 @@ const fetcher = (url: string) => fetch(url).then(res => res.json())
 export default function PlugsPage() {
   const { data: plugs, error, isLoading } = useSWR('/api/plugs', fetcher)
   const [searchTerm, setSearchTerm] = useState('')
-  const [selectedPlug, setSelectedPlug] = useState(null)
-  const [filteredPlugs, setFilteredPlugs] = useState([])
+  const [selectedPlug, setSelectedPlug] = useState<any>(null)
+  const [filteredPlugs, setFilteredPlugs] = useState<any[]>([])
+  const [isModalOpen, setIsModalOpen] = useState(false)
 
   useEffect(() => {
     if (plugs) {
@@ -32,6 +33,23 @@ export default function PlugsPage() {
       setFilteredPlugs(rankedPlugs)
     }
   }, [plugs, searchTerm])
+
+  const handleLike = async () => {
+    if (!selectedPlug) return
+    
+    try {
+      const res = await fetch(`/api/plugs/${selectedPlug._id}/like`, {
+        method: 'POST'
+      })
+      
+      if (res.ok) {
+        // Rafraîchir les données
+        mutate('/api/plugs')
+      }
+    } catch (error) {
+      console.error('Error liking plug:', error)
+    }
+  }
 
   if (error) {
     return (
@@ -113,7 +131,10 @@ export default function PlugsPage() {
             >
               <PlugCard 
                 plug={plug} 
-                onClick={() => setSelectedPlug(plug)}
+                onClick={() => {
+                  setSelectedPlug(plug)
+                  setIsModalOpen(true)
+                }}
               />
             </motion.div>
           ))}
@@ -131,12 +152,15 @@ export default function PlugsPage() {
       </div>
 
       {/* Modal */}
-      {selectedPlug && (
-        <PlugModal
-          plug={selectedPlug}
-          onClose={() => setSelectedPlug(null)}
-        />
-      )}
+      <PlugModal
+        plug={selectedPlug}
+        isOpen={isModalOpen}
+        onClose={() => {
+          setIsModalOpen(false)
+          setSelectedPlug(null)
+        }}
+        onLike={handleLike}
+      />
     </div>
   )
 }
