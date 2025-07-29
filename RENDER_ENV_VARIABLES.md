@@ -13,7 +13,7 @@ Voici les variables d'environnement à configurer dans Render pour le bot Telegr
 ```
 mongodb+srv://votre_utilisateur:votre_mot_de_passe@cluster.mongodb.net/plgscrtf?retryWrites=true&w=majority
 ```
-⚠️ **Important** : Remplacez `votre_utilisateur` et `votre_mot_de_passe` par vos identifiants MongoDB Atlas
+⚠️ **Important** : Vous devez remplacer `votre_utilisateur` et `votre_mot_de_passe` par vos identifiants MongoDB Atlas
 
 ### 3. WEB_APP_URL
 ```
@@ -24,13 +24,16 @@ https://plgscrtf.vercel.app
 ```
 votre_mot_de_passe_admin
 ```
-⚠️ **Important** : Choisissez un mot de passe sécurisé pour l'accès au panel admin
+⚠️ **Important** : Choisissez un mot de passe sécurisé pour l'accès au panel admin (ex: Admin123!@#)
 
 ### 5. ADMIN_IDS
 ```
-123456789,987654321
+votre_id_telegram
 ```
-⚠️ **Important** : Remplacez par vos IDs Telegram d'administrateurs (séparés par des virgules)
+⚠️ **Important** : Remplacez par votre ID Telegram. Pour obtenir votre ID :
+1. Parlez à @userinfobot sur Telegram
+2. Il vous donnera votre ID numérique
+3. Si vous avez plusieurs admins, séparez les IDs par des virgules (ex: 123456789,987654321)
 
 ### 6. CLOUDINARY_URL
 ```
@@ -70,3 +73,10 @@ Pour vérifier que toutes les variables sont correctement configurées, consulte
 - Assurez-vous que votre MongoDB Atlas accepte les connexions depuis Render (ajoutez `0.0.0.0/0` dans la whitelist IP)
 - Le bot token Telegram doit correspondre à votre bot @PLGSCRTF_BOT
 - Si vous avez plusieurs instances qui tournent, arrêtez toutes les anciennes avant de démarrer la nouvelle
+
+## Exemple de configuration complète
+
+Si vous utilisez MongoDB Atlas avec l'utilisateur "admin" et le mot de passe "MonMotDePasse123", votre MONGODB_URI serait :
+```
+mongodb+srv://admin:MonMotDePasse123@cluster.mongodb.net/plgscrtf?retryWrites=true&w=majority
+```
