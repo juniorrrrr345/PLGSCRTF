@@ -38,8 +38,10 @@ export default function ImageUpload({ onUpload, currentImage, label = 'Choisir u
       const url = await uploadToCloudinary(file)
       onUpload(url)
       toast.success('Image uploadée avec succès !')
-    } catch (error) {
-      toast.error('Erreur lors de l\'upload. Réessayez.')
+    } catch (error: any) {
+      console.error('Upload error:', error)
+      const errorMessage = error.message || 'Erreur lors de l\'upload'
+      toast.error(errorMessage)
       setPreview(currentImage || null)
     } finally {
       setUploading(false)
