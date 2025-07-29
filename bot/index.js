@@ -5,6 +5,7 @@ const http = require('http');
 const User = require('./models/User');
 const Plug = require('./models/Plug');
 const Settings = require('./models/Settings');
+const VendorApplication = require('./models/VendorApplication');
 
 // Configuration du bot
 const bot = new TelegramBot(process.env.TELEGRAM_BOT_TOKEN, { polling: true });
@@ -154,6 +155,8 @@ bot.on('callback_query', async (callbackQuery) => {
         } else if (data.startsWith('referrals_country_')) {
           const country = data.replace('referrals_country_', '');
           await showReferralsList(bot, chatId, country);
+        } else if (data.startsWith('vendor_')) {
+          await handleVendorCallback(bot, chatId, data, callbackQuery);
         }
     }
     
@@ -185,7 +188,7 @@ async function handleInfoButton(bot, chatId) {
 // Handler pour les réseaux sociaux
 async function handleSocialButton(bot, chatId) {
   const settings = await Settings.findOne() || {};
-  let message = '📱 <b>Nos réseaux sociaux</b>\n\n';
+  let message = '📱 <b>Nos réseaux sociaux</b>\n━━━━━━━━━━━━━━━━\n\n';
   
   const networks = [
     { key: 'snap', emoji: '👻', name: 'Snapchat' },
@@ -197,19 +200,20 @@ async function handleSocialButton(bot, chatId) {
     { key: 'telegram', emoji: '✈️', name: 'Telegram' }
   ];
   
+  const keyboard = { inline_keyboard: [] };
+  
   for (const network of networks) {
     if (settings.socialNetworks?.[network.key]) {
-      message += `${network.emoji} <b>${network.name}:</b> ${settings.socialNetworks[network.key]}\n`;
+      keyboard.inline_keyboard.push([{
+        text: `${network.emoji} ${network.name}`,
+        url: `https://t.me/${settings.socialNetworks[network.key]}`
+      }]);
     }
   }
   
-  const keyboard = {
-    inline_keyboard: [
-      [{ text: '⬅️ Retour', callback_data: 'back_to_menu' }]
-    ]
-  };
+  keyboard.inline_keyboard.push([{ text: '⬅️ Retour', callback_data: 'back_to_menu' }]);
   
-  await bot.sendMessage(chatId, message, {
+  await bot.sendMessage(chatId, message + 'Cliquez sur un réseau pour nous contacter', {
     reply_markup: keyboard,
     parse_mode: 'HTML'
   });
@@ -507,29 +511,202 @@ async function showReferralsList(bot, chatId, country = null) {
   });
 }
 
-// Handler pour le formulaire vendeur (simplifié)
+// Handler pour le formulaire vendeur
 async function handleVendorForm(bot, chatId) {
-  const message = `📝 <b>Devenir vendeur</b>
-
-Pour devenir vendeur sur PLUGS CRTFS, contactez-nous directement !
-
-Envoyez un message avec:
-- Vos réseaux sociaux
-- Vos méthodes de vente
-- Votre localisation
-- Une description de votre service`;
-
-  const keyboard = {
-    inline_keyboard: [
-      [{ text: '💬 Nous contacter', url: 'https://t.me/PLGSCRTF_SUPPORT' }],
-      [{ text: '⬅️ Retour', callback_data: 'back_to_menu' }]
-    ]
-  };
+  const telegramId = chatId.toString();
   
-  await bot.sendMessage(chatId, message, {
+  // Initialiser l'état du questionnaire
+  userStates.set(telegramId, {
+    type: 'vendor_form',
+    step: 1,
+    data: {
+      telegramId,
+      socialNetworks: {},
+      methods: {}
+    }
+  });
+  
+  await showVendorQuestion(bot, chatId, 1);
+}
+
+// Afficher une question du formulaire vendeur
+async function showVendorQuestion(bot, chatId, step, messageId = null) {
+  const telegramId = chatId.toString();
+  const state = userStates.get(telegramId);
+  
+  if (!state || state.type !== 'vendor_form') return;
+  
+  // Supprimer le message précédent si fourni
+  if (messageId) {
+    await bot.deleteMessage(chatId, messageId).catch(() => {});
+  }
+  
+  let message = '';
+  let keyboard = { inline_keyboard: [] };
+  
+  switch (step) {
+    case 1: // Réseaux sociaux principaux
+      message = '📱 <b>Question 1/8</b>\n\nQuels réseaux sociaux utilisez-vous ?\n\n<i>Sélectionnez tous ceux que vous utilisez</i>';
+      
+      const networks = [
+        { key: 'snap', emoji: '👻', name: 'Snapchat' },
+        { key: 'instagram', emoji: '📸', name: 'Instagram' },
+        { key: 'whatsapp', emoji: '💬', name: 'WhatsApp' },
+        { key: 'telegram', emoji: '✈️', name: 'Telegram' }
+      ];
+      
+      for (const network of networks) {
+        const isSelected = state.data.socialNetworks[network.key] !== undefined;
+        keyboard.inline_keyboard.push([{
+          text: `${isSelected ? '✅' : '⬜'} ${network.emoji} ${network.name}`,
+          callback_data: `vendor_toggle_${network.key}`
+        }]);
+      }
+      
+      keyboard.inline_keyboard.push([
+        { text: '⏭ Suivant', callback_data: 'vendor_next' }
+      ]);
+      break;
+      
+    case 2: // Autres réseaux
+      message = '📱 <b>Question 2/8</b>\n\nUtilisez-vous d\'autres réseaux ?\n\n<i>Sélectionnez si applicable</i>';
+      
+      const otherNetworks = [
+        { key: 'signal', emoji: '🔐', name: 'Signal' },
+        { key: 'threema', emoji: '🔒', name: 'Threema' },
+        { key: 'potato', emoji: '🥔', name: 'Potato' }
+      ];
+      
+      for (const network of otherNetworks) {
+        const isSelected = state.data.socialNetworks[network.key] !== undefined;
+        keyboard.inline_keyboard.push([{
+          text: `${isSelected ? '✅' : '⬜'} ${network.emoji} ${network.name}`,
+          callback_data: `vendor_toggle_${network.key}`
+        }]);
+      }
+      
+      keyboard.inline_keyboard.push([
+        { text: '⬅ Retour', callback_data: 'vendor_back' },
+        { text: '⏭ Suivant', callback_data: 'vendor_next' }
+      ]);
+      break;
+      
+    case 3: // Méthodes de vente
+      message = '📦 <b>Question 3/8</b>\n\nQuelles méthodes de vente proposez-vous ?\n\n<i>Sélectionnez toutes les méthodes disponibles</i>';
+      
+      const methods = [
+        { key: 'delivery', emoji: '🚚', name: 'Livraison' },
+        { key: 'shipping', emoji: '📮', name: 'Envoi' },
+        { key: 'meetup', emoji: '🤝', name: 'Meetup' }
+      ];
+      
+      for (const method of methods) {
+        const isSelected = state.data.methods[method.key] === true;
+        keyboard.inline_keyboard.push([{
+          text: `${isSelected ? '✅' : '⬜'} ${method.emoji} ${method.name}`,
+          callback_data: `vendor_method_${method.key}`
+        }]);
+      }
+      
+      keyboard.inline_keyboard.push([
+        { text: '⬅ Retour', callback_data: 'vendor_back' },
+        { text: '⏭ Suivant', callback_data: 'vendor_next' }
+      ]);
+      break;
+      
+    case 4: // Pays
+      message = '🌍 <b>Question 4/8</b>\n\nDans quel pays êtes-vous ?\n\n<i>Sélectionnez votre pays</i>';
+      
+      const countries = [
+        { name: 'France', flag: '🇫🇷' },
+        { name: 'Belgique', flag: '🇧🇪' },
+        { name: 'Suisse', flag: '🇨🇭' },
+        { name: 'Luxembourg', flag: '🇱🇺' },
+        { name: 'Canada', flag: '🇨🇦' }
+      ];
+      
+      for (const country of countries) {
+        keyboard.inline_keyboard.push([{
+          text: `${country.flag} ${country.name}`,
+          callback_data: `vendor_country_${country.name}_${country.flag}`
+        }]);
+      }
+      
+      keyboard.inline_keyboard.push([
+        { text: '⬅ Retour', callback_data: 'vendor_back' }
+      ]);
+      break;
+      
+    case 5: // Département
+      message = '📍 <b>Question 5/8</b>\n\nQuel est votre département ?\n\n<i>Entrez le numéro ou le nom de votre département</i>';
+      
+      keyboard.inline_keyboard.push([
+        { text: '⬅ Retour', callback_data: 'vendor_back' },
+        { text: '⏭ Passer', callback_data: 'vendor_skip' }
+      ]);
+      
+      state.waitingForText = true;
+      state.textType = 'department';
+      break;
+      
+    case 6: // Code postal
+      message = '📮 <b>Question 6/8</b>\n\nQuel est votre code postal ?\n\n<i>Entrez votre code postal ou choisissez une grande ville</i>';
+      
+      const cities = [
+        'Paris', 'Marseille', 'Lyon', 'Toulouse', 'Nice',
+        'Nantes', 'Strasbourg', 'Montpellier', 'Bordeaux', 'Lille'
+      ];
+      
+      const cityRows = [];
+      for (let i = 0; i < cities.length; i += 2) {
+        const row = [{ text: cities[i], callback_data: `vendor_city_${cities[i]}` }];
+        if (cities[i + 1]) {
+          row.push({ text: cities[i + 1], callback_data: `vendor_city_${cities[i + 1]}` });
+        }
+        cityRows.push(row);
+      }
+      
+      keyboard.inline_keyboard.push(...cityRows);
+      keyboard.inline_keyboard.push([
+        { text: '⬅ Retour', callback_data: 'vendor_back' },
+        { text: '⏭ Passer', callback_data: 'vendor_skip' }
+      ]);
+      
+      state.waitingForText = true;
+      state.textType = 'postalCode';
+      break;
+      
+    case 7: // Photo
+      message = '📸 <b>Question 7/8</b>\n\nEnvoyez une photo de votre boutique\n\n<i>Cette photo sera visible sur votre profil vendeur</i>';
+      
+      keyboard.inline_keyboard.push([
+        { text: '⬅ Retour', callback_data: 'vendor_back' },
+        { text: '⏭ Passer', callback_data: 'vendor_skip' }
+      ]);
+      
+      state.waitingForPhoto = true;
+      break;
+      
+    case 8: // Description
+      message = '📝 <b>Question 8/8</b>\n\nDécrivez votre service\n\n<i>Présentez ce que vous proposez, vos spécialités, etc.</i>';
+      
+      keyboard.inline_keyboard.push([
+        { text: '⬅ Retour', callback_data: 'vendor_back' },
+        { text: '⏭ Passer', callback_data: 'vendor_skip' }
+      ]);
+      
+      state.waitingForText = true;
+      state.textType = 'description';
+      break;
+  }
+  
+  const sentMessage = await bot.sendMessage(chatId, message, {
     reply_markup: keyboard,
     parse_mode: 'HTML'
   });
+  
+  state.lastMessageId = sentMessage.message_id;
+  state.step = step;
 }
 
 // Commande /config pour l'admin
