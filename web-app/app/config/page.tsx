@@ -168,6 +168,7 @@ export default function ConfigPage() {
           photo: '',
           socialNetworks: { primary: [], others: '' },
           methods: { delivery: false, shipping: false, meetup: false },
+          deliveryDepartments: [],
           location: { country: 'FR', department: '', postalCode: '' },
           description: ''
         })
