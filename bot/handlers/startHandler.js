@@ -1,84 +1,73 @@
 const User = require('../models/User');
-const Plug = require('../models/Plug');
 const Settings = require('../models/Settings');
 
-async function handleStart(bot, msg, referralId, userStates) {
+async function handleStart(bot, msg, param) {
   const chatId = msg.chat.id;
-  const telegramId = msg.from.id.toString();
+  const userId = msg.from.id;
+  const username = msg.from.username || msg.from.first_name;
   
   try {
-    // Vérifier si l'utilisateur existe déjà
-    let user = await User.findOne({ telegramId });
+    // Créer ou mettre à jour l'utilisateur
+    let user = await User.findOne({ telegramId: userId });
     
     if (!user) {
-      // Créer un nouvel utilisateur
       user = new User({
-        telegramId,
-        username: msg.from.username,
-        firstName: msg.from.first_name,
-        lastName: msg.from.last_name
+        telegramId: userId,
+        username: username,
+        firstSeen: new Date()
       });
       
-      // Gestion du parrainage
-      if (referralId) {
-        const referringPlug = await Plug.findById(referralId);
-        if (referringPlug && !user.hasBeenCountedAsReferral) {
-          user.referredBy = referralId;
-          user.hasBeenCountedAsReferral = true;
+      // Gérer le parrainage
+      if (param && param.startsWith('ref_')) {
+        const referrerId = param.replace('ref_', '');
+        const referrer = await User.findById(referrerId);
+        
+        if (referrer && referrer.telegramId !== userId) {
+          user.referredBy = referrerId;
+          referrer.referralCount = (referrer.referralCount || 0) + 1;
+          await referrer.save();
           
-          // Incrémenter le compteur de parrainage
-          await Plug.findByIdAndUpdate(referralId, {
-            $inc: { referralCount: 1 }
-          });
-          
-          console.log(`✅ Nouveau filleul pour ${referringPlug.name}`);
+          await bot.sendMessage(chatId, 
+            `🎉 Vous avez été parrainé par @${referrer.username} !`,
+            { parse_mode: 'HTML' }
+          );
         }
       }
       
       await user.save();
-      console.log(`✅ Nouvel utilisateur créé: ${telegramId}`);
     }
+    
+    user.lastSeen = new Date();
+    await user.save();
     
     // Afficher le menu principal
     await showMainMenu(bot, chatId);
     
   } catch (error) {
-    console.error('Erreur dans handleStart:', error);
+    console.error('Error in handleStart:', error);
     await bot.sendMessage(chatId, '❌ Une erreur est survenue. Veuillez réessayer.');
   }
 }
 
 async function showMainMenu(bot, chatId) {
   const settings = await Settings.findOne();
-  const userCount = await User.countDocuments();
-  const plugCount = await Plug.countDocuments({ isActive: true });
+  const welcomeMessage = settings?.welcomeMessage || 
+    '🔌 <b>Bienvenue sur PLUGS CRTFS !</b>\n\nLa marketplace exclusive des vendeurs certifiés.';
   
   const keyboard = {
     inline_keyboard: [
-      [{ text: '📋 Informations', callback_data: 'info' }],
-      [{ text: '📱 Réseaux sociaux', callback_data: 'social' }],
+      [{ text: 'ℹ️ Informations', callback_data: 'info' }],
+      [{ text: '➕ Ajouter contact/réseaux', callback_data: 'add_contact' }],
       [{ text: '🔌 PLUGS CRTFS', callback_data: 'plugs' }],
-      [{ text: '🏆 Top Parrains', callback_data: 'top_referrals' }],
-      [{ text: '📝 Devenir vendeur', callback_data: 'vendor_form' }]
+      [{ text: '🏆 Top Referrals', callback_data: 'referrals' }],
+      [{ text: '🌐 Boutique Web', url: process.env.WEB_APP_URL || 'https://plgscrtf.vercel.app' }]
     ]
   };
   
-  let message = settings.welcomeMessage + '\n\n';
-  message += `👥 Utilisateurs: ${userCount}\n`;
-  message += `🔌 Plugs actifs: ${plugCount}`;
-  
-  if (settings.welcomeImage) {
-    await bot.sendPhoto(chatId, settings.welcomeImage, {
-      caption: message,
-      reply_markup: keyboard,
-      parse_mode: 'HTML'
-    });
-  } else {
-    await bot.sendMessage(chatId, message, {
-      reply_markup: keyboard,
-      parse_mode: 'HTML'
-    });
-  }
+  await bot.sendMessage(chatId, welcomeMessage, {
+    parse_mode: 'HTML',
+    reply_markup: keyboard
+  });
 }
 
 module.exports = { handleStart, showMainMenu };
