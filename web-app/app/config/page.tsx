@@ -9,6 +9,7 @@ import ImageUpload from '@/components/ImageUpload'
 import SocialNetworkManager from '@/components/SocialNetworkManager'
 import CountryDepartmentSelector from '@/components/CountryDepartmentSelector'
 import PostalCodeManager from '@/components/PostalCodeManager'
+import CustomDepartmentManager from '@/components/CustomDepartmentManager'
 import { countriesData, getCountryDepartments } from '@/lib/countries-data'
 import { 
   ChartBarIcon, 
