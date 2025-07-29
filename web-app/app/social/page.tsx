@@ -63,9 +63,8 @@ export default function SocialPage() {
   ]
 
   return (
-    <div className="min-h-screen relative bg-black">
-      {/* Background simplifié */}
-      <div className="fixed inset-0 bg-gradient-to-br from-gray-900 via-black to-gray-900" />
+    <div className="min-h-screen relative">
+
       
       {/* Particules subtiles */}
       <div className="fixed inset-0 overflow-hidden">

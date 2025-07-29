@@ -21,7 +21,7 @@ export default function Home() {
 
   if (!mounted) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-black">
+      <div className="min-h-screen flex items-center justify-center">
         <motion.div
           animate={{ rotate: 360 }}
           transition={{ duration: 1, repeat: Infinity, ease: "linear" }}
@@ -32,10 +32,9 @@ export default function Home() {
   }
 
   return (
-    <div className="relative bg-black min-h-screen">
+    <div className="relative min-h-screen">
       {/* Animated Background - Plus sombre pour meilleur contraste */}
       <div className="fixed inset-0 -z-10">
-        <div className="absolute inset-0 bg-gradient-to-br from-gray-900 via-black to-gray-900" />
         <motion.div
           className="absolute inset-0"
           animate={{

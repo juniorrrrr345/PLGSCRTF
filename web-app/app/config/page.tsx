@@ -323,7 +323,7 @@ export default function ConfigPage() {
   
   if (isLoading) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-black">
+      <div className="min-h-screen flex items-center justify-center">
         <motion.div
           animate={{ rotate: 360 }}
           transition={{ duration: 1, repeat: Infinity, ease: "linear" }}
@@ -790,33 +790,7 @@ export default function ConfigPage() {
                     <h2 className="text-xl font-bold mb-6">Personnalisation visuelle</h2>
                     
                     <div className="space-y-6">
-                      {/* Logo de la boutique */}
-                      <div>
-                        <h3 className="text-lg font-semibold mb-3 flex items-center gap-2">
-                          <span className="text-2xl">🏪</span> Logo de la boutique
-                        </h3>
-                        <div className="bg-gray-800 border-2 border-gray-600 rounded-xl p-4">
-                          <ImageUpload
-                            onUpload={async (url) => {
-                              try {
-                                const res = await fetch('/api/settings/background', {
-                                  method: 'POST',
-                                  headers: { 'Content-Type': 'application/json' },
-                                  body: JSON.stringify({ logoImage: url })
-                                })
-                                if (res.ok) {
-                                  toast.success('Logo mis à jour !')
-                                }
-                              } catch (error) {
-                                toast.error('Erreur lors de la mise à jour')
-                              }
-                            }}
-                          />
-                          <p className="text-xs text-gray-400 mt-2">
-                            Recommandé : Image carrée, 500x500px minimum
-                          </p>
-                        </div>
-                      </div>
+
 
                       {/* Fond de la boutique */}
                       <div>
