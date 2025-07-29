@@ -132,7 +132,7 @@ export default function SocialPage() {
           </motion.div>
 
           {/* Social Grid */}
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 mb-20">
+          <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4 md:gap-6 mb-20">
             {socialPlatforms.filter(platform => platform.link).map((platform, index) => (
               <motion.div
                 key={platform.name}
@@ -150,21 +150,21 @@ export default function SocialPage() {
                     rel="noopener noreferrer"
                     className="block transform transition-all duration-300 hover:scale-105"
                   >
-                    <div className={`relative ${platform.bgColor} rounded-3xl p-8 ${platform.shadowColor} shadow-2xl hover:shadow-3xl transition-all brightness-110 hover:brightness-125`}>
+                    <div className={`relative ${platform.bgColor} rounded-2xl p-6 ${platform.shadowColor} shadow-xl hover:shadow-2xl transition-all brightness-110 hover:brightness-125`}>
                       {/* Effet de brillance */}
-                      <div className="absolute inset-0 bg-gradient-to-tr from-white/30 to-transparent rounded-3xl opacity-50 group-hover:opacity-70 transition-opacity" />
-                      {/* Overlay lumineux supplémentaire */}
-                      <div className="absolute inset-0 bg-gradient-to-b from-white/10 to-transparent rounded-3xl" />
+                                              <div className="absolute inset-0 bg-gradient-to-tr from-white/30 to-transparent rounded-2xl opacity-50 group-hover:opacity-70 transition-opacity" />
+                        {/* Overlay lumineux supplémentaire */}
+                        <div className="absolute inset-0 bg-gradient-to-b from-white/10 to-transparent rounded-2xl" />
                       
                       <div className="relative z-10 text-center">
                         <motion.div 
-                          className="text-7xl mb-4 drop-shadow-2xl"
+                          className="text-5xl mb-3 drop-shadow-2xl"
                           animate={hoveredIndex === index ? { scale: [1, 1.2, 1], rotate: [0, 10, -10, 0] } : {}}
                           transition={{ duration: 0.5 }}
                         >
                           {platform.icon}
                         </motion.div>
-                        <h3 className="text-2xl font-bold text-white drop-shadow-lg">{platform.name}</h3>
+                                                  <h3 className="text-lg font-bold text-white drop-shadow-lg">{platform.name}</h3>
                       </div>
 
                       {/* Particules au hover */}
@@ -173,7 +173,7 @@ export default function SocialPage() {
                           {[...Array(6)].map((_, i) => (
                             <motion.div
                               key={i}
-                              className="absolute w-2 h-2 bg-white/40 rounded-full"
+                              className="absolute w-1 h-1 bg-white/40 rounded-full"
                               initial={{ 
                                 x: "50%", 
                                 y: "50%",
