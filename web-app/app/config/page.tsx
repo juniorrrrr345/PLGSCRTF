@@ -46,6 +46,7 @@ export default function ConfigPage() {
     photo: '',
     socialNetworks: { primary: [], others: '' },
     methods: { delivery: false, shipping: false, meetup: false },
+    deliveryDepartments: [],
     location: { country: 'FR', department: '', postalCode: '' },
     description: ''
   })
@@ -686,6 +687,36 @@ export default function ConfigPage() {
                       </label>
                     </div>
                   </div>
+                  
+                  {/* Départements de livraison */}
+                  {(editingPlug?.methods?.delivery || editingPlug?.methods?.shipping || 
+                    newPlug.methods.delivery || newPlug.methods.shipping) && (
+                    <div>
+                      <label className="block text-sm font-medium mb-2">
+                        Départements de livraison/envoi (séparés par des virgules)
+                      </label>
+                      <input
+                        type="text"
+                        placeholder="75, 92, 93, 94..."
+                        value={editingPlug 
+                          ? (editingPlug.deliveryDepartments || []).join(', ')
+                          : (newPlug.deliveryDepartments || []).join(', ')
+                        }
+                        onChange={(e) => {
+                          const departments = e.target.value.split(',').map(d => d.trim()).filter(d => d);
+                          if (editingPlug) {
+                            setEditingPlug({...editingPlug, deliveryDepartments: departments});
+                          } else {
+                            setNewPlug({...newPlug, deliveryDepartments: departments});
+                          }
+                        }}
+                        className="w-full px-4 py-3 bg-white/10 border border-white/20 rounded-lg focus:border-primary focus:outline-none transition-colors"
+                      />
+                      <p className="text-xs text-gray-400 mt-1">
+                        Entrez les numéros de départements où vous livrez/envoyez
+                      </p>
+                    </div>
+                  )}
                   
                   <div className="grid grid-cols-2 gap-4">
                     <div>
