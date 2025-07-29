@@ -131,19 +131,22 @@ export default function ProductModal({ product, onClose }: ProductModalProps) {
                 <div className="mt-6">
                   <h3 className="text-lg font-bold mb-4">Réseaux du produit</h3>
                   <div className="flex flex-wrap gap-3">
-                    {Object.entries(product.socialNetworks).map(([network, value]) => 
-                      value && (
-                        <a
-                          key={network}
-                          href={`https://${network}.com/${value}`}
-                          target="_blank"
-                          rel="noopener noreferrer"
-                          className="px-4 py-2 bg-white/10 rounded-lg hover:bg-white/20 transition-colors"
-                        >
-                          {network}
-                        </a>
-                      )
-                    )}
+                    {Object.entries(product.socialNetworks).map(([network, value]) => {
+                      if (value && typeof value === 'string') {
+                        return (
+                          <a
+                            key={network}
+                            href={`https://${network}.com/${value}`}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="px-4 py-2 bg-white/10 rounded-lg hover:bg-white/20 transition-colors"
+                          >
+                            {network}
+                          </a>
+                        )
+                      }
+                      return null
+                    })}
                   </div>
                 </div>
               )}
