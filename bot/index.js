@@ -33,8 +33,12 @@ bot.onText(/\/start(?:\s+ref_(.+))?/, async (msg, match) => {
   const chatId = msg.chat.id;
   const telegramId = msg.from.id.toString();
   const referralId = match[1];
+  const messageId = msg.message_id;
   
   try {
+    // Supprimer le message de commande
+    await bot.deleteMessage(chatId, messageId).catch(() => {});
+    
     // Vérifier ou créer l'utilisateur
     let user = await User.findOne({ telegramId });
     
@@ -140,6 +144,16 @@ bot.on('callback_query', async (callbackQuery) => {
           await handlePlugDetails(bot, chatId, data);
         } else if (data.startsWith('like_')) {
           await handleLike(bot, chatId, data, callbackQuery);
+        } else if (data === 'plugs_all') {
+          await showPlugsList(bot, chatId);
+        } else if (data.startsWith('plugs_country_')) {
+          const country = data.replace('plugs_country_', '');
+          await showPlugsList(bot, chatId, country);
+        } else if (data === 'referrals_all') {
+          await showReferralsList(bot, chatId);
+        } else if (data.startsWith('referrals_country_')) {
+          const country = data.replace('referrals_country_', '');
+          await showReferralsList(bot, chatId, country);
         }
     }
     
@@ -203,18 +217,68 @@ async function handleSocialButton(bot, chatId) {
 
 // Handler pour la liste des plugs
 async function handlePlugsMenu(bot, chatId) {
-  const plugs = await Plug.find({ isActive: true }).sort({ likes: -1 }).limit(20);
+  // Afficher d'abord le menu de sélection par pays
+  const countries = await Plug.distinct('country', { isActive: true, country: { $exists: true, $ne: null } });
+  
+  if (countries.length === 0) {
+    // Si aucun pays, afficher tous les plugs
+    await showPlugsList(bot, chatId);
+    return;
+  }
+  
+  let message = '🌍 <b>Sélectionnez un pays</b>\n━━━━━━━━━━━━━━━━\n\n';
+  const keyboard = { inline_keyboard: [] };
+  
+  // Ajouter un bouton pour voir tous les plugs
+  keyboard.inline_keyboard.push([{
+    text: '🌐 Tous les pays',
+    callback_data: 'plugs_all'
+  }]);
+  
+  // Ajouter les boutons pour chaque pays
+  for (const country of countries.sort()) {
+    const plugsInCountry = await Plug.countDocuments({ isActive: true, country });
+    const countryFlag = (await Plug.findOne({ country }))?.countryFlag || '🏳️';
+    
+    keyboard.inline_keyboard.push([{
+      text: `${countryFlag} ${country} (${plugsInCountry})`,
+      callback_data: `plugs_country_${country}`
+    }]);
+  }
+  
+  keyboard.inline_keyboard.push([{ text: '⬅️ Retour', callback_data: 'back_to_menu' }]);
+  
+  await bot.sendMessage(chatId, message, {
+    reply_markup: keyboard,
+    parse_mode: 'HTML'
+  });
+}
+
+// Fonction pour afficher la liste des plugs (filtrée ou non)
+async function showPlugsList(bot, chatId, country = null) {
+  const filter = { isActive: true };
+  if (country) {
+    filter.country = country;
+  }
+  
+  const plugs = await Plug.find(filter).sort({ likes: -1 }).limit(20);
   
   if (plugs.length === 0) {
     await bot.sendMessage(chatId, '❌ Aucun plug disponible', {
       reply_markup: {
-        inline_keyboard: [[{ text: '⬅️ Retour', callback_data: 'back_to_menu' }]]
+        inline_keyboard: [[{ text: '⬅️ Retour', callback_data: 'plugs' }]]
       }
     });
     return;
   }
   
-  let message = '🔌 <b>PLUGS CRTFS</b>\n━━━━━━━━━━━━━━━━\n\n';
+  let message = '🔌 <b>PLUGS CRTFS</b>\n';
+  if (country) {
+    const countryFlag = plugs[0]?.countryFlag || '🏳️';
+    message += `📍 ${countryFlag} ${country}\n`;
+  }
+  message += '━━━━━━━━━━━━━━━━\n\n';
+  
   const keyboard = { inline_keyboard: [] };
   
   plugs.forEach((plug, index) => {
@@ -229,7 +293,7 @@ async function handlePlugsMenu(bot, chatId) {
     }]);
   });
   
-  keyboard.inline_keyboard.push([{ text: '⬅️ Retour', callback_data: 'back_to_menu' }]);
+  keyboard.inline_keyboard.push([{ text: '⬅️ Retour', callback_data: 'plugs' }]);
   
   await bot.sendMessage(chatId, message + '👆 Cliquez sur un plug pour voir les détails', {
     reply_markup: keyboard,
@@ -351,36 +415,93 @@ async function handleLike(bot, chatId, data, callbackQuery) {
 
 // Handler pour le top des parrains
 async function handleTopReferrals(bot, chatId) {
-  const plugs = await Plug.find({ isActive: true, referralCount: { $gt: 0 } })
-    .sort({ referralCount: -1 })
-    .limit(10);
+  // Afficher d'abord le menu de sélection par pays
+  const countries = await Plug.distinct('country', { 
+    isActive: true, 
+    referralCount: { $gt: 0 },
+    country: { $exists: true, $ne: null } 
+  });
+  
+  if (countries.length === 0) {
+    // Si aucun pays, afficher tous les parrains
+    await showReferralsList(bot, chatId);
+    return;
+  }
+  
+  let message = '🌍 <b>Sélectionnez un pays</b>\n━━━━━━━━━━━━━━━━\n\n';
+  const keyboard = { inline_keyboard: [] };
+  
+  // Ajouter un bouton pour voir tous les parrains
+  keyboard.inline_keyboard.push([{
+    text: '🌐 Tous les pays',
+    callback_data: 'referrals_all'
+  }]);
+  
+  // Ajouter les boutons pour chaque pays
+  for (const country of countries.sort()) {
+    const plugsInCountry = await Plug.countDocuments({ 
+      isActive: true, 
+      country,
+      referralCount: { $gt: 0 }
+    });
+    const countryFlag = (await Plug.findOne({ country }))?.countryFlag || '🏳️';
+    
+    keyboard.inline_keyboard.push([{
+      text: `${countryFlag} ${country} (${plugsInCountry})`,
+      callback_data: `referrals_country_${country}`
+    }]);
+  }
+  
+  keyboard.inline_keyboard.push([{ text: '⬅️ Retour', callback_data: 'back_to_menu' }]);
+  
+  await bot.sendMessage(chatId, message, {
+    reply_markup: keyboard,
+    parse_mode: 'HTML'
+  });
+}
+
+// Fonction pour afficher la liste des parrains (filtrée ou non)
+async function showReferralsList(bot, chatId, country = null) {
+  const filter = { isActive: true, referralCount: { $gt: 0 } };
+  if (country) {
+    filter.country = country;
+  }
+  
+  const plugs = await Plug.find(filter).sort({ referralCount: -1 }).limit(20);
   
   if (plugs.length === 0) {
     await bot.sendMessage(chatId, '📊 Aucun parrainage pour le moment', {
       reply_markup: {
-        inline_keyboard: [[{ text: '⬅️ Retour', callback_data: 'back_to_menu' }]]
+        inline_keyboard: [[{ text: '⬅️ Retour', callback_data: 'top_referrals' }]]
       }
     });
     return;
   }
   
-  let message = '🏆 <b>TOP PARRAINS</b>\n━━━━━━━━━━━━━━━━\n\n';
+  let message = '🏆 <b>TOP PARRAINS</b>\n';
+  if (country) {
+    const countryFlag = plugs[0]?.countryFlag || '🏳️';
+    message += `📍 ${countryFlag} ${country}\n`;
+  }
+  message += '━━━━━━━━━━━━━━━━\n\n';
+  
+  const keyboard = { inline_keyboard: [] };
   
   plugs.forEach((plug, index) => {
     let emoji = '';
-    if (index === 0) emoji = '👑';
-    else if (index === 1) emoji = '🥈';
-    else if (index === 2) emoji = '🥉';
-    else emoji = '🔹';
+    if (index === 0) emoji = '👑 ';
+    else if (index === 1) emoji = '🥈 ';
+    else if (index === 2) emoji = '🥉 ';
     
-    message += `${emoji} #${index + 1} – <b>${plug.name}</b> 🔌 – ${plug.referralCount} filleuls\n`;
+    keyboard.inline_keyboard.push([{
+      text: `${emoji}${plug.name} (👥 ${plug.referralCount} filleuls)`,
+      callback_data: `plug_${plug._id}`
+    }]);
   });
   
-  const keyboard = {
-    inline_keyboard: [[{ text: '⬅️ Retour', callback_data: 'back_to_menu' }]]
-  };
+  keyboard.inline_keyboard.push([{ text: '⬅️ Retour', callback_data: 'top_referrals' }]);
   
-  await bot.sendMessage(chatId, message, {
+  await bot.sendMessage(chatId, message + '👆 Cliquez sur un parrain pour voir les détails', {
     reply_markup: keyboard,
     parse_mode: 'HTML'
   });
