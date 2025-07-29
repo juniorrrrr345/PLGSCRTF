@@ -110,6 +110,12 @@ bot.on('callback_query', async (callbackQuery) => {
       await handleLike(bot, callbackQuery, plugId);
     }
     
+    // Démarrer le questionnaire vendeur
+    else if (data === 'apply') {
+      await bot.deleteMessage(chatId, messageId);
+      await handleVendorApplication(bot, chatId, userStates);
+    }
+    
     // Gestion du formulaire vendeur
     else if (data.startsWith('vendor_')) {
       const userState = userStates.get(chatId);

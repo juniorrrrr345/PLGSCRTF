@@ -59,7 +59,7 @@ async function showMainMenu(bot, chatId) {
   const keyboard = {
     inline_keyboard: [
       [{ text: 'ℹ️ Informations', callback_data: 'info' }],
-      [{ text: '➕ Ajouter contact/réseaux', callback_data: 'add_contact' }],
+      [{ text: '📝 Devenir Vendeur', callback_data: 'apply' }],
       [{ text: '🔌 PLUGS CRTFS', callback_data: 'plugs' }],
       [{ text: '🏆 Top Referrals', callback_data: 'referrals' }],
       [{ text: '🌐 Boutique Web', url: process.env.WEB_APP_URL || 'https://plgscrtf.vercel.app' }]
