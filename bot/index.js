@@ -1,7 +1,8 @@
 require('dotenv').config();
 const TelegramBot = require('node-telegram-bot-api');
 const mongoose = require('mongoose');
-const http = require('http');
+const express = require('express');
+const cors = require('cors');
 
 // Modèles
 const User = require('./models/User');
@@ -27,14 +28,120 @@ mongoose.connect(process.env.MONGODB_URI)
   .then(() => console.log('✅ Connected to MongoDB'))
   .catch(err => console.error('❌ MongoDB connection error:', err));
 
-// Serveur HTTP simple pour Render
-const PORT = process.env.PORT || 3000;
-const server = http.createServer((req, res) => {
-  res.writeHead(200, { 'Content-Type': 'text/plain' });
-  res.end('Bot is running! 🤖');
+// Serveur Express avec API
+const app = express();
+app.use(cors());
+app.use(express.json());
+
+// API pour vérifier que le bot fonctionne
+app.get('/', (req, res) => {
+  res.send('Bot is running! 🤖');
 });
 
-server.listen(PORT, () => {
+// API pour envoyer des messages broadcast
+app.post('/api/broadcast', async (req, res) => {
+  try {
+    const { message, userIds } = req.body;
+    const apiKey = req.headers['x-api-key'];
+    
+    // Vérifier la clé API
+    if (apiKey !== process.env.BOT_API_KEY) {
+      return res.status(401).json({ error: 'Unauthorized' });
+    }
+    
+    if (!message || !userIds || !Array.isArray(userIds)) {
+      return res.status(400).json({ error: 'Invalid request' });
+    }
+    
+    let sent = 0;
+    let failed = 0;
+    
+    // Envoyer le message à chaque utilisateur
+    for (const telegramId of userIds) {
+      try {
+        await bot.sendMessage(telegramId, message, { parse_mode: 'HTML' });
+        sent++;
+      } catch (error) {
+        console.error(`Failed to send to ${telegramId}:`, error.message);
+        failed++;
+      }
+    }
+    
+    res.json({ success: true, sent, failed });
+  } catch (error) {
+    console.error('Broadcast error:', error);
+    res.status(500).json({ error: 'Internal server error' });
+  }
+});
+
+// API webhook pour les notifications de changements
+app.post('/api/webhook/update', async (req, res) => {
+  try {
+    const { type, action, data } = req.body;
+    const apiKey = req.headers['x-api-key'];
+    
+    // Vérifier la clé API
+    if (apiKey !== process.env.BOT_API_KEY) {
+      return res.status(401).json({ error: 'Unauthorized' });
+    }
+    
+    // Récupérer tous les utilisateurs actifs
+    const users = await User.find({ isActive: { $ne: false } });
+    
+    let message = '';
+    
+    switch (type) {
+      case 'plug':
+        if (action === 'create') {
+          message = `🎉 <b>Nouveau PLUG disponible !</b>\n\n` +
+                   `🔌 <b>${data.name}</b>\n` +
+                   `📍 ${data.countryFlag} ${data.department || 'National'}\n\n` +
+                   `Découvrez-le maintenant dans /start → PLUGS CRTFS`;
+        } else if (action === 'update') {
+          message = `📢 <b>PLUG mis à jour !</b>\n\n` +
+                   `🔌 <b>${data.name}</b> a été modifié\n` +
+                   `Consultez les nouveautés dans /start → PLUGS CRTFS`;
+        } else if (action === 'delete') {
+          message = `⚠️ <b>PLUG retiré</b>\n\n` +
+                   `Le PLUG "${data.name}" n'est plus disponible.`;
+        }
+        break;
+        
+      case 'settings':
+        // Ne pas notifier pour les changements de paramètres
+        return res.json({ success: true, notified: false });
+        
+      default:
+        return res.status(400).json({ error: 'Unknown notification type' });
+    }
+    
+    if (message) {
+      let sent = 0;
+      let failed = 0;
+      
+      // Envoyer la notification à tous les utilisateurs
+      for (const user of users) {
+        try {
+          await bot.sendMessage(user.telegramId, message, { parse_mode: 'HTML' });
+          sent++;
+        } catch (error) {
+          console.error(`Failed to notify ${user.telegramId}:`, error.message);
+          failed++;
+        }
+      }
+      
+      res.json({ success: true, sent, failed });
+    } else {
+      res.json({ success: true, notified: false });
+    }
+  } catch (error) {
+    console.error('Webhook error:', error);
+    res.status(500).json({ error: 'Internal server error' });
+  }
+});
+
+const PORT = process.env.PORT || 3000;
+app.listen(PORT, () => {
   console.log(`🌐 Server listening on port ${PORT}`);
 });
 

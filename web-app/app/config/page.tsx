@@ -208,6 +208,23 @@ export default function ConfigPage() {
       toast.error('Erreur lors de la sauvegarde')
     }
   }
+
+  const handleUpdateBotSocialNetworks = async (networks: any[]) => {
+    try {
+      const res = await fetch('/api/settings', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ botSocialNetworks: networks })
+      })
+      
+      if (res.ok) {
+        toast.success('Réseaux sociaux mis à jour !')
+        mutate('/api/settings')
+      }
+    } catch (error) {
+      toast.error('Erreur lors de la mise à jour')
+    }
+  }
   
   const handleSendGlobalMessage = async () => {
     if (!globalMessage.trim()) {
@@ -1132,6 +1149,88 @@ export default function ConfigPage() {
                           </p>
                         </div>
                       </div>
+                    </div>
+                  </div>
+
+                  {/* Bot Social Networks */}
+                  <div className="glass-card p-6">
+                    <h2 className="text-xl font-bold mb-4">Réseaux sociaux du bot</h2>
+                    <p className="text-gray-400 mb-4">Ces liens apparaîtront en bas du menu principal du bot Telegram</p>
+                    
+                    <div className="space-y-4">
+                      {settings?.botSocialNetworks?.map((network: any, index: number) => (
+                        <div key={index} className="flex items-center gap-3 p-3 bg-white/5 rounded-lg">
+                          <input
+                            type="text"
+                            value={network.emoji || ''}
+                            onChange={(e) => {
+                              const newNetworks = [...(settings.botSocialNetworks || [])]
+                              newNetworks[index].emoji = e.target.value
+                              handleUpdateBotSocialNetworks(newNetworks)
+                            }}
+                            placeholder="🔗"
+                            className="w-16 px-3 py-2 bg-white/10 border border-white/20 rounded-lg text-center"
+                          />
+                          <input
+                            type="text"
+                            value={network.name || ''}
+                            onChange={(e) => {
+                              const newNetworks = [...(settings.botSocialNetworks || [])]
+                              newNetworks[index].name = e.target.value
+                              handleUpdateBotSocialNetworks(newNetworks)
+                            }}
+                            placeholder="Nom du réseau"
+                            className="flex-1 px-3 py-2 bg-white/10 border border-white/20 rounded-lg"
+                          />
+                          <input
+                            type="text"
+                            value={network.url || ''}
+                            onChange={(e) => {
+                              const newNetworks = [...(settings.botSocialNetworks || [])]
+                              newNetworks[index].url = e.target.value
+                              handleUpdateBotSocialNetworks(newNetworks)
+                            }}
+                            placeholder="https://..."
+                            className="flex-1 px-3 py-2 bg-white/10 border border-white/20 rounded-lg"
+                          />
+                          <input
+                            type="number"
+                            value={network.order || 0}
+                            onChange={(e) => {
+                              const newNetworks = [...(settings.botSocialNetworks || [])]
+                              newNetworks[index].order = parseInt(e.target.value) || 0
+                              handleUpdateBotSocialNetworks(newNetworks)
+                            }}
+                            placeholder="0"
+                            className="w-20 px-3 py-2 bg-white/10 border border-white/20 rounded-lg text-center"
+                          />
+                          <button
+                            onClick={() => {
+                              const newNetworks = settings.botSocialNetworks.filter((_: any, i: number) => i !== index)
+                              handleUpdateBotSocialNetworks(newNetworks)
+                            }}
+                            className="p-2 text-red-500 hover:bg-red-500/20 rounded-lg transition-colors"
+                          >
+                            <TrashIcon className="w-5 h-5" />
+                          </button>
+                        </div>
+                      ))}
+                      
+                      <button
+                        onClick={() => {
+                          const newNetworks = [...(settings?.botSocialNetworks || []), {
+                            name: '',
+                            url: '',
+                            emoji: '🔗',
+                            order: settings?.botSocialNetworks?.length || 0
+                          }]
+                          handleUpdateBotSocialNetworks(newNetworks)
+                        }}
+                        className="btn-secondary w-full flex items-center justify-center gap-2"
+                      >
+                        <PlusIcon className="w-5 h-5" />
+                        Ajouter un réseau social
+                      </button>
                     </div>
                   </div>
                 </div>

@@ -9,6 +9,10 @@ const settingsSchema = new mongoose.Schema({
     type: String,
     default: ''
   },
+  infoText: {
+    type: String,
+    default: 'Informations sur notre service'
+  },
   backgroundImage: {
     type: String,
     default: ''
@@ -17,15 +21,41 @@ const settingsSchema = new mongoose.Schema({
     type: String,
     default: ''
   },
+  socialNetworks: {
+    snap: String,
+    instagram: String,
+    whatsapp: String,
+    signal: String,
+    threema: String,
+    potato: String,
+    telegram: String,
+    other: String
+  },
+  // Réseaux sociaux affichés en bas du bot
+  botSocialNetworks: [{
+    name: String,
+    url: String,
+    emoji: String,
+    order: { type: Number, default: 0 }
+  }],
   countries: [{
     code: String,
     name: String,
-    flag: String
+    flag: String,
+    departments: [{
+      code: String,
+      name: String
+    }]
   }],
   departments: [{
     country: String,
     code: String,
     name: String
+  }],
+  postalCodes: [{
+    code: String,
+    city: String,
+    department: String
   }]
 }, {
   timestamps: true

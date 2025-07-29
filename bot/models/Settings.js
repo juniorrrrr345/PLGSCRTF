@@ -21,6 +21,13 @@ const settingsSchema = new mongoose.Schema({
     telegram: String,
     other: String
   },
+  // Réseaux sociaux affichés en bas du bot
+  botSocialNetworks: [{
+    name: String,
+    url: String,
+    emoji: String,
+    order: { type: Number, default: 0 }
+  }],
   countries: [{
     code: String,
     name: String,

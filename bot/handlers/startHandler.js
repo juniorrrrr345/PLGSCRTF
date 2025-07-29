@@ -61,10 +61,35 @@ async function showMainMenu(bot, chatId) {
       [{ text: 'ℹ️ Informations', callback_data: 'info' }],
       [{ text: '📝 Devenir Vendeur', callback_data: 'apply' }],
       [{ text: '🔌 PLUGS CRTFS', callback_data: 'plugs' }],
-      [{ text: '🏆 Top Referrals', callback_data: 'referrals' }],
-      [{ text: '🌐 Boutique Web', url: process.env.WEB_APP_URL || 'https://plgscrtf.vercel.app' }]
+      [{ text: '🏆 Top Referrals', callback_data: 'referrals' }]
     ]
   };
+  
+  // Ajouter les réseaux sociaux en bas du menu s'ils existent
+  if (settings?.botSocialNetworks && settings.botSocialNetworks.length > 0) {
+    // Trier par ordre
+    const sortedNetworks = settings.botSocialNetworks.sort((a, b) => a.order - b.order);
+    
+    // Créer des lignes de 2 boutons maximum
+    for (let i = 0; i < sortedNetworks.length; i += 2) {
+      const row = [];
+      const network1 = sortedNetworks[i];
+      row.push({
+        text: `${network1.emoji || '🔗'} ${network1.name}`,
+        url: network1.url
+      });
+      
+      if (i + 1 < sortedNetworks.length) {
+        const network2 = sortedNetworks[i + 1];
+        row.push({
+          text: `${network2.emoji || '🔗'} ${network2.name}`,
+          url: network2.url
+        });
+      }
+      
+      keyboard.inline_keyboard.push(row);
+    }
+  }
   
   // Envoyer l'image d'accueil si elle existe
   if (settings?.welcomeImage) {
