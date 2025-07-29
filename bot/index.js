@@ -493,12 +493,13 @@ async function showReferralsList(bot, chatId, country = null) {
   
   plugs.forEach((plug, index) => {
     let emoji = '';
-    if (index === 0) emoji = '👑 ';
-    else if (index === 1) emoji = '🥈 ';
-    else if (index === 2) emoji = '🥉 ';
+    if (index === 0) emoji = '🤴 ';
+    else if (index === 1) emoji = '👑 ';
+    else if (index === 2) emoji = '👑 ';
+    else emoji = '🔌 ';
     
     keyboard.inline_keyboard.push([{
-      text: `${emoji}${plug.name} (👥 ${plug.referralCount} filleuls)`,
+      text: `${emoji}${plug.name} (👥 ${plug.referralCount})`,
       callback_data: `plug_${plug._id}`
     }]);
   });
@@ -708,6 +709,204 @@ async function showVendorQuestion(bot, chatId, step, messageId = null) {
   state.lastMessageId = sentMessage.message_id;
   state.step = step;
 }
+
+// Gestionnaire des callbacks du formulaire vendeur
+async function handleVendorCallback(bot, chatId, data, callbackQuery) {
+  const telegramId = chatId.toString();
+  const state = userStates.get(telegramId);
+  
+  if (!state || state.type !== 'vendor_form') return;
+  
+  // Toggle réseaux sociaux
+  if (data.startsWith('vendor_toggle_')) {
+    const network = data.replace('vendor_toggle_', '');
+    if (state.data.socialNetworks[network]) {
+      delete state.data.socialNetworks[network];
+    } else {
+      state.data.socialNetworks[network] = 'À renseigner';
+    }
+    await showVendorQuestion(bot, chatId, state.step, state.lastMessageId);
+    return;
+  }
+  
+  // Toggle méthodes
+  if (data.startsWith('vendor_method_')) {
+    const method = data.replace('vendor_method_', '');
+    state.data.methods[method] = !state.data.methods[method];
+    await showVendorQuestion(bot, chatId, state.step, state.lastMessageId);
+    return;
+  }
+  
+  // Sélection pays
+  if (data.startsWith('vendor_country_')) {
+    const parts = data.replace('vendor_country_', '').split('_');
+    state.data.country = parts[0];
+    state.data.countryFlag = parts[1];
+    await showVendorQuestion(bot, chatId, state.step + 1, state.lastMessageId);
+    return;
+  }
+  
+  // Sélection ville
+  if (data.startsWith('vendor_city_')) {
+    const city = data.replace('vendor_city_', '');
+    state.data.postalCode = city;
+    state.waitingForText = false;
+    await showVendorQuestion(bot, chatId, state.step + 1, state.lastMessageId);
+    return;
+  }
+  
+  // Navigation
+  switch (data) {
+    case 'vendor_next':
+      // Validation avant de passer à la question suivante
+      if (state.step === 1 && Object.keys(state.data.socialNetworks).length === 0) {
+        await bot.answerCallbackQuery(callbackQuery.id, {
+          text: '⚠️ Sélectionnez au moins un réseau social',
+          show_alert: true
+        });
+        return;
+      }
+      if (state.step === 3 && !Object.values(state.data.methods).some(v => v)) {
+        await bot.answerCallbackQuery(callbackQuery.id, {
+          text: '⚠️ Sélectionnez au moins une méthode',
+          show_alert: true
+        });
+        return;
+      }
+      await showVendorQuestion(bot, chatId, state.step + 1, state.lastMessageId);
+      break;
+      
+    case 'vendor_back':
+      state.waitingForText = false;
+      state.waitingForPhoto = false;
+      await showVendorQuestion(bot, chatId, state.step - 1, state.lastMessageId);
+      break;
+      
+    case 'vendor_skip':
+      state.waitingForText = false;
+      state.waitingForPhoto = false;
+      if (state.step === 8) {
+        // Fin du questionnaire
+        await finishVendorApplication(bot, chatId);
+      } else {
+        await showVendorQuestion(bot, chatId, state.step + 1, state.lastMessageId);
+      }
+      break;
+  }
+}
+
+// Finaliser la candidature vendeur
+async function finishVendorApplication(bot, chatId) {
+  const telegramId = chatId.toString();
+  const state = userStates.get(telegramId);
+  
+  if (!state || state.type !== 'vendor_form') return;
+  
+  try {
+    // Supprimer le dernier message
+    if (state.lastMessageId) {
+      await bot.deleteMessage(chatId, state.lastMessageId).catch(() => {});
+    }
+    
+    // Récupérer les infos utilisateur
+    const user = await User.findOne({ telegramId });
+    
+    // Créer la candidature
+    const application = new VendorApplication({
+      telegramId,
+      username: user?.username,
+      firstName: user?.firstName,
+      lastName: user?.lastName,
+      ...state.data
+    });
+    
+    await application.save();
+    
+    // Message de confirmation
+    const message = `✅ <b>Candidature envoyée !</b>
+
+Votre candidature a été transmise à notre équipe.
+Nous vous recontacterons dans les plus brefs délais.
+
+📊 <b>Récapitulatif :</b>
+${state.data.country ? `📍 Pays: ${state.data.countryFlag} ${state.data.country}\n` : ''}
+${state.data.department ? `📍 Département: ${state.data.department}\n` : ''}
+${state.data.postalCode ? `📮 Code postal: ${state.data.postalCode}\n` : ''}
+
+Merci de votre confiance ! 🙏`;
+    
+    await bot.sendMessage(chatId, message, {
+      reply_markup: {
+        inline_keyboard: [[{ text: '⬅️ Retour au menu', callback_data: 'back_to_menu' }]]
+      },
+      parse_mode: 'HTML'
+    });
+    
+    // Nettoyer l'état
+    userStates.delete(telegramId);
+    
+    // Notifier les admins
+    const admins = await User.find({ isAdmin: true });
+    for (const admin of admins) {
+      await bot.sendMessage(admin.telegramId, 
+        `🆕 <b>Nouvelle candidature vendeur</b>\n\n` +
+        `👤 ${user?.firstName || 'Inconnu'} (@${user?.username || 'pas de username'})\n` +
+        `📍 ${state.data.countryFlag || ''} ${state.data.country || 'Non renseigné'} - ${state.data.department || 'Non renseigné'}`,
+        { parse_mode: 'HTML' }
+      );
+    }
+    
+  } catch (error) {
+    console.error('Error finishing vendor application:', error);
+    await bot.sendMessage(chatId, '❌ Une erreur est survenue. Veuillez réessayer.');
+  }
+}
+
+// Gestionnaire des messages texte
+bot.on('message', async (msg) => {
+  // Ignorer les commandes
+  if (msg.text?.startsWith('/')) return;
+  
+  const chatId = msg.chat.id;
+  const telegramId = msg.from.id.toString();
+  const state = userStates.get(telegramId);
+  
+  if (!state) return;
+  
+  // Gérer le formulaire vendeur
+  if (state.type === 'vendor_form') {
+    // Supprimer le message de l'utilisateur
+    await bot.deleteMessage(chatId, msg.message_id).catch(() => {});
+    
+    if (state.waitingForText && msg.text) {
+      switch (state.textType) {
+        case 'department':
+          state.data.department = msg.text;
+          state.waitingForText = false;
+          await showVendorQuestion(bot, chatId, state.step + 1, state.lastMessageId);
+          break;
+          
+        case 'postalCode':
+          state.data.postalCode = msg.text;
+          state.waitingForText = false;
+          await showVendorQuestion(bot, chatId, state.step + 1, state.lastMessageId);
+          break;
+          
+        case 'description':
+          state.data.description = msg.text;
+          state.waitingForText = false;
+          await finishVendorApplication(bot, chatId);
+          break;
+      }
+    } else if (state.waitingForPhoto && msg.photo) {
+      // Récupérer la plus grande photo
+      const photo = msg.photo[msg.photo.length - 1];
+      state.data.photo = photo.file_id;
+      state.waitingForPhoto = false;
+      await showVendorQuestion(bot, chatId, state.step + 1, state.lastMessageId);
+    }
+  }
+});
 
 // Commande /config pour l'admin
 bot.onText(/\/config/, async (msg) => {
