@@ -14,7 +14,9 @@ async function handleStart(bot, msg, param) {
       user = new User({
         telegramId: userId,
         username: username,
-        firstSeen: new Date()
+        firstName: msg.from.first_name,
+        lastName: msg.from.last_name,
+        joinedAt: new Date()
       });
       
       // Gérer le parrainage

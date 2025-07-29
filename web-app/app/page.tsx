@@ -114,14 +114,32 @@ export default function Home() {
             transition={{ duration: 0.6, delay: 0.4 }}
             className="grid grid-cols-2 gap-3 sm:gap-4 max-w-sm sm:max-w-md mx-auto px-4"
           >
-            <div className="bg-gray-800/60 backdrop-blur-sm border-2 border-gray-700 rounded-xl p-3 sm:p-4 shadow-xl">
-              <div className="text-2xl sm:text-3xl font-bold text-white">{stats?.totalPlugs || 0}</div>
+            <motion.div 
+              className="bg-gray-800/60 backdrop-blur-sm border-2 border-gray-700 rounded-xl p-3 sm:p-4 shadow-xl"
+              key={stats?.plugCount}
+              initial={{ scale: 1 }}
+              animate={{ scale: [1, 1.1, 1] }}
+              transition={{ duration: 0.3 }}
+            >
+              <div className="text-2xl sm:text-3xl font-bold text-white">
+                {stats?.plugCount || 0}
+              </div>
               <div className="text-sm sm:text-base text-gray-300 font-medium">Plugs Actifs</div>
-            </div>
-            <div className="bg-gray-800/60 backdrop-blur-sm border-2 border-gray-700 rounded-xl p-3 sm:p-4 shadow-xl">
-              <div className="text-2xl sm:text-3xl font-bold text-white">{stats?.totalUsers || 0}</div>
+              <div className="text-xs text-green-400 mt-1">🟢 En temps réel</div>
+            </motion.div>
+            <motion.div 
+              className="bg-gray-800/60 backdrop-blur-sm border-2 border-gray-700 rounded-xl p-3 sm:p-4 shadow-xl"
+              key={stats?.userCount}
+              initial={{ scale: 1 }}
+              animate={{ scale: [1, 1.1, 1] }}
+              transition={{ duration: 0.3 }}
+            >
+              <div className="text-2xl sm:text-3xl font-bold text-white">
+                {stats?.userCount || 0}
+              </div>
               <div className="text-sm sm:text-base text-gray-300 font-medium">Utilisateurs</div>
-            </div>
+              <div className="text-xs text-green-400 mt-1">🟢 En temps réel</div>
+            </motion.div>
           </motion.div>
 
           {/* CTA Section avec meilleur espacement */}

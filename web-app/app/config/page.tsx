@@ -248,7 +248,7 @@ export default function ConfigPage() {
         }, {}) : {}
       }
       
-      const res = await fetch('/api/plugs', {
+      const res = await fetch('/api/admin/plugs', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(plugData)
