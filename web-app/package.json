@@ -14,11 +14,12 @@
     "react-dom": "^18.2.0",
     "axios": "^1.6.2",
     "mongoose": "^8.0.3",
-    "@vercel/kv": "^1.0.1",
     "cloudinary": "^1.41.1",
     "framer-motion": "^10.16.16",
     "react-hot-toast": "^2.4.1",
-    "swr": "^2.2.4"
+    "swr": "^2.2.4",
+    "@heroicons/react": "^2.0.18",
+    "clsx": "^2.0.0"
   },
   "devDependencies": {
     "@types/node": "^20.10.5",

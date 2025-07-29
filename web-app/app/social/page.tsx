@@ -18,7 +18,7 @@ const socialIcons = {
 }
 
 export default function SocialPage() {
-  const { data: settings } = useSWR('/api/settings', fetcher)
+  const { data } = useSWR('/api/social', fetcher)
   const [copiedNetwork, setCopiedNetwork] = useState<string | null>(null)
 
   const handleCopy = (network: string, value: string) => {
@@ -46,7 +46,7 @@ export default function SocialPage() {
 
         {/* Social Networks Grid */}
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-          {settings?.socialNetworks && Object.entries(settings.socialNetworks).map(([network, value], index) => {
+          {data?.social && Object.entries(data.social).map(([network, value], index) => {
             if (!value) return null
             
             const icon = socialIcons[network as keyof typeof socialIcons] || '🌐'
