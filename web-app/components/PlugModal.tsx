@@ -51,14 +51,18 @@ export default function PlugModal({ plug, onClose }: PlugModalProps) {
           
           <h2 className="text-2xl font-bold pr-10">{plug.name}</h2>
           <div className="flex items-center gap-2 mt-2 text-gray-400">
-            <span className="text-lg">{plug.countryFlag}</span>
-            <span>{plug.country}</span>
-            <span>•</span>
-            <span>{plug.department}</span>
-            {plug.postalCode && (
+            <span className="text-lg">{plug.countryFlag || plug.location?.countryFlag || '🌍'}</span>
+            <span>{plug.country || plug.location?.country || 'France'}</span>
+            {(plug.department || plug.location?.department) && (
               <>
                 <span>•</span>
-                <span>{plug.postalCode}</span>
+                <span>Dép. {plug.department || plug.location?.department}</span>
+              </>
+            )}
+            {(plug.postalCode || plug.location?.postalCode) && (
+              <>
+                <span>•</span>
+                <span>{plug.postalCode || plug.location?.postalCode}</span>
               </>
             )}
           </div>

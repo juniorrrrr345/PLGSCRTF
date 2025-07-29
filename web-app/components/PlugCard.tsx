@@ -9,6 +9,42 @@ interface PlugCardProps {
 }
 
 export default function PlugCard({ plug, onClick }: PlugCardProps) {
+  // Fonction pour obtenir le drapeau du pays
+  const getCountryFlag = (country: string) => {
+    const flags: { [key: string]: string } = {
+      'FR': '🇫🇷',
+      'BE': '🇧🇪',
+      'CH': '🇨🇭',
+      'CA': '🇨🇦',
+      'LU': '🇱🇺',
+      'MC': '🇲🇨'
+    }
+    return flags[country] || '🌍'
+  }
+
+  // Fonction pour formater la localisation
+  const formatLocation = () => {
+    const parts = []
+    
+    if (plug.location?.country || plug.country) {
+      const country = plug.location?.country || plug.country
+      const flag = plug.countryFlag || getCountryFlag(country)
+      parts.push(`${flag} ${country}`)
+    }
+    
+    if (plug.location?.department || plug.department) {
+      const dept = plug.location?.department || plug.department
+      parts.push(`Dép. ${dept}`)
+    }
+    
+    if (plug.location?.postalCode || plug.postalCode) {
+      const postal = plug.location?.postalCode || plug.postalCode
+      parts.push(postal)
+    }
+    
+    return parts.join(' • ')
+  }
+
   return (
     <motion.div
       whileHover={{ scale: 1.02 }}
@@ -54,52 +90,58 @@ export default function PlugCard({ plug, onClick }: PlugCardProps) {
         </div>
         
         {/* Content */}
-        <div className="p-5 space-y-3">
-          <h3 className="text-xl font-bold text-white bg-black/30 backdrop-blur-sm rounded-lg px-3 py-2 inline-block">
+        <div className="p-3 md:p-5 space-y-2 md:space-y-3">
+          <h3 className="text-base md:text-xl font-bold text-white bg-black/30 backdrop-blur-sm rounded-lg px-2 md:px-3 py-1 md:py-2 inline-block">
             {plug.name}
           </h3>
           
           {/* Location */}
-          <div className="flex items-center gap-2 text-gray-300 text-sm bg-black/20 rounded-lg px-3 py-2">
-            <MapPinIcon className="w-4 h-4 flex-shrink-0" />
-            <span>{plug.location?.country} • {plug.location?.department}</span>
+          <div className="bg-black/20 rounded-lg px-2 md:px-3 py-1.5 md:py-2">
+            <div className="flex items-center gap-1 md:gap-2 text-gray-300 text-xs md:text-sm">
+              <MapPinIcon className="w-3 md:w-4 h-3 md:h-4 flex-shrink-0" />
+              <span className="truncate font-medium">{formatLocation()}</span>
+            </div>
           </div>
           
           {/* Methods */}
-          <div className="flex flex-wrap gap-2">
+          <div className="flex flex-wrap gap-1 md:gap-2">
             {plug.methods?.delivery && (
-              <div className="bg-blue-500/30 backdrop-blur-sm text-blue-300 px-3 py-1.5 rounded-lg text-xs flex items-center gap-1.5 border border-blue-400/30">
-                <TruckIcon className="w-3.5 h-3.5" />
-                Livraison
+              <div className="bg-blue-500/30 backdrop-blur-sm text-blue-300 px-2 md:px-3 py-1 md:py-1.5 rounded-md md:rounded-lg text-[10px] md:text-xs flex items-center gap-1 md:gap-1.5 border border-blue-400/30">
+                <TruckIcon className="w-3 md:w-3.5 h-3 md:h-3.5" />
+                <span className="hidden sm:inline">Livraison</span>
+                <span className="sm:hidden">Liv.</span>
               </div>
             )}
             {plug.methods?.shipping && (
-              <div className="bg-green-500/30 backdrop-blur-sm text-green-300 px-3 py-1.5 rounded-lg text-xs flex items-center gap-1.5 border border-green-400/30">
-                <CubeIcon className="w-3.5 h-3.5" />
-                Envoi
+              <div className="bg-green-500/30 backdrop-blur-sm text-green-300 px-2 md:px-3 py-1 md:py-1.5 rounded-md md:rounded-lg text-[10px] md:text-xs flex items-center gap-1 md:gap-1.5 border border-green-400/30">
+                <CubeIcon className="w-3 md:w-3.5 h-3 md:h-3.5" />
+                <span className="hidden sm:inline">Envoi</span>
+                <span className="sm:hidden">Env.</span>
               </div>
             )}
             {plug.methods?.meetup && (
-              <div className="bg-purple-500/30 backdrop-blur-sm text-purple-300 px-3 py-1.5 rounded-lg text-xs flex items-center gap-1.5 border border-purple-400/30">
-                <UserGroupIcon className="w-3.5 h-3.5" />
-                Meetup
+              <div className="bg-purple-500/30 backdrop-blur-sm text-purple-300 px-2 md:px-3 py-1 md:py-1.5 rounded-md md:rounded-lg text-[10px] md:text-xs flex items-center gap-1 md:gap-1.5 border border-purple-400/30">
+                <UserGroupIcon className="w-3 md:w-3.5 h-3 md:h-3.5" />
+                <span className="hidden sm:inline">Meetup</span>
+                <span className="sm:hidden">Meet</span>
               </div>
             )}
           </div>
           
           {/* Stats */}
-          <div className="flex items-center justify-between pt-3 border-t border-white/10">
-            <div className="bg-black/30 backdrop-blur-sm rounded-lg px-3 py-1.5">
-              <span className="text-sm text-gray-300">
-                🔗 {plug.referralCount || 0} parrainages
+          <div className="flex items-center justify-between pt-2 md:pt-3 border-t border-white/10">
+            <div className="bg-black/30 backdrop-blur-sm rounded-md md:rounded-lg px-2 md:px-3 py-1 md:py-1.5">
+              <span className="text-[10px] md:text-sm text-gray-300">
+                🔗 {plug.referralCount || 0}
               </span>
             </div>
             
             <motion.span
               whileHover={{ scale: 1.05 }}
-              className="text-white/80 hover:text-white text-sm font-medium cursor-pointer"
+              className="text-white/80 hover:text-white text-xs md:text-sm font-medium cursor-pointer"
             >
-              Voir plus →
+              <span className="hidden sm:inline">Voir plus →</span>
+              <span className="sm:hidden">→</span>
             </motion.span>
           </div>
         </div>
