@@ -6,6 +6,7 @@ import { useRouter } from 'next/navigation'
 import toast from 'react-hot-toast'
 import useSWR, { mutate } from 'swr'
 import ImageUpload from '@/components/ImageUpload'
+import SocialNetworkManager from '@/components/SocialNetworkManager'
 import { 
   ChartBarIcon, 
   CogIcon, 
@@ -46,6 +47,7 @@ export default function ConfigPage() {
     name: string
     photo: string
     socialNetworks: any
+    customNetworks?: any[]
     methods: { delivery: boolean, shipping: boolean, meetup: boolean }
     deliveryDepartments: string[]
     location: { country: string, department: string, postalCode: string }
@@ -54,6 +56,7 @@ export default function ConfigPage() {
     name: '',
     photo: '',
     socialNetworks: {},
+    customNetworks: [],
     methods: { delivery: false, shipping: false, meetup: false },
     deliveryDepartments: [],
     location: { country: 'FR', department: '', postalCode: '' },
@@ -175,7 +178,12 @@ export default function ConfigPage() {
         country: newPlug.location.country,
         department: newPlug.location.department,
         postalCode: newPlug.location.postalCode,
-        countryFlag: getCountryFlag(newPlug.location.country)
+        countryFlag: getCountryFlag(newPlug.location.country),
+        // Convertir customNetworks en socialNetworks pour la compatibilité
+        socialNetworks: newPlug.customNetworks ? newPlug.customNetworks.reduce((acc: any, network: any) => {
+          acc[network.name.toLowerCase()] = network.link
+          return acc
+        }, {}) : {}
       }
       
       const res = await fetch('/api/plugs', {
@@ -191,6 +199,7 @@ export default function ConfigPage() {
           name: '',
           photo: '',
           socialNetworks: {},
+          customNetworks: [],
           methods: { delivery: false, shipping: false, meetup: false },
           deliveryDepartments: [],
           location: { country: 'FR', department: '', postalCode: '' },
@@ -216,10 +225,21 @@ export default function ConfigPage() {
 
   const handleUpdatePlug = async () => {
     try {
+      // Formater les données du plug
+      const plugData = {
+        ...editingPlug,
+        countryFlag: getCountryFlag(editingPlug.location?.country || editingPlug.country || 'FR'),
+        // Convertir customNetworks en socialNetworks pour la compatibilité
+        socialNetworks: editingPlug.customNetworks ? editingPlug.customNetworks.reduce((acc: any, network: any) => {
+          acc[network.name.toLowerCase()] = network.link
+          return acc
+        }, {}) : editingPlug.socialNetworks || {}
+      }
+      
       const res = await fetch(`/api/plugs/${editingPlug._id}`, {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(editingPlug)
+        body: JSON.stringify(plugData)
       })
 
       if (res.ok) {
@@ -227,8 +247,12 @@ export default function ConfigPage() {
         setShowAddPlug(false)
         setEditingPlug(null)
         mutate('/api/plugs?all=true')
+      } else {
+        const error = await res.json()
+        toast.error(error.error || 'Erreur lors de la mise à jour')
       }
     } catch (error) {
+      console.error('Update error:', error)
       toast.error('Erreur lors de la mise à jour')
     }
   }
@@ -989,139 +1013,16 @@ export default function ConfigPage() {
 
                   {/* Section 4: Réseaux sociaux */}
                   <div className="bg-gray-800/50 rounded-2xl p-6 border border-gray-700">
-                    <h3 className="text-xl font-bold text-white mb-6 flex items-center gap-2">
-                      <span className="text-2xl">💬</span> Réseaux sociaux
-                    </h3>
-                    
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                      <div>
-                        <label className="block text-sm font-semibold text-gray-300 mb-2">
-                          👻 Snapchat
-                        </label>
-                        <input
-                          type="text"
-                          placeholder="username"
-                          value={editingPlug?.socialNetworks?.snap || ''}
-                          onChange={(e) => editingPlug
-                            ? setEditingPlug({...editingPlug, socialNetworks: {...(editingPlug.socialNetworks || {}), snap: e.target.value}})
-                            : setNewPlug({...newPlug, socialNetworks: {...newPlug.socialNetworks, snap: e.target.value}})
-                          }
-                          className="w-full px-4 py-3 bg-gray-800 border-2 border-gray-600 rounded-xl text-white placeholder-gray-400 focus:border-yellow-500 focus:outline-none transition-all"
-                        />
-                      </div>
-
-                      <div>
-                        <label className="block text-sm font-semibold text-gray-300 mb-2">
-                          📷 Instagram
-                        </label>
-                        <input
-                          type="text"
-                          placeholder="@username"
-                          value={editingPlug?.socialNetworks?.instagram || ''}
-                          onChange={(e) => editingPlug
-                            ? setEditingPlug({...editingPlug, socialNetworks: {...(editingPlug.socialNetworks || {}), instagram: e.target.value}})
-                            : setNewPlug({...newPlug, socialNetworks: {...newPlug.socialNetworks, instagram: e.target.value}})
-                          }
-                          className="w-full px-4 py-3 bg-gray-800 border-2 border-gray-600 rounded-xl text-white placeholder-gray-400 focus:border-purple-500 focus:outline-none transition-all"
-                        />
-                      </div>
-
-                      <div>
-                        <label className="block text-sm font-semibold text-gray-300 mb-2">
-                          💬 WhatsApp
-                        </label>
-                        <input
-                          type="text"
-                          placeholder="+33 6 12 34 56 78"
-                          value={editingPlug?.socialNetworks?.whatsapp || ''}
-                          onChange={(e) => editingPlug
-                            ? setEditingPlug({...editingPlug, socialNetworks: {...(editingPlug.socialNetworks || {}), whatsapp: e.target.value}})
-                            : setNewPlug({...newPlug, socialNetworks: {...newPlug.socialNetworks, whatsapp: e.target.value}})
-                          }
-                          className="w-full px-4 py-3 bg-gray-800 border-2 border-gray-600 rounded-xl text-white placeholder-gray-400 focus:border-green-500 focus:outline-none transition-all"
-                        />
-                      </div>
-
-                      <div>
-                        <label className="block text-sm font-semibold text-gray-300 mb-2">
-                          ✈️ Telegram
-                        </label>
-                        <input
-                          type="text"
-                          placeholder="@username"
-                          value={editingPlug?.socialNetworks?.telegram || ''}
-                          onChange={(e) => editingPlug
-                            ? setEditingPlug({...editingPlug, socialNetworks: {...(editingPlug.socialNetworks || {}), telegram: e.target.value}})
-                            : setNewPlug({...newPlug, socialNetworks: {...newPlug.socialNetworks, telegram: e.target.value}})
-                          }
-                          className="w-full px-4 py-3 bg-gray-800 border-2 border-gray-600 rounded-xl text-white placeholder-gray-400 focus:border-blue-500 focus:outline-none transition-all"
-                        />
-                      </div>
-
-                      <div>
-                        <label className="block text-sm font-semibold text-gray-300 mb-2">
-                          🔒 Signal
-                        </label>
-                        <input
-                          type="text"
-                          placeholder="+33 6 12 34 56 78"
-                          value={editingPlug?.socialNetworks?.signal || ''}
-                          onChange={(e) => editingPlug
-                            ? setEditingPlug({...editingPlug, socialNetworks: {...(editingPlug.socialNetworks || {}), signal: e.target.value}})
-                            : setNewPlug({...newPlug, socialNetworks: {...newPlug.socialNetworks, signal: e.target.value}})
-                          }
-                          className="w-full px-4 py-3 bg-gray-800 border-2 border-gray-600 rounded-xl text-white placeholder-gray-400 focus:border-blue-600 focus:outline-none transition-all"
-                        />
-                      </div>
-
-                      <div>
-                        <label className="block text-sm font-semibold text-gray-300 mb-2">
-                          🔐 Threema
-                        </label>
-                        <input
-                          type="text"
-                          placeholder="ABCD1234"
-                          value={editingPlug?.socialNetworks?.threema || ''}
-                          onChange={(e) => editingPlug
-                            ? setEditingPlug({...editingPlug, socialNetworks: {...(editingPlug.socialNetworks || {}), threema: e.target.value}})
-                            : setNewPlug({...newPlug, socialNetworks: {...newPlug.socialNetworks, threema: e.target.value}})
-                          }
-                          className="w-full px-4 py-3 bg-gray-800 border-2 border-gray-600 rounded-xl text-white placeholder-gray-400 focus:border-gray-500 focus:outline-none transition-all"
-                        />
-                      </div>
-
-                      <div>
-                        <label className="block text-sm font-semibold text-gray-300 mb-2">
-                          🥔 Potato
-                        </label>
-                        <input
-                          type="text"
-                          placeholder="username"
-                          value={editingPlug?.socialNetworks?.potato || ''}
-                          onChange={(e) => editingPlug
-                            ? setEditingPlug({...editingPlug, socialNetworks: {...(editingPlug.socialNetworks || {}), potato: e.target.value}})
-                            : setNewPlug({...newPlug, socialNetworks: {...newPlug.socialNetworks, potato: e.target.value}})
-                          }
-                          className="w-full px-4 py-3 bg-gray-800 border-2 border-gray-600 rounded-xl text-white placeholder-gray-400 focus:border-orange-500 focus:outline-none transition-all"
-                        />
-                      </div>
-
-                      <div>
-                        <label className="block text-sm font-semibold text-gray-300 mb-2">
-                          🌐 Autre
-                        </label>
-                        <input
-                          type="text"
-                          placeholder="Autre réseau social"
-                          value={editingPlug?.socialNetworks?.other || ''}
-                          onChange={(e) => editingPlug
-                            ? setEditingPlug({...editingPlug, socialNetworks: {...(editingPlug.socialNetworks || {}), other: e.target.value}})
-                            : setNewPlug({...newPlug, socialNetworks: {...newPlug.socialNetworks, other: e.target.value}})
-                          }
-                          className="w-full px-4 py-3 bg-gray-800 border-2 border-gray-600 rounded-xl text-white placeholder-gray-400 focus:border-gray-500 focus:outline-none transition-all"
-                        />
-                      </div>
-                    </div>
+                    <SocialNetworkManager
+                      networks={editingPlug ? (editingPlug.customNetworks || []) : (newPlug.customNetworks || [])}
+                      onChange={(networks) => {
+                        if (editingPlug) {
+                          setEditingPlug({...editingPlug, customNetworks: networks})
+                        } else {
+                          setNewPlug({...newPlug, customNetworks: networks})
+                        }
+                      }}
+                    />
                   </div>
 
                   {/* Actions */}

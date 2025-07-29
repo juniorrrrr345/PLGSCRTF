@@ -5,26 +5,35 @@ const plugSchema = new mongoose.Schema({
     type: String,
     required: true
   },
-  description: String,
   photo: String,
+  description: String,
   methods: {
     delivery: { type: Boolean, default: false },
     shipping: { type: Boolean, default: false },
     meetup: { type: Boolean, default: false }
   },
-  deliveryDepartments: [{
-    type: String
-  }],
-  socialNetworks: {
-    snap: String,
-    instagram: String,
-    whatsapp: String,
-    signal: String,
-    threema: String,
-    potato: String,
-    telegram: String,
-    other: String
-  },
+  deliveryDepartments?: string[];
+  socialNetworks?: {
+    snap?: string;
+    instagram?: string;
+    whatsapp?: string;
+    signal?: string;
+    threema?: string;
+    potato?: string;
+    telegram?: string;
+    other?: string;
+  };
+  customNetworks?: Array<{
+    id: string;
+    name: string;
+    emoji: string;
+    link: string;
+  }>;
+  location?: {
+    country: string;
+    department: string;
+    postalCode: string;
+  };
   country: String,
   countryFlag: String,
   department: String,
@@ -42,10 +51,12 @@ const plugSchema = new mongoose.Schema({
     type: Boolean,
     default: true
   },
-  createdAt: {
-    type: Date,
-    default: Date.now
+  isExample: {
+    type: Boolean,
+    default: false
   }
+}, {
+  timestamps: true
 })
 
 plugSchema.index({ likes: -1 })
