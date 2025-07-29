@@ -3,7 +3,6 @@ import { Inter } from 'next/font/google'
 import '../styles/globals.css'
 import { Toaster } from 'react-hot-toast'
 import Navbar from '@/components/Navbar'
-import Footer from '@/components/Footer'
 import ScrollIndicator from '@/components/ScrollIndicator'
 
 const inter = Inter({ subsets: ['latin'] })
@@ -23,10 +22,9 @@ export default function RootLayout({
     <html lang="fr">
       <body className={`${inter.className} bg-dark text-white min-h-screen`}>
         <Navbar />
-        <main className="relative">
+        <main className="relative min-h-screen">
           {children}
         </main>
-        <Footer />
         <ScrollIndicator />
         <Toaster 
           position="top-center"
