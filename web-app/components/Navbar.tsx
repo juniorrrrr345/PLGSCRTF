@@ -4,10 +4,13 @@ import Link from 'next/link'
 import { useState, useEffect } from 'react'
 import { motion } from 'framer-motion'
 import { Bars3Icon, XMarkIcon } from '@heroicons/react/24/outline'
+import { usePathname } from 'next/navigation'
 
 export default function Navbar() {
   const [isOpen, setIsOpen] = useState(false)
   const [scrolled, setScrolled] = useState(false)
+  const pathname = usePathname()
+  const isHomePage = pathname === '/'
 
   useEffect(() => {
     const handleScroll = () => {
@@ -36,7 +39,11 @@ export default function Navbar() {
           <Link href="/" className="flex items-center space-x-2">
             <motion.div
               whileHover={{ scale: 1.05 }}
-              className="text-2xl font-black gradient-text"
+              className={`text-xl font-bold transition-all ${
+                isHomePage && !scrolled 
+                  ? 'text-gray-500 opacity-50' 
+                  : 'text-white'
+              }`}
             >
               PLUGS CRTFS
             </motion.div>
