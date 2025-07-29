@@ -207,6 +207,7 @@ export default function ConfigPage() {
           customNetworks: [],
           methods: { delivery: false, shipping: false, meetup: false },
           deliveryDepartments: [],
+          countries: ['FR'],
           location: { country: 'FR', department: '', postalCode: '' },
           description: ''
         })
@@ -546,6 +547,10 @@ export default function ConfigPage() {
                             onClick={() => {
                               // Convertir socialNetworks en customNetworks si nécessaire
                               const plugToEdit = {...plug}
+                              // Initialiser countries si pas présent
+                              if (!plugToEdit.countries || plugToEdit.countries.length === 0) {
+                                plugToEdit.countries = plugToEdit.country ? [plugToEdit.country] : ['FR']
+                              }
                               if (!plugToEdit.customNetworks || plugToEdit.customNetworks.length === 0) {
                                 plugToEdit.customNetworks = []
                                 if (plugToEdit.socialNetworks) {
