@@ -36,6 +36,7 @@ export default function ConfigPage() {
   const [showAddPlug, setShowAddPlug] = useState(false)
   const [editingPlug, setEditingPlug] = useState<any>(null)
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
+  const [isDesktop, setIsDesktop] = useState(false)
   
   // Form states
   const [welcomeMessage, setWelcomeMessage] = useState('')
@@ -59,6 +60,15 @@ export default function ConfigPage() {
     if (authStatus === 'true') {
       setIsAuthenticated(true)
     }
+    
+    // Check if desktop
+    const checkDesktop = () => {
+      setIsDesktop(window.innerWidth >= 1024)
+    }
+    
+    checkDesktop()
+    window.addEventListener('resize', checkDesktop)
+    return () => window.removeEventListener('resize', checkDesktop)
   }, [])
   
   useEffect(() => {
@@ -254,7 +264,7 @@ export default function ConfigPage() {
       <div className="flex">
         {/* Sidebar */}
         <AnimatePresence>
-          {(mobileMenuOpen || window.innerWidth >= 1024) && (
+          {(mobileMenuOpen || isDesktop) && (
             <motion.aside
               initial={{ x: -300 }}
               animate={{ x: 0 }}

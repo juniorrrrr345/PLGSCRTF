@@ -19,10 +19,17 @@ export default function PlugsPage() {
     if (plugs) {
       const filtered = plugs.filter((plug: any) =>
         plug.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        plug.department?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        plug.country?.toLowerCase().includes(searchTerm.toLowerCase())
+        plug.location?.department?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        plug.location?.country?.toLowerCase().includes(searchTerm.toLowerCase())
       )
-      setFilteredPlugs(filtered)
+      
+      // Ajouter le rang pour les top 3
+      const rankedPlugs = filtered.map((plug: any, index: number) => ({
+        ...plug,
+        rank: index < 3 ? index + 1 : null
+      }))
+      
+      setFilteredPlugs(rankedPlugs)
     }
   }, [plugs, searchTerm])
 
@@ -56,14 +63,24 @@ export default function PlugsPage() {
         <motion.div
           initial={{ opacity: 0, y: -20 }}
           animate={{ opacity: 1, y: 0 }}
-          className="text-center mb-12"
+          className="text-center mb-8"
         >
-          <h1 className="text-4xl md:text-6xl font-black mb-4">
-            Tous les <span className="gradient-text">Plugs</span>
+          <h1 className="text-4xl md:text-5xl font-black mb-3">
+            🔌 Nos <span className="gradient-text">Plugs Certifiés</span>
           </h1>
           <p className="text-gray-400 text-lg">
-            Découvrez nos vendeurs certifiés classés par popularité
+            Vendeurs vérifiés et classés par popularité
           </p>
+          {plugs && (
+            <div className="flex justify-center gap-4 mt-4 text-sm">
+              <div className="bg-white/10 px-4 py-2 rounded-full">
+                <span className="font-bold">{plugs.length}</span> vendeurs actifs
+              </div>
+              <div className="bg-white/10 px-4 py-2 rounded-full">
+                <span className="font-bold">{plugs.reduce((acc: number, p: any) => acc + p.likes, 0)}</span> likes totaux
+              </div>
+            </div>
+          )}
         </motion.div>
 
         {/* Search Bar */}
