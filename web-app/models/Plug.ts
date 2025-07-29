@@ -12,28 +12,30 @@ const plugSchema = new mongoose.Schema({
     shipping: { type: Boolean, default: false },
     meetup: { type: Boolean, default: false }
   },
-  deliveryDepartments?: string[];
-  socialNetworks?: {
-    snap?: string;
-    instagram?: string;
-    whatsapp?: string;
-    signal?: string;
-    threema?: string;
-    potato?: string;
-    telegram?: string;
-    other?: string;
-  };
-  customNetworks?: Array<{
-    id: string;
-    name: string;
-    emoji: string;
-    link: string;
-  }>;
-  location?: {
-    country: string;
-    department: string;
-    postalCode: string;
-  };
+  deliveryDepartments: [{
+    type: String
+  }],
+  socialNetworks: {
+    snap: String,
+    instagram: String,
+    whatsapp: String,
+    signal: String,
+    threema: String,
+    potato: String,
+    telegram: String,
+    other: String
+  },
+  customNetworks: [{
+    id: String,
+    name: String,
+    emoji: String,
+    link: String
+  }],
+  location: {
+    country: String,
+    department: String,
+    postalCode: String
+  },
   country: String,
   countryFlag: String,
   department: String,

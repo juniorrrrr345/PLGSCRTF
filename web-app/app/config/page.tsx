@@ -538,7 +538,35 @@ export default function ConfigPage() {
                         
                         <div className="flex gap-2">
                           <button
-                            onClick={() => setEditingPlug(plug)}
+                            onClick={() => {
+                              // Convertir socialNetworks en customNetworks si nécessaire
+                              const plugToEdit = {...plug}
+                              if (!plugToEdit.customNetworks || plugToEdit.customNetworks.length === 0) {
+                                plugToEdit.customNetworks = []
+                                if (plugToEdit.socialNetworks) {
+                                  const networkMap: any = {
+                                    snap: { name: 'Snapchat', emoji: '👻' },
+                                    instagram: { name: 'Instagram', emoji: '📷' },
+                                    whatsapp: { name: 'WhatsApp', emoji: '💬' },
+                                    telegram: { name: 'Telegram', emoji: '✈️' },
+                                    signal: { name: 'Signal', emoji: '🔒' },
+                                    threema: { name: 'Threema', emoji: '🔐' },
+                                    potato: { name: 'Potato', emoji: '🥔' }
+                                  }
+                                  Object.entries(plugToEdit.socialNetworks).forEach(([key, value]) => {
+                                    if (value && networkMap[key]) {
+                                      plugToEdit.customNetworks.push({
+                                        id: Date.now().toString() + Math.random(),
+                                        name: networkMap[key].name,
+                                        emoji: networkMap[key].emoji,
+                                        link: value as string
+                                      })
+                                    }
+                                  })
+                                }
+                              }
+                              setEditingPlug(plugToEdit)
+                            }}
                             className="p-2 hover:bg-white/10 rounded-lg transition-colors"
                           >
                             <PencilIcon className="w-5 h-5" />

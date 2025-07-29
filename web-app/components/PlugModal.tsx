@@ -40,15 +40,23 @@ export default function PlugModal({ plug, onClose, isOpen, onLike }: PlugModalPr
     toast.success('Lien copié dans le presse-papier!')
   }
 
-  const socialNetworks = [
-    { name: 'Snapchat', value: plug.socialNetworks?.snap, icon: '👻', color: 'from-yellow-400 to-yellow-500' },
-    { name: 'Instagram', value: plug.socialNetworks?.instagram, icon: '📷', color: 'from-purple-500 to-pink-500' },
-    { name: 'WhatsApp', value: plug.socialNetworks?.whatsapp, icon: '💬', color: 'from-green-500 to-green-600' },
-    { name: 'Signal', value: plug.socialNetworks?.signal, icon: '🔒', color: 'from-blue-500 to-blue-600' },
-    { name: 'Telegram', value: plug.socialNetworks?.telegram, icon: '✈️', color: 'from-blue-400 to-blue-500' },
-    { name: 'Threema', value: plug.socialNetworks?.threema, icon: '🔐', color: 'from-gray-600 to-gray-700' },
-    { name: 'Potato', value: plug.socialNetworks?.potato, icon: '🥔', color: 'from-orange-500 to-orange-600' },
-  ].filter(network => network.value)
+  // Utiliser customNetworks s'il existe, sinon utiliser l'ancien format
+  const socialNetworks = plug.customNetworks && plug.customNetworks.length > 0
+    ? plug.customNetworks.map((network: any) => ({
+        name: network.name,
+        value: network.link,
+        icon: network.emoji,
+        color: 'from-gray-600 to-gray-700' // Couleur par défaut
+      }))
+    : [
+        { name: 'Snapchat', value: plug.socialNetworks?.snap, icon: '👻', color: 'from-yellow-400 to-yellow-500' },
+        { name: 'Instagram', value: plug.socialNetworks?.instagram, icon: '📷', color: 'from-purple-500 to-pink-500' },
+        { name: 'WhatsApp', value: plug.socialNetworks?.whatsapp, icon: '💬', color: 'from-green-500 to-green-600' },
+        { name: 'Signal', value: plug.socialNetworks?.signal, icon: '🔒', color: 'from-blue-500 to-blue-600' },
+        { name: 'Telegram', value: plug.socialNetworks?.telegram, icon: '✈️', color: 'from-blue-400 to-blue-500' },
+        { name: 'Threema', value: plug.socialNetworks?.threema, icon: '🔐', color: 'from-gray-600 to-gray-700' },
+        { name: 'Potato', value: plug.socialNetworks?.potato, icon: '🥔', color: 'from-orange-500 to-orange-600' },
+      ].filter(network => network.value)
 
   const getCountryFlag = (country: string) => {
     const flags: { [key: string]: string } = {
