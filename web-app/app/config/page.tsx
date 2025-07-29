@@ -56,19 +56,21 @@ export default function ConfigPage() {
   const { data: applications } = useSWR(isAuthenticated ? '/api/applications' : null, fetcher)
   
   useEffect(() => {
-    const authStatus = localStorage.getItem('adminAuth')
-    if (authStatus === 'true') {
-      setIsAuthenticated(true)
+    if (typeof window !== 'undefined') {
+      const authStatus = localStorage.getItem('adminAuth')
+      if (authStatus === 'true') {
+        setIsAuthenticated(true)
+      }
+      
+      // Check if desktop
+      const checkDesktop = () => {
+        setIsDesktop(window.innerWidth >= 1024)
+      }
+      
+      checkDesktop()
+      window.addEventListener('resize', checkDesktop)
+      return () => window.removeEventListener('resize', checkDesktop)
     }
-    
-    // Check if desktop
-    const checkDesktop = () => {
-      setIsDesktop(window.innerWidth >= 1024)
-    }
-    
-    checkDesktop()
-    window.addEventListener('resize', checkDesktop)
-    return () => window.removeEventListener('resize', checkDesktop)
   }, [])
   
   useEffect(() => {
