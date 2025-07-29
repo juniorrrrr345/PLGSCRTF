@@ -150,13 +150,13 @@ export default function Home() {
       </section>
 
       {/* Features Section */}
-      <section className="py-20 px-4">
+      <section className="py-12 px-4">
         <div className="max-w-7xl mx-auto">
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             whileInView={{ opacity: 1, y: 0 }}
             viewport={{ once: true }}
-            className="text-center mb-16"
+            className="text-center mb-8"
           >
             <h2 className="text-4xl md:text-5xl font-bold mb-4">
               Pourquoi choisir <span className="gradient-text">PLUGS CRTFS</span> ?
@@ -214,13 +214,13 @@ export default function Home() {
       </section>
 
       {/* Quick Links Section with Mobile Notice */}
-      <section className="py-20 px-4 bg-gradient-to-b from-transparent to-darker/50">
+      <section className="py-12 px-4 bg-gradient-to-b from-transparent to-darker/50">
         <div className="max-w-7xl mx-auto">
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             whileInView={{ opacity: 1, y: 0 }}
             viewport={{ once: true }}
-            className="text-center mb-12"
+            className="text-center mb-6"
           >
             <h2 className="text-3xl md:text-4xl font-bold mb-4">
               Explorez toutes nos <span className="gradient-text">fonctionnalités</span>
@@ -233,14 +233,14 @@ export default function Home() {
             </p>
           </motion.div>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-12">
-            <Link href="/plugs" className="glass-card p-8 text-center hover:border-primary/50 transition-all group">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
+            <Link href="/plugs" className="glass-card p-6 text-center hover:border-primary/50 transition-all group">
               <BoltIcon className="w-12 h-12 mx-auto mb-4 text-primary group-hover:scale-110 transition-transform" />
               <h3 className="text-xl font-bold mb-2">Découvrir les Plugs</h3>
               <p className="text-gray-400">Parcourez notre sélection de vendeurs certifiés</p>
             </Link>
 
-            <Link href="/products" className="glass-card p-8 text-center hover:border-primary/50 transition-all group">
+            <Link href="/products" className="glass-card p-6 text-center hover:border-primary/50 transition-all group">
               <svg className="w-12 h-12 mx-auto mb-4 text-primary group-hover:scale-110 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10" />
               </svg>
@@ -248,7 +248,7 @@ export default function Home() {
               <p className="text-gray-400">Découvrez les derniers produits en vidéo</p>
             </Link>
 
-            <Link href="/search" className="glass-card p-8 text-center hover:border-primary/50 transition-all group">
+            <Link href="/search" className="glass-card p-6 text-center hover:border-primary/50 transition-all group">
               <SparklesIcon className="w-12 h-12 mx-auto mb-4 text-primary group-hover:scale-110 transition-transform" />
               <h3 className="text-xl font-bold mb-2">Recherche Avancée</h3>
               <p className="text-gray-400">Trouvez exactement ce que vous cherchez</p>
@@ -279,7 +279,7 @@ export default function Home() {
       </section>
 
       {/* CTA Section */}
-      <section className="py-20 px-4">
+      <section className="py-12 px-4">
         <div className="max-w-4xl mx-auto text-center">
           <motion.div
             initial={{ opacity: 0, scale: 0.9 }}
