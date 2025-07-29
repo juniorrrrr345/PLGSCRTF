@@ -278,4 +278,29 @@ bot.on('polling_error', (error) => {
   console.error('Polling error:', error);
 });
 
+bot.on('error', (error) => {
+  console.error('Bot error:', error);
+});
+
+// Log de démarrage
+console.log('🤖 Bot is starting...');
+console.log('📍 Environment:', {
+  mongoUri: process.env.MONGODB_URI ? '✅ Set' : '❌ Missing',
+  botToken: process.env.TELEGRAM_BOT_TOKEN ? '✅ Set' : '❌ Missing',
+  webAppUrl: process.env.WEB_APP_URL || 'Using default'
+});
+
+// Vérifier la connexion MongoDB
+mongoose.connection.on('connected', () => {
+  console.log('✅ MongoDB connected successfully');
+});
+
+mongoose.connection.on('error', (err) => {
+  console.error('❌ MongoDB connection error:', err);
+});
+
+mongoose.connection.on('disconnected', () => {
+  console.log('⚠️ MongoDB disconnected');
+});
+
 console.log('🤖 Bot is running...');
