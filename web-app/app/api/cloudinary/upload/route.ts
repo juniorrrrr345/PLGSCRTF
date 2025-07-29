@@ -4,15 +4,6 @@ import { v2 as cloudinary } from 'cloudinary'
 export const runtime = 'nodejs'
 export const maxDuration = 60
 
-// Configuration pour augmenter la limite de taille
-export const config = {
-  api: {
-    bodyParser: {
-      sizeLimit: '100mb',
-    },
-  },
-}
-
 cloudinary.config({
   cloud_name: process.env.NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME,
   api_key: process.env.CLOUDINARY_API_KEY,

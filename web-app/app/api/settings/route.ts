@@ -5,15 +5,6 @@ import Settings from '@/models/Settings'
 export const runtime = 'nodejs'
 export const maxDuration = 60
 
-// Configuration pour augmenter la limite de taille
-export const config = {
-  api: {
-    bodyParser: {
-      sizeLimit: '100mb',
-    },
-  },
-}
-
 export async function GET() {
   try {
     await connectToDatabase()
