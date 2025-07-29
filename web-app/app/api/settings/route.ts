@@ -1,67 +1,52 @@
-import { NextRequest, NextResponse } from 'next/server'
+import { NextResponse } from 'next/server'
 import { connectToDatabase } from '@/lib/mongodb'
 import Settings from '@/models/Settings'
+
+export const runtime = 'nodejs'
+export const maxDuration = 60
+
+// Configuration pour augmenter la limite de taille
+export const config = {
+  api: {
+    bodyParser: {
+      sizeLimit: '100mb',
+    },
+  },
+}
 
 export async function GET() {
   try {
     await connectToDatabase()
     
-    const settings = await Settings.findOne()
-    
+    let settings = await Settings.findOne()
     if (!settings) {
-      return NextResponse.json({
-        welcomeMessage: 'Bienvenue sur notre boutique !',
-        welcomeImage: null,
-        backgroundImage: null,
-        infoText: 'Informations sur notre service',
-        socialNetworks: {}
-      })
+      settings = await Settings.create({})
     }
     
-    return NextResponse.json({
-      welcomeMessage: settings.welcomeMessage,
-      welcomeImage: settings.welcomeImage,
-      backgroundImage: settings.backgroundImage,
-      infoText: settings.infoText,
-      socialNetworks: settings.socialNetworks
-    })
+    return NextResponse.json(settings)
   } catch (error) {
-    console.error('Settings API error:', error)
-    return NextResponse.json(
-      { error: 'Failed to fetch settings' },
-      { status: 500 }
-    )
+    console.error('Settings GET error:', error)
+    return NextResponse.json({ error: 'Erreur serveur' }, { status: 500 })
   }
 }
 
-export async function POST(request: NextRequest) {
+export async function POST(request: Request) {
   try {
+    const data = await request.json()
     await connectToDatabase()
     
-    const body = await request.json()
-    
     let settings = await Settings.findOne()
-    
     if (!settings) {
-      settings = new Settings()
-    }
-    
-    // Mettre à jour les paramètres
-    if (body.welcomeMessage !== undefined) {
-      settings.welcomeMessage = body.welcomeMessage
-    }
-    if (body.infoText !== undefined) {
-      settings.infoText = body.infoText
+      settings = new Settings(data)
+    } else {
+      Object.assign(settings, data)
     }
     
     await settings.save()
     
     return NextResponse.json(settings)
   } catch (error) {
-    console.error('Update settings error:', error)
-    return NextResponse.json(
-      { error: 'Failed to update settings' },
-      { status: 500 }
-    )
+    console.error('Settings POST error:', error)
+    return NextResponse.json({ error: 'Erreur serveur' }, { status: 500 })
   }
 }

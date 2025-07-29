@@ -24,9 +24,9 @@ export default function ImageUpload({ onUpload, currentImage, label = 'Choisir u
       return
     }
 
-    // Vérifier la taille (max 5MB)
-    if (file.size > 5 * 1024 * 1024) {
-      toast.error('L\'image ne doit pas dépasser 5MB')
+    // Vérifier la taille (max 100MB pour permettre des images haute qualité)
+    if (file.size > 100 * 1024 * 1024) {
+      toast.error('L\'image ne doit pas dépasser 100MB')
       return
     }
 
