@@ -64,10 +64,28 @@ async function showMainMenu(bot, chatId) {
     ]
   };
   
-  await bot.sendMessage(chatId, welcomeMessage, {
-    parse_mode: 'HTML',
-    reply_markup: keyboard
-  });
+  // Envoyer l'image d'accueil si elle existe
+  if (settings?.welcomeImage) {
+    try {
+      await bot.sendPhoto(chatId, settings.welcomeImage, {
+        caption: welcomeMessage,
+        parse_mode: 'HTML',
+        reply_markup: keyboard
+      });
+    } catch (error) {
+      console.error('Erreur envoi image:', error);
+      // Si l'image échoue, envoyer juste le message
+      await bot.sendMessage(chatId, welcomeMessage, {
+        parse_mode: 'HTML',
+        reply_markup: keyboard
+      });
+    }
+  } else {
+    await bot.sendMessage(chatId, welcomeMessage, {
+      parse_mode: 'HTML',
+      reply_markup: keyboard
+    });
+  }
 }
 
 module.exports = { handleStart, showMainMenu };

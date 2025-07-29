@@ -126,20 +126,22 @@ export default function SocialPage() {
                     rel="noopener noreferrer"
                     className="block transform transition-all duration-300 hover:scale-105"
                   >
-                    <div className={`relative ${platform.bgColor} rounded-3xl p-8 ${platform.shadowColor} shadow-2xl hover:shadow-3xl transition-all`}>
+                    <div className={`relative ${platform.bgColor} rounded-3xl p-8 ${platform.shadowColor} shadow-2xl hover:shadow-3xl transition-all brightness-110 hover:brightness-125`}>
                       {/* Effet de brillance */}
-                      <div className="absolute inset-0 bg-gradient-to-tr from-white/20 to-transparent rounded-3xl opacity-0 group-hover:opacity-100 transition-opacity" />
+                      <div className="absolute inset-0 bg-gradient-to-tr from-white/30 to-transparent rounded-3xl opacity-50 group-hover:opacity-70 transition-opacity" />
+                      {/* Overlay lumineux supplémentaire */}
+                      <div className="absolute inset-0 bg-gradient-to-b from-white/10 to-transparent rounded-3xl" />
                       
                       <div className="relative z-10 text-center">
                         <motion.div 
-                          className="text-7xl mb-4"
+                          className="text-7xl mb-4 drop-shadow-2xl"
                           animate={hoveredIndex === index ? { scale: [1, 1.2, 1], rotate: [0, 10, -10, 0] } : {}}
                           transition={{ duration: 0.5 }}
                         >
                           {platform.icon}
                         </motion.div>
-                        <h3 className="text-2xl font-bold mb-2 text-white">{platform.name}</h3>
-                        <p className="text-white/90 font-semibold flex items-center justify-center gap-2">
+                        <h3 className="text-2xl font-bold mb-2 text-white drop-shadow-lg">{platform.name}</h3>
+                        <p className="text-white font-bold flex items-center justify-center gap-2 drop-shadow-md">
                           Suivez-nous 
                           <motion.span
                             animate={hoveredIndex === index ? { x: [0, 5, 0] } : {}}

@@ -45,6 +45,7 @@ export default function ConfigPage() {
   // Form states
   const [welcomeMessage, setWelcomeMessage] = useState('')
   const [globalMessage, setGlobalMessage] = useState('')
+  const [socialNetworks, setSocialNetworks] = useState<any>({})
   const [newPlug, setNewPlug] = useState<{
     name: string
     photo: string
@@ -266,6 +267,27 @@ export default function ConfigPage() {
     }
   }
   
+  const handleUpdateSocialNetwork = (key: string, value: string) => {
+    setSocialNetworks({ ...socialNetworks, [key]: value })
+  }
+
+  const handleSaveSocialNetworks = async () => {
+    try {
+      const res = await fetch('/api/settings', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ socialNetworks })
+      })
+      
+      if (res.ok) {
+        toast.success('Réseaux sociaux mis à jour !')
+        mutate('/api/settings')
+      }
+    } catch (error) {
+      toast.error('Erreur lors de la mise à jour')
+    }
+  }
+
   const handleDeletePlug = async (plugId: string) => {
     if (!confirm('Êtes-vous sûr de vouloir supprimer ce plug ?')) return
     
@@ -355,6 +377,7 @@ export default function ConfigPage() {
     { id: 'dashboard', label: 'Tableau de bord', icon: ChartBarIcon },
     { id: 'plugs', label: 'Plugs', icon: BoltIcon },
     { id: 'applications', label: 'Candidatures', icon: DocumentTextIcon },
+    { id: 'social', label: 'Réseaux Sociaux', icon: LinkIcon },
     { id: 'settings', label: 'Paramètres', icon: CogIcon }
   ]
   
@@ -668,6 +691,55 @@ export default function ConfigPage() {
                       ))}
                     </div>
                   )}
+                </div>
+              )}
+              
+              {/* Social Networks */}
+              {activeTab === 'social' && (
+                <div className="space-y-6 max-w-4xl">
+                  <h1 className="text-3xl font-bold">Réseaux Sociaux de la Boutique</h1>
+                  
+                  <div className="glass-card p-6">
+                    <h2 className="text-xl font-bold mb-6">Gérer les réseaux sociaux</h2>
+                    <p className="text-gray-400 mb-6">
+                      Configurez les liens vers vos réseaux sociaux qui seront affichés sur la page dédiée.
+                    </p>
+                    
+                    <div className="space-y-4">
+                      {[
+                        { key: 'instagram', label: 'Instagram', icon: '📷', placeholder: '@username' },
+                        { key: 'snapchat', label: 'Snapchat', icon: '👻', placeholder: 'username' },
+                        { key: 'telegram', label: 'Telegram', icon: '✈️', placeholder: '@username ou lien' },
+                        { key: 'whatsapp', label: 'WhatsApp', icon: '💬', placeholder: '+33612345678' },
+                        { key: 'signal', label: 'Signal', icon: '🔒', placeholder: '+33612345678' },
+                        { key: 'tiktok', label: 'TikTok', icon: '🎵', placeholder: '@username' }
+                      ].map((network) => (
+                        <div key={network.key} className="flex items-center gap-4">
+                          <span className="text-3xl w-12">{network.icon}</span>
+                          <div className="flex-1">
+                            <label className="block text-sm font-medium text-gray-300 mb-1">
+                              {network.label}
+                            </label>
+                            <input
+                              type="text"
+                              placeholder={network.placeholder}
+                              value={socialNetworks[network.key] || ''}
+                              onChange={(e) => handleUpdateSocialNetwork(network.key, e.target.value)}
+                              className="w-full px-4 py-2 bg-white/10 border border-white/20 rounded-lg focus:border-primary focus:outline-none transition-colors"
+                            />
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                    
+                    <button
+                      onClick={handleSaveSocialNetworks}
+                      className="btn-primary mt-6 flex items-center gap-2"
+                    >
+                      <CheckIcon className="w-5 h-5" />
+                      Sauvegarder les réseaux sociaux
+                    </button>
+                  </div>
                 </div>
               )}
               
