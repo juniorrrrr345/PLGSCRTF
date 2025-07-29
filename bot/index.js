@@ -2,6 +2,9 @@ require('dotenv').config();
 const TelegramBot = require('node-telegram-bot-api');
 const mongoose = require('mongoose');
 const http = require('http');
+const User = require('./models/User');
+const Plug = require('./models/Plug');
+const Settings = require('./models/Settings');
 
 // Configuration du bot
 const bot = new TelegramBot(process.env.TELEGRAM_BOT_TOKEN, { polling: true });
@@ -11,7 +14,7 @@ mongoose.connect(process.env.MONGODB_URI)
   .then(() => console.log('✅ Connected to MongoDB'))
   .catch(err => console.error('❌ MongoDB connection error:', err));
 
-// Serveur HTTP simple pour Render
+// Serveur HTTP pour Render
 const PORT = process.env.PORT || 3000;
 const server = http.createServer((req, res) => {
   res.writeHead(200, { 'Content-Type': 'text/plain' });
@@ -22,42 +25,424 @@ server.listen(PORT, () => {
   console.log(`🌐 Server listening on port ${PORT}`);
 });
 
-// Commande /start
-bot.onText(/\/start/, async (msg) => {
+// Stockage des états utilisateurs
+const userStates = new Map();
+
+// Commande /start avec gestion du parrainage
+bot.onText(/\/start(?:\s+ref_(.+))?/, async (msg, match) => {
   const chatId = msg.chat.id;
-  const welcomeMessage = `
-🔌 <b>Bienvenue sur PLUGS CRTFS !</b>
+  const telegramId = msg.from.id.toString();
+  const referralId = match[1];
+  
+  try {
+    // Vérifier ou créer l'utilisateur
+    let user = await User.findOne({ telegramId });
+    
+    if (!user) {
+      user = new User({
+        telegramId,
+        username: msg.from.username,
+        firstName: msg.from.first_name,
+        lastName: msg.from.last_name
+      });
+      
+      // Gestion du parrainage
+      if (referralId) {
+        const referringPlug = await Plug.findById(referralId);
+        if (referringPlug && !user.hasBeenCountedAsReferral) {
+          user.referredBy = referralId;
+          user.hasBeenCountedAsReferral = true;
+          await Plug.findByIdAndUpdate(referralId, { $inc: { referralCount: 1 } });
+        }
+      }
+      
+      await user.save();
+    }
+    
+    await showMainMenu(bot, chatId);
+  } catch (error) {
+    console.error('Start error:', error);
+    await bot.sendMessage(chatId, '❌ Une erreur est survenue.');
+  }
+});
 
-La marketplace exclusive des vendeurs certifiés.
-
-🌐 Boutique web : ${process.env.WEB_APP_URL || 'https://plgscrtf.vercel.app'}
-
-Utilisez les boutons ci-dessous pour naviguer :
-  `;
+// Fonction pour afficher le menu principal
+async function showMainMenu(bot, chatId) {
+  const settings = await Settings.findOne() || {};
+  const userCount = await User.countDocuments();
+  const plugCount = await Plug.countDocuments({ isActive: true });
   
   const keyboard = {
     inline_keyboard: [
-      [{ text: '🔌 Voir les Plugs', url: `${process.env.WEB_APP_URL || 'https://plgscrtf.vercel.app'}/plugs` }],
-      [{ text: '🔍 Rechercher', url: `${process.env.WEB_APP_URL || 'https://plgscrtf.vercel.app'}/search` }],
-      [{ text: '📱 Réseaux sociaux', url: `${process.env.WEB_APP_URL || 'https://plgscrtf.vercel.app'}/social` }],
-      [{ text: '🌐 Ouvrir la boutique', url: process.env.WEB_APP_URL || 'https://plgscrtf.vercel.app' }]
+      [{ text: '📋 Informations', callback_data: 'info' }],
+      [{ text: '📱 Réseaux sociaux', callback_data: 'social' }],
+      [{ text: '🔌 PLUGS CRTFS', callback_data: 'plugs' }],
+      [{ text: '🏆 Top Parrains', callback_data: 'top_referrals' }],
+      [{ text: '📝 Devenir vendeur', callback_data: 'vendor_form' }]
     ]
   };
   
-  await bot.sendMessage(chatId, welcomeMessage, {
-    parse_mode: 'HTML',
-    reply_markup: keyboard
-  });
+  let message = settings.welcomeMessage || 'Bienvenue sur PLUGS CRTFS ! 🔌';
+  message += '\n\n';
+  message += `👥 Utilisateurs: ${userCount}\n`;
+  message += `🔌 Plugs actifs: ${plugCount}`;
+  
+  if (settings.welcomeImage) {
+    await bot.sendPhoto(chatId, settings.welcomeImage, {
+      caption: message,
+      reply_markup: keyboard
+    });
+  } else {
+    await bot.sendMessage(chatId, message, {
+      reply_markup: keyboard,
+      parse_mode: 'HTML'
+    });
+  }
+}
+
+// Gestion des callbacks
+bot.on('callback_query', async (callbackQuery) => {
+  const chatId = callbackQuery.message.chat.id;
+  const messageId = callbackQuery.message.message_id;
+  const data = callbackQuery.data;
+  
+  try {
+    // Supprimer le message précédent
+    await bot.deleteMessage(chatId, messageId).catch(() => {});
+    
+    switch (data) {
+      case 'info':
+        await handleInfoButton(bot, chatId);
+        break;
+        
+      case 'social':
+        await handleSocialButton(bot, chatId);
+        break;
+        
+      case 'plugs':
+        await handlePlugsMenu(bot, chatId);
+        break;
+        
+      case 'top_referrals':
+        await handleTopReferrals(bot, chatId);
+        break;
+        
+      case 'vendor_form':
+        await handleVendorForm(bot, chatId);
+        break;
+        
+      case 'back_to_menu':
+        await showMainMenu(bot, chatId);
+        break;
+        
+      default:
+        if (data.startsWith('plug_')) {
+          await handlePlugDetails(bot, chatId, data);
+        } else if (data.startsWith('like_')) {
+          await handleLike(bot, chatId, data, callbackQuery);
+        }
+    }
+    
+    await bot.answerCallbackQuery(callbackQuery.id);
+  } catch (error) {
+    console.error('Callback error:', error);
+    await bot.answerCallbackQuery(callbackQuery.id, {
+      text: '❌ Une erreur est survenue',
+      show_alert: true
+    });
+  }
 });
+
+// Handler pour le bouton Info
+async function handleInfoButton(bot, chatId) {
+  const settings = await Settings.findOne() || {};
+  const keyboard = {
+    inline_keyboard: [
+      [{ text: '⬅️ Retour', callback_data: 'back_to_menu' }]
+    ]
+  };
+  
+  await bot.sendMessage(chatId, settings.infoText || 'Aucune information disponible', {
+    reply_markup: keyboard,
+    parse_mode: 'HTML'
+  });
+}
+
+// Handler pour les réseaux sociaux
+async function handleSocialButton(bot, chatId) {
+  const settings = await Settings.findOne() || {};
+  let message = '📱 <b>Nos réseaux sociaux</b>\n\n';
+  
+  const networks = [
+    { key: 'snap', emoji: '👻', name: 'Snapchat' },
+    { key: 'instagram', emoji: '📸', name: 'Instagram' },
+    { key: 'whatsapp', emoji: '💬', name: 'WhatsApp' },
+    { key: 'signal', emoji: '🔐', name: 'Signal' },
+    { key: 'threema', emoji: '🔒', name: 'Threema' },
+    { key: 'potato', emoji: '🥔', name: 'Potato' },
+    { key: 'telegram', emoji: '✈️', name: 'Telegram' }
+  ];
+  
+  for (const network of networks) {
+    if (settings.socialNetworks?.[network.key]) {
+      message += `${network.emoji} <b>${network.name}:</b> ${settings.socialNetworks[network.key]}\n`;
+    }
+  }
+  
+  const keyboard = {
+    inline_keyboard: [
+      [{ text: '⬅️ Retour', callback_data: 'back_to_menu' }]
+    ]
+  };
+  
+  await bot.sendMessage(chatId, message, {
+    reply_markup: keyboard,
+    parse_mode: 'HTML'
+  });
+}
+
+// Handler pour la liste des plugs
+async function handlePlugsMenu(bot, chatId) {
+  const plugs = await Plug.find({ isActive: true }).sort({ likes: -1 }).limit(20);
+  
+  if (plugs.length === 0) {
+    await bot.sendMessage(chatId, '❌ Aucun plug disponible', {
+      reply_markup: {
+        inline_keyboard: [[{ text: '⬅️ Retour', callback_data: 'back_to_menu' }]]
+      }
+    });
+    return;
+  }
+  
+  let message = '🔌 <b>PLUGS CRTFS</b>\n━━━━━━━━━━━━━━━━\n\n';
+  const keyboard = { inline_keyboard: [] };
+  
+  plugs.forEach((plug, index) => {
+    let emoji = '';
+    if (index === 0) emoji = '🥇 ';
+    else if (index === 1) emoji = '🥈 ';
+    else if (index === 2) emoji = '🥉 ';
+    
+    keyboard.inline_keyboard.push([{
+      text: `${emoji}${plug.name} (❤️ ${plug.likes})`,
+      callback_data: `plug_${plug._id}`
+    }]);
+  });
+  
+  keyboard.inline_keyboard.push([{ text: '⬅️ Retour', callback_data: 'back_to_menu' }]);
+  
+  await bot.sendMessage(chatId, message + '👆 Cliquez sur un plug pour voir les détails', {
+    reply_markup: keyboard,
+    parse_mode: 'HTML'
+  });
+}
+
+// Handler pour les détails d'un plug
+async function handlePlugDetails(bot, chatId, data) {
+  const plugId = data.replace('plug_', '');
+  const plug = await Plug.findById(plugId);
+  
+  if (!plug) {
+    await bot.sendMessage(chatId, '❌ Plug introuvable');
+    return;
+  }
+  
+  // Générer le lien de parrainage
+  if (!plug.referralLink) {
+    plug.referralLink = `https://t.me/${process.env.TELEGRAM_BOT_USERNAME}?start=ref_${plugId}`;
+    await plug.save();
+  }
+  
+  let message = `🔌 <b>${plug.name}</b>\n\n`;
+  
+  if (plug.country && plug.department) {
+    message += `📍 ${plug.countryFlag} ${plug.country} - ${plug.department}\n`;
+  }
+  
+  message += '\n📦 <b>Méthodes:</b>\n';
+  if (plug.methods.delivery) message += '✅ Livraison\n';
+  if (plug.methods.shipping) message += '✅ Envoi\n';
+  if (plug.methods.meetup) message += '✅ Meetup\n';
+  
+  if (plug.description) {
+    message += `\n📝 <b>Description:</b>\n${plug.description}\n`;
+  }
+  
+  message += '\n📱 <b>Contact:</b>\n';
+  const networks = [
+    { key: 'snap', emoji: '👻' },
+    { key: 'instagram', emoji: '📸' },
+    { key: 'whatsapp', emoji: '💬' },
+    { key: 'telegram', emoji: '✈️' }
+  ];
+  
+  for (const network of networks) {
+    if (plug.socialNetworks?.[network.key]) {
+      message += `${network.emoji} ${plug.socialNetworks[network.key]}\n`;
+    }
+  }
+  
+  message += `\n❤️ ${plug.likes} likes`;
+  
+  const keyboard = {
+    inline_keyboard: [
+      [{ text: `❤️ Liker (${plug.likes})`, callback_data: `like_${plugId}` }],
+      [{ text: '🔗 Parrainer', url: plug.referralLink }],
+      [{ text: '⬅️ Retour aux plugs', callback_data: 'plugs' }]
+    ]
+  };
+  
+  if (plug.photo) {
+    await bot.sendPhoto(chatId, plug.photo, {
+      caption: message,
+      reply_markup: keyboard,
+      parse_mode: 'HTML'
+    });
+  } else {
+    await bot.sendMessage(chatId, message, {
+      reply_markup: keyboard,
+      parse_mode: 'HTML'
+    });
+  }
+}
+
+// Handler pour les likes
+async function handleLike(bot, chatId, data, callbackQuery) {
+  const plugId = data.replace('like_', '');
+  const user = await User.findOne({ telegramId: chatId.toString() });
+  
+  if (!user) {
+    await bot.answerCallbackQuery(callbackQuery.id, {
+      text: '❌ Utilisateur non trouvé',
+      show_alert: true
+    });
+    return;
+  }
+  
+  // Vérifier le cooldown de 30 minutes
+  const now = new Date();
+  if (user.lastLikeAt) {
+    const timeDiff = now - user.lastLikeAt;
+    const minutesLeft = Math.ceil((30 * 60 * 1000 - timeDiff) / 60000);
+    
+    if (minutesLeft > 0) {
+      await bot.answerCallbackQuery(callbackQuery.id, {
+        text: `⏰ Vous pourrez liker dans ${minutesLeft} minutes`,
+        show_alert: true
+      });
+      return;
+    }
+  }
+  
+  // Ajouter le like
+  await Plug.findByIdAndUpdate(plugId, { $inc: { likes: 1 } });
+  user.lastLikeAt = now;
+  user.likedPlugs.push({ plugId, likedAt: now });
+  await user.save();
+  
+  await bot.answerCallbackQuery(callbackQuery.id, {
+    text: '❤️ Like ajouté !',
+    show_alert: false
+  });
+  
+  // Rafraîchir l'affichage
+  await handlePlugDetails(bot, chatId, `plug_${plugId}`);
+}
+
+// Handler pour le top des parrains
+async function handleTopReferrals(bot, chatId) {
+  const plugs = await Plug.find({ isActive: true, referralCount: { $gt: 0 } })
+    .sort({ referralCount: -1 })
+    .limit(10);
+  
+  if (plugs.length === 0) {
+    await bot.sendMessage(chatId, '📊 Aucun parrainage pour le moment', {
+      reply_markup: {
+        inline_keyboard: [[{ text: '⬅️ Retour', callback_data: 'back_to_menu' }]]
+      }
+    });
+    return;
+  }
+  
+  let message = '🏆 <b>TOP PARRAINS</b>\n━━━━━━━━━━━━━━━━\n\n';
+  
+  plugs.forEach((plug, index) => {
+    let emoji = '';
+    if (index === 0) emoji = '👑';
+    else if (index === 1) emoji = '🥈';
+    else if (index === 2) emoji = '🥉';
+    else emoji = '🔹';
+    
+    message += `${emoji} #${index + 1} – <b>${plug.name}</b> 🔌 – ${plug.referralCount} filleuls\n`;
+  });
+  
+  const keyboard = {
+    inline_keyboard: [[{ text: '⬅️ Retour', callback_data: 'back_to_menu' }]]
+  };
+  
+  await bot.sendMessage(chatId, message, {
+    reply_markup: keyboard,
+    parse_mode: 'HTML'
+  });
+}
+
+// Handler pour le formulaire vendeur (simplifié)
+async function handleVendorForm(bot, chatId) {
+  const message = `📝 <b>Devenir vendeur</b>
+
+Pour devenir vendeur sur PLUGS CRTFS, contactez-nous directement !
+
+Envoyez un message avec:
+- Vos réseaux sociaux
+- Vos méthodes de vente
+- Votre localisation
+- Une description de votre service`;
+
+  const keyboard = {
+    inline_keyboard: [
+      [{ text: '💬 Nous contacter', url: 'https://t.me/PLGSCRTF_SUPPORT' }],
+      [{ text: '⬅️ Retour', callback_data: 'back_to_menu' }]
+    ]
+  };
+  
+  await bot.sendMessage(chatId, message, {
+    reply_markup: keyboard,
+    parse_mode: 'HTML'
+  });
+}
 
 // Commande /config pour l'admin
 bot.onText(/\/config/, async (msg) => {
   const chatId = msg.chat.id;
+  const userId = msg.from.id.toString();
+  
+  // Vérifier si l'utilisateur est admin
+  const user = await User.findOne({ telegramId: userId });
+  
+  if (!user?.isAdmin) {
+    // Demander le mot de passe
+    await bot.sendMessage(chatId, '🔐 Entrez le mot de passe administrateur:');
+    
+    bot.once('message', async (response) => {
+      if (response.chat.id === chatId && response.text === process.env.ADMIN_PASSWORD) {
+        await User.findOneAndUpdate({ telegramId: userId }, { isAdmin: true });
+        await showAdminMenu(bot, chatId);
+      } else {
+        await bot.sendMessage(chatId, '❌ Mot de passe incorrect.');
+      }
+    });
+  } else {
+    await showAdminMenu(bot, chatId);
+  }
+});
+
+// Menu admin
+async function showAdminMenu(bot, chatId) {
   const adminUrl = `${process.env.WEB_APP_URL || 'https://plgscrtf.vercel.app'}/config`;
   
   await bot.sendMessage(chatId, 
     `🔐 <b>Panel Administrateur</b>\n\n` +
-    `Accédez au panel admin via ce lien :\n` +
+    `Accédez au panel admin complet via ce lien :\n` +
     `${adminUrl}\n\n` +
     `Mot de passe : <code>${process.env.ADMIN_PASSWORD}</code>`,
     {
@@ -69,11 +454,60 @@ bot.onText(/\/config/, async (msg) => {
       }
     }
   );
-});
+}
 
 // Gestion des erreurs
 bot.on('polling_error', (error) => {
   console.error('Polling error:', error);
 });
 
-console.log('🤖 Bot is running...');
+// Initialisation des settings par défaut
+async function initializeSettings() {
+  const settings = await Settings.findOne();
+  if (!settings) {
+    await Settings.create({
+      welcomeMessage: 'Bienvenue sur PLUGS CRTFS ! 🔌',
+      infoText: `<b>À propos de PLUGS CRTFS</b>\n\n🔌 Plateforme de mise en relation sécurisée\n✅ Vendeurs certifiés\n🔒 Transactions sécurisées\n📍 Livraison dans toute la France`,
+      socialNetworks: {
+        telegram: '@PLGSCRTF_SUPPORT',
+        instagram: '@plugscrtfs'
+      }
+    });
+    
+    // Créer quelques plugs de test
+    const testPlugs = [
+      {
+        name: 'ParisPlug 75',
+        description: 'Service rapide et fiable sur Paris et proche banlieue.',
+        methods: { delivery: true, shipping: false, meetup: true },
+        socialNetworks: { snap: 'parisplug75', telegram: '@parisplug75' },
+        country: 'France',
+        countryFlag: '🇫🇷',
+        department: 'Paris',
+        likes: 127,
+        referralCount: 15
+      },
+      {
+        name: 'MarseillePlug 13',
+        description: 'Le meilleur service sur Marseille.',
+        methods: { delivery: true, shipping: true, meetup: false },
+        socialNetworks: { snap: 'marsplug13', instagram: '@marsplug13' },
+        country: 'France',
+        countryFlag: '🇫🇷',
+        department: 'Bouches-du-Rhône',
+        likes: 89,
+        referralCount: 8
+      }
+    ];
+    
+    for (const plugData of testPlugs) {
+      const plug = await Plug.create(plugData);
+      plug.referralLink = `https://t.me/${process.env.TELEGRAM_BOT_USERNAME}?start=ref_${plug._id}`;
+      await plug.save();
+    }
+  }
+}
+
+initializeSettings();
+
+console.log('�� Bot is running...');
