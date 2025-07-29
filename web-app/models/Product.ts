@@ -26,9 +26,9 @@ const productSchema = new mongoose.Schema({
     type: String, // Nom du réseau (ex: Instagram, Telegram, etc)
     default: 'Link'
   },
-  price: {
-    type: Number,
-    default: 0
+  socialEmoji: {
+    type: String, // Emoji du réseau
+    default: '🔗'
   },
   isActive: {
     type: Boolean,

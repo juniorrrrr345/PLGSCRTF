@@ -57,7 +57,7 @@ export default function ConfigPage() {
     mediaType: 'image',
     socialLink: '',
     socialNetwork: 'Instagram',
-    price: 0
+    socialEmoji: '📷'
   })
   const [newPlug, setNewPlug] = useState<{
     name: string
@@ -326,7 +326,7 @@ export default function ConfigPage() {
           mediaType: 'image',
           socialLink: '',
           socialNetwork: 'Instagram',
-          price: 0
+          socialEmoji: '📷'
         })
       }
     } catch (error) {
