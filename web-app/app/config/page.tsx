@@ -395,7 +395,7 @@ export default function ConfigPage() {
                             <div>
                               <p className="font-semibold">{plug.name}</p>
                               <p className="text-sm text-gray-400">
-                                {plug.location.department} • {plug.likes} likes
+                                {plug.location?.department || plug.department || ''} • {plug.likes || 0} likes
                               </p>
                             </div>
                           </div>
@@ -441,13 +441,13 @@ export default function ConfigPage() {
                           <div>
                             <h3 className="font-bold text-lg">{plug.name}</h3>
                             <p className="text-sm text-gray-400">
-                              {plug.location.country} - {plug.location.department} • 
-                              ❤️ {plug.likes} • 🔗 {plug.referralCount || 0}
+                              {plug.location?.country || plug.country || 'FR'} - {plug.location?.department || plug.department || ''} • 
+                              ❤️ {plug.likes || 0} • 🔗 {plug.referralCount || 0}
                             </p>
                             <div className="flex gap-2 mt-1">
-                              {plug.methods.delivery && <span className="text-xs bg-blue-500/20 text-blue-400 px-2 py-1 rounded">🚚 Livraison</span>}
-                              {plug.methods.shipping && <span className="text-xs bg-green-500/20 text-green-400 px-2 py-1 rounded">📮 Envoi</span>}
-                              {plug.methods.meetup && <span className="text-xs bg-purple-500/20 text-purple-400 px-2 py-1 rounded">🤝 Meetup</span>}
+                              {plug.methods?.delivery && <span className="text-xs bg-blue-500/20 text-blue-400 px-2 py-1 rounded">🚚 Livraison</span>}
+                              {plug.methods?.shipping && <span className="text-xs bg-green-500/20 text-green-400 px-2 py-1 rounded">📮 Envoi</span>}
+                              {plug.methods?.meetup && <span className="text-xs bg-purple-500/20 text-purple-400 px-2 py-1 rounded">🤝 Meetup</span>}
                             </div>
                           </div>
                         </div>
