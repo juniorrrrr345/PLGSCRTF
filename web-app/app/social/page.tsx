@@ -131,7 +131,7 @@ export default function SocialPage() {
 
           {/* Social Grid */}
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 mb-20">
-            {socialPlatforms.map((platform, index) => (
+            {socialPlatforms.filter(platform => platform.link).map((platform, index) => (
               <motion.div
                 key={platform.name}
                 initial={{ opacity: 0, scale: 0.8 }}
@@ -141,7 +141,7 @@ export default function SocialPage() {
                 onHoverEnd={() => setHoveredIndex(null)}
                 className="relative group"
               >
-                {platform.link ? (
+
                   <a
                     href={platform.link}
                     target="_blank"
@@ -162,16 +162,7 @@ export default function SocialPage() {
                         >
                           {platform.icon}
                         </motion.div>
-                        <h3 className="text-2xl font-bold mb-2 text-white drop-shadow-lg">{platform.name}</h3>
-                        <p className="text-white font-bold flex items-center justify-center gap-2 drop-shadow-md">
-                          Suivez-nous 
-                          <motion.span
-                            animate={hoveredIndex === index ? { x: [0, 5, 0] } : {}}
-                            transition={{ duration: 0.5, repeat: Infinity }}
-                          >
-                            →
-                          </motion.span>
-                        </p>
+                        <h3 className="text-2xl font-bold text-white drop-shadow-lg">{platform.name}</h3>
                       </div>
 
                       {/* Particules au hover */}
@@ -202,15 +193,7 @@ export default function SocialPage() {
                       )}
                     </div>
                   </a>
-                ) : (
-                  <div className="relative bg-gray-800/80 backdrop-blur-md border-2 border-gray-700 rounded-3xl p-8 opacity-50">
-                    <div className="text-center">
-                      <div className="text-7xl mb-4 grayscale opacity-30">{platform.icon}</div>
-                      <h3 className="text-2xl font-bold mb-2 text-gray-500">{platform.name}</h3>
-                      <p className="text-gray-600 font-medium">Bientôt disponible</p>
-                    </div>
-                  </div>
-                )}
+
               </motion.div>
             ))}
           </div>
