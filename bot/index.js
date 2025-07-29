@@ -14,7 +14,7 @@ const { handleStart, showMainMenu } = require('./handlers/startHandler');
 const { handlePlugsMenu, handlePlugDetails, handleLike } = require('./handlers/plugsHandler');
 const { handleReferralMenu } = require('./handlers/referralHandler');
 const { handleVendorApplication } = require('./handlers/vendorHandler');
-const { handleAdminCommand } = require('./handlers/adminHandler');
+const { handleAdminCommand, handleAdminCallbacks } = require('./handlers/adminHandler');
 
 // Configuration du bot
 const bot = new TelegramBot(process.env.TELEGRAM_BOT_TOKEN, { polling: true });
@@ -56,6 +56,9 @@ bot.on('callback_query', async (callbackQuery) => {
   await bot.answerCallbackQuery(callbackQuery.id);
   
   try {
+    // Vérifier d'abord si c'est une callback admin
+    const isAdminCallback = await handleAdminCallbacks(bot, callbackQuery);
+    if (isAdminCallback) return;
     // Menu principal
     if (data === 'main_menu') {
       await bot.deleteMessage(chatId, messageId);

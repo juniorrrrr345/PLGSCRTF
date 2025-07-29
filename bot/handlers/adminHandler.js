@@ -67,12 +67,12 @@ async function showAdminMenu(bot, chatId) {
   });
 }
 
-// Gestionnaire pour les callbacks admin
-bot.on('callback_query', async (callbackQuery) => {
+// Fonction pour gérer les callbacks admin
+async function handleAdminCallbacks(bot, callbackQuery) {
   const chatId = callbackQuery.message.chat.id;
   const data = callbackQuery.data;
   
-  if (!data.startsWith('admin_')) return;
+  if (!data.startsWith('admin_')) return false;
   
   // Vérifier les permissions admin
   const user = await User.findOne({ telegramId: callbackQuery.from.id.toString() });
@@ -237,7 +237,9 @@ async function initiateBroadcast(bot, chatId) {
         adminStates.delete(chatId);
       }
     }
-  });
+  }
+  
+  return true;
 }
 
-module.exports = { handleAdminPanel };
+module.exports = { handleAdminCommand: handleAdminPanel, handleAdminCallbacks };
