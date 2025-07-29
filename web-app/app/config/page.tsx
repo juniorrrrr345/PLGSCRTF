@@ -41,7 +41,15 @@ export default function ConfigPage() {
   // Form states
   const [welcomeMessage, setWelcomeMessage] = useState('')
   const [globalMessage, setGlobalMessage] = useState('')
-  const [newPlug, setNewPlug] = useState({
+  const [newPlug, setNewPlug] = useState<{
+    name: string
+    photo: string
+    socialNetworks: { primary: string[], others: string }
+    methods: { delivery: boolean, shipping: boolean, meetup: boolean }
+    deliveryDepartments: string[]
+    location: { country: string, department: string, postalCode: string }
+    description: string
+  }>({
     name: '',
     photo: '',
     socialNetworks: { primary: [], others: '' },
