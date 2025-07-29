@@ -103,6 +103,19 @@ export default function PlugCard({ plug, onClick }: PlugCardProps) {
             </div>
           </div>
           
+          {/* Départements de livraison */}
+          {plug.deliveryDepartments && plug.deliveryDepartments.length > 0 && (
+            <div className="bg-green-500/10 rounded-lg px-2 md:px-3 py-1.5 md:py-2 border border-green-500/20">
+              <div className="text-[10px] md:text-xs text-green-400">
+                <span className="font-medium">📦 Livraison : </span>
+                {plug.deliveryDepartments.length > 3 
+                  ? `${plug.deliveryDepartments.slice(0, 3).join(', ')} +${plug.deliveryDepartments.length - 3}`
+                  : plug.deliveryDepartments.join(', ')
+                }
+              </div>
+            </div>
+          )}
+          
           {/* Methods */}
           <div className="flex flex-wrap gap-1 md:gap-2">
             {plug.methods?.delivery && (

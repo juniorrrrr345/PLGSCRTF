@@ -12,6 +12,10 @@ const plugSchema = new mongoose.Schema({
     shipping: { type: Boolean, default: false },
     meetup: { type: Boolean, default: false }
   },
+  // Départements où la livraison/envoi est disponible
+  deliveryDepartments: [{
+    type: String
+  }],
   socialNetworks: {
     snap: String,
     instagram: String,
@@ -24,7 +28,7 @@ const plugSchema = new mongoose.Schema({
   },
   country: String,
   countryFlag: String,
-  department: String,
+  department: String, // Département principal du vendeur
   postalCode: String,
   likes: {
     type: Number,
