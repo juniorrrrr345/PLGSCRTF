@@ -32,29 +32,30 @@ export default function Home() {
 
   if (!mounted) {
     return (
-      <div className="min-h-screen flex items-center justify-center">
+      <div className="min-h-screen flex items-center justify-center bg-black">
         <motion.div
           animate={{ rotate: 360 }}
           transition={{ duration: 1, repeat: Infinity, ease: "linear" }}
-          className="w-16 h-16 border-4 border-primary border-t-transparent rounded-full"
+          className="w-16 h-16 border-4 border-blue-500 border-t-transparent rounded-full"
         />
       </div>
     )
   }
 
   return (
-    <div className="relative">
-      {/* Animated Background */}
+    <div className="relative bg-black">
+      {/* Animated Background - Plus sombre pour meilleur contraste */}
       <div className="fixed inset-0 -z-10">
-        <div className="absolute inset-0 bg-gradient-to-br from-purple-900/20 via-transparent to-blue-900/20" />
+        <div className="absolute inset-0 bg-gradient-to-br from-gray-900 via-black to-gray-900" />
         <motion.div
           className="absolute inset-0"
           animate={{
             background: [
-              'radial-gradient(circle at 20% 80%, rgba(120, 40, 200, 0.1) 0%, transparent 50%)',
-              'radial-gradient(circle at 80% 20%, rgba(40, 120, 200, 0.1) 0%, transparent 50%)',
-              'radial-gradient(circle at 20% 80%, rgba(120, 40, 200, 0.1) 0%, transparent 50%)',
-            ],
+              'radial-gradient(circle at 20% 80%, rgba(59, 130, 246, 0.1) 0%, transparent 50%)',
+              'radial-gradient(circle at 80% 20%, rgba(139, 92, 246, 0.1) 0%, transparent 50%)',
+              'radial-gradient(circle at 40% 40%, rgba(236, 72, 153, 0.1) 0%, transparent 50%)',
+              'radial-gradient(circle at 60% 60%, rgba(59, 130, 246, 0.1) 0%, transparent 50%)',
+            ]
           }}
           transition={{ duration: 10, repeat: Infinity }}
         />
@@ -62,144 +63,154 @@ export default function Home() {
 
       {/* Hero Section */}
       <section className="min-h-screen flex items-center justify-center px-4 relative">
-        <div className="max-w-6xl mx-auto text-center">
+        <div className="max-w-4xl w-full text-center">
           <motion.div
-            initial={{ opacity: 0, y: 30 }}
+            initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.8 }}
+            transition={{ duration: 0.6 }}
           >
-            <h1 className="text-6xl md:text-8xl font-black mb-6">
-              <span className="gradient-text">PLUGS</span>{' '}
-              <span className="text-white">CRTFS</span>
+            <h1 className="text-5xl md:text-7xl font-black mb-6 text-white">
+              PLUGS <span className="gradient-text">CRTFS</span>
             </h1>
-            
-            <p className="text-xl md:text-2xl text-gray-300 mb-8 max-w-3xl mx-auto">
-              La marketplace exclusive des vendeurs certifiés et de confiance
+            <p className="text-xl md:text-2xl text-gray-300 mb-8 font-medium">
+              La marketplace exclusive des vendeurs certifiés
             </p>
+          </motion.div>
 
-            {/* Stats */}
-            <div className="flex justify-center gap-8 mb-12">
-              <motion.div
-                initial={{ scale: 0 }}
-                animate={{ scale: 1 }}
-                transition={{ delay: 0.3 }}
-                className="glass-card px-6 py-4"
-              >
-                <div className="text-3xl font-bold gradient-text">
-                  {stats?.userCount || '0'}
-                </div>
-                <div className="text-sm text-gray-400">Utilisateurs</div>
-              </motion.div>
-              
-              <motion.div
-                initial={{ scale: 0 }}
-                animate={{ scale: 1 }}
-                transition={{ delay: 0.4 }}
-                className="glass-card px-6 py-4"
-              >
-                <div className="text-3xl font-bold gradient-text">
-                  {stats?.plugCount || '0'}
-                </div>
-                <div className="text-sm text-gray-400">Plugs Certifiés</div>
-              </motion.div>
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.6, delay: 0.2 }}
+            className="flex flex-col sm:flex-row gap-4 justify-center mb-12"
+          >
+            <Link href="/plugs" className="btn-primary text-lg px-8 py-4 flex items-center justify-center gap-2 bg-blue-600 hover:bg-blue-700 shadow-xl">
+              Explorer les Plugs
+              <ArrowRightIcon className="w-5 h-5" />
+            </Link>
+            <Link href="/search" className="btn-secondary text-lg px-8 py-4 flex items-center justify-center gap-2 bg-gray-800 hover:bg-gray-700 border-2 border-gray-700">
+              Recherche Avancée
+            </Link>
+          </motion.div>
+
+          {/* Stats en temps réel */}
+          <motion.div
+            initial={{ opacity: 0, scale: 0.9 }}
+            animate={{ opacity: 1, scale: 1 }}
+            transition={{ duration: 0.6, delay: 0.4 }}
+            className="grid grid-cols-2 gap-4 max-w-md mx-auto"
+          >
+            <div className="bg-gray-800/60 backdrop-blur-sm border-2 border-gray-700 rounded-xl p-4 shadow-xl">
+              <div className="text-3xl font-bold text-white">{stats?.totalPlugs || 0}</div>
+              <div className="text-gray-300 font-medium">Plugs Actifs</div>
             </div>
-
-            {/* CTA Buttons */}
-            <motion.div
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              transition={{ delay: 0.5 }}
-              className="flex flex-col sm:flex-row gap-4 justify-center"
-            >
-              <Link href="/plugs" className="btn-primary flex items-center justify-center gap-2">
-                Découvrir les Plugs
-                <ArrowRightIcon className="w-5 h-5" />
-              </Link>
-              
-              <a
-                href={`https://t.me/${process.env.NEXT_PUBLIC_TELEGRAM_BOT_USERNAME}`}
-                className="btn-secondary flex items-center justify-center gap-2"
-              >
-                Bot Telegram
-                <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 24 24">
-                  <path d="M12 0C5.373 0 0 5.373 0 12s5.373 12 12 12 12-5.373 12-12S18.627 0 12 0zm5.894 8.221l-1.97 9.28c-.145.658-.537.818-1.084.508l-3-2.21-1.446 1.394c-.14.18-.357.295-.6.295-.002 0-.003 0-.005 0l.213-3.054 5.56-5.022c.24-.213-.054-.334-.373-.121l-6.869 4.326-2.96-.924c-.64-.203-.658-.64.135-.954l11.566-4.458c.538-.196 1.006.128.832.941z"/>
-                </svg>
-              </a>
-            </motion.div>
+            <div className="bg-gray-800/60 backdrop-blur-sm border-2 border-gray-700 rounded-xl p-4 shadow-xl">
+              <div className="text-3xl font-bold text-white">{stats?.totalUsers || 0}</div>
+              <div className="text-gray-300 font-medium">Utilisateurs</div>
+            </div>
           </motion.div>
         </div>
 
-
+        {/* Indicateur de scroll */}
+        {showScrollIndicator && (
+          <motion.div
+            className="absolute bottom-8 left-1/2 transform -translate-x-1/2"
+            animate={{ y: [0, 10, 0] }}
+            transition={{ duration: 1.5, repeat: Infinity }}
+          >
+            <ChevronDownIcon className="w-8 h-8 text-gray-400" />
+          </motion.div>
+        )}
       </section>
 
-
-
-      {/* Quick Links Section with Mobile Notice */}
-      <section className="py-12 px-4 bg-gradient-to-b from-transparent to-darker/50">
-        <div className="max-w-7xl mx-auto">
-          <motion.div
+      {/* Features Section */}
+      <section className="py-20 px-4">
+        <div className="max-w-6xl mx-auto">
+          <motion.h2
             initial={{ opacity: 0, y: 20 }}
             whileInView={{ opacity: 1, y: 0 }}
             viewport={{ once: true }}
-            className="text-center mb-6"
+            className="text-4xl md:text-5xl font-black text-center mb-16 text-white"
           >
-            <h2 className="text-3xl md:text-4xl font-bold mb-4">
-              Explorez toutes nos <span className="gradient-text">fonctionnalités</span>
-            </h2>
-            <p className="text-gray-400 text-lg mb-2">
-              Découvrez tout ce que PLUGS CRTFS a à offrir
-            </p>
-            <p className="text-primary text-sm md:hidden animate-pulse">
-              👇 Continuez à défiler pour voir plus de catégories
-            </p>
-          </motion.div>
+            Pourquoi choisir <span className="gradient-text">PLUGS CRTFS</span> ?
+          </motion.h2>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
-            <Link href="/plugs" className="glass-card p-6 text-center hover:border-primary/50 transition-all group">
-              <BoltIcon className="w-12 h-12 mx-auto mb-4 text-primary group-hover:scale-110 transition-transform" />
-              <h3 className="text-xl font-bold mb-2">Découvrir les Plugs</h3>
-              <p className="text-gray-400">Parcourez notre sélection de vendeurs certifiés</p>
-            </Link>
-
-            <Link href="/products" className="glass-card p-6 text-center hover:border-primary/50 transition-all group">
-              <svg className="w-12 h-12 mx-auto mb-4 text-primary group-hover:scale-110 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10" />
-              </svg>
-              <h3 className="text-xl font-bold mb-2">Produits Exclusifs</h3>
-              <p className="text-gray-400">Découvrez les derniers produits en vidéo</p>
-            </Link>
-
-            <Link href="/search" className="glass-card p-6 text-center hover:border-primary/50 transition-all group">
-              <SparklesIcon className="w-12 h-12 mx-auto mb-4 text-primary group-hover:scale-110 transition-transform" />
-              <h3 className="text-xl font-bold mb-2">Recherche Avancée</h3>
-              <p className="text-gray-400">Trouvez exactement ce que vous cherchez</p>
-            </Link>
-
-            <a href={`https://t.me/${process.env.NEXT_PUBLIC_TELEGRAM_BOT_USERNAME}`} className="glass-card p-8 text-center hover:border-primary/50 transition-all group">
-              <ShieldCheckIcon className="w-12 h-12 mx-auto mb-4 text-primary group-hover:scale-110 transition-transform" />
-              <h3 className="text-xl font-bold mb-2">Bot Telegram</h3>
-              <p className="text-gray-400">Accédez à notre bot pour plus de fonctionnalités</p>
-            </a>
-          </div>
-
-          {/* Mobile scroll hint */}
-          <motion.div
-            initial={{ opacity: 0 }}
-            whileInView={{ opacity: 1 }}
-            viewport={{ once: true }}
-            className="text-center md:hidden mb-8"
-          >
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
             <motion.div
-              animate={{ y: [0, 5, 0] }}
-              transition={{ duration: 1, repeat: Infinity }}
+              initial={{ opacity: 0, y: 20 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true }}
+              transition={{ delay: 0.1 }}
+              className="bg-gray-800/60 backdrop-blur-sm border-2 border-gray-700 rounded-2xl p-8 shadow-xl"
             >
-              <ChevronDownIcon className="w-8 h-8 text-primary mx-auto" />
+              <ShieldCheckIcon className="w-12 h-12 text-blue-400 mb-4" />
+              <h3 className="text-2xl font-bold mb-4 text-white">Vendeurs Certifiés</h3>
+              <p className="text-gray-300 font-medium">
+                Tous nos vendeurs sont vérifiés et certifiés pour garantir la qualité et la sécurité
+              </p>
             </motion.div>
-          </motion.div>
+
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true }}
+              transition={{ delay: 0.2 }}
+              className="bg-gray-800/60 backdrop-blur-sm border-2 border-gray-700 rounded-2xl p-8 shadow-xl"
+            >
+              <BoltIcon className="w-12 h-12 text-purple-400 mb-4" />
+              <h3 className="text-2xl font-bold mb-4 text-white">Livraison Rapide</h3>
+              <p className="text-gray-300 font-medium">
+                Options de livraison, shipping et meetup disponibles selon vos besoins
+              </p>
+            </motion.div>
+
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true }}
+              transition={{ delay: 0.3 }}
+              className="bg-gray-800/60 backdrop-blur-sm border-2 border-gray-700 rounded-2xl p-8 shadow-xl"
+            >
+              <SparklesIcon className="w-12 h-12 text-pink-400 mb-4" />
+              <h3 className="text-2xl font-bold mb-4 text-white">Communauté Active</h3>
+              <p className="text-gray-300 font-medium">
+                Rejoignez une communauté dynamique avec système de parrainage et récompenses
+              </p>
+            </motion.div>
+          </div>
         </div>
       </section>
 
-
+      {/* CTA Section */}
+      <section className="py-20 px-4">
+        <div className="max-w-4xl mx-auto text-center">
+          <motion.div
+            initial={{ opacity: 0, scale: 0.9 }}
+            whileInView={{ opacity: 1, scale: 1 }}
+            viewport={{ once: true }}
+            className="bg-gradient-to-r from-blue-600/20 to-purple-600/20 backdrop-blur-sm border-2 border-blue-600/30 rounded-3xl p-12 shadow-2xl"
+          >
+            <h2 className="text-3xl md:text-4xl font-black mb-6 text-white">
+              Prêt à rejoindre l'aventure ?
+            </h2>
+            <p className="text-xl text-gray-300 mb-8 font-medium">
+              Découvrez les meilleurs vendeurs certifiés de votre région
+            </p>
+            <div className="flex flex-col sm:flex-row gap-4 justify-center">
+              <Link
+                href="https://t.me/PLGSCRTF_BOT"
+                target="_blank"
+                className="btn-primary text-lg px-8 py-4 flex items-center justify-center gap-2 bg-blue-600 hover:bg-blue-700 shadow-xl"
+              >
+                <span>🤖</span>
+                Lancer le Bot Telegram
+              </Link>
+              <Link href="/plugs" className="btn-secondary text-lg px-8 py-4 bg-gray-800 hover:bg-gray-700 border-2 border-gray-700">
+                Voir tous les Plugs
+              </Link>
+            </div>
+          </motion.div>
+        </div>
+      </section>
     </div>
   )
 }

@@ -4,24 +4,67 @@
 
 @layer base {
   body {
-    @apply bg-telegram-bg text-telegram-text;
+    @apply bg-black text-white;
+  }
+  
+  /* Améliorer la lisibilité globale */
+  * {
+    @apply antialiased;
+  }
+  
+  /* S'assurer que tous les textes sont bien visibles */
+  p, span, div {
+    @apply text-opacity-100;
+  }
+  
+  /* Améliorer les contrastes pour les textes gris */
+  .text-gray-400 {
+    @apply text-gray-300;
+  }
+  
+  .text-gray-500 {
+    @apply text-gray-400;
+  }
+  
+  .text-gray-600 {
+    @apply text-gray-500;
   }
 }
 
 @layer components {
   .card {
-    @apply bg-telegram-secondary rounded-lg p-4 shadow-lg;
+    @apply bg-gray-900/80 backdrop-blur-sm border border-gray-800 rounded-lg p-4 shadow-xl;
   }
   
   .btn-primary {
-    @apply bg-telegram-accent text-white px-4 py-2 rounded-lg font-medium transition-all hover:opacity-90 active:scale-95;
+    @apply bg-blue-600 text-white px-4 py-2 rounded-lg font-medium transition-all hover:bg-blue-700 active:scale-95 shadow-lg;
   }
   
   .btn-secondary {
-    @apply bg-telegram-secondary text-telegram-text px-4 py-2 rounded-lg font-medium transition-all hover:bg-opacity-80 active:scale-95;
+    @apply bg-gray-800 text-white px-4 py-2 rounded-lg font-medium transition-all hover:bg-gray-700 active:scale-95 border border-gray-700;
   }
   
   .badge {
-    @apply inline-block px-3 py-1 bg-telegram-accent bg-opacity-20 text-telegram-accent rounded-full text-sm;
+    @apply inline-block px-3 py-1 bg-blue-600/20 text-blue-400 rounded-full text-sm font-medium border border-blue-600/30;
+  }
+  
+  /* Gradient text avec meilleur contraste */
+  .gradient-text {
+    @apply bg-gradient-to-r from-blue-400 to-purple-400 bg-clip-text text-transparent font-bold;
+  }
+  
+  /* Glass effect amélioré */
+  .glass-card {
+    @apply bg-gray-800/60 backdrop-blur-md border-2 border-gray-700 rounded-2xl p-6 shadow-2xl;
+  }
+  
+  /* Améliorer la visibilité des inputs */
+  input, textarea, select {
+    @apply bg-gray-800/80 border-2 border-gray-700 text-white placeholder-gray-400 focus:border-blue-500 focus:outline-none;
+  }
+  
+  /* S'assurer que les liens sont visibles */
+  a {
+    @apply text-blue-400 hover:text-blue-300;
   }
 }
