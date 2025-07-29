@@ -1,34 +1,13 @@
+// Upload simple et direct vers Cloudinary
 export const uploadToCloudinary = async (file: File): Promise<string> => {
   const formData = new FormData();
   formData.append('file', file);
-
-  try {
-    const response = await fetch('/api/cloudinary/upload', {
-      method: 'POST',
-      body: formData,
-    });
-
-    if (!response.ok) {
-      throw new Error('Upload failed');
-    }
-
-    const data = await response.json();
-    return data.url;
-  } catch (error) {
-    console.error('Cloudinary upload error:', error);
-    throw error;
-  }
-};
-
-// Upload direct côté client (pour les cas où l'API route n'est pas disponible)
-export const uploadToCloudinaryDirect = async (file: File): Promise<string> => {
-  const formData = new FormData();
-  formData.append('file', file);
-  formData.append('upload_preset', 'ml_default'); // Preset par défaut de Cloudinary
+  formData.append('upload_preset', 'ml_default'); // Preset par défaut
   
   const cloudName = 'dtjab1akq';
 
   try {
+    // Upload direct vers Cloudinary API
     const response = await fetch(
       `https://api.cloudinary.com/v1_1/${cloudName}/image/upload`,
       {
@@ -38,13 +17,15 @@ export const uploadToCloudinaryDirect = async (file: File): Promise<string> => {
     );
 
     if (!response.ok) {
+      const error = await response.text();
+      console.error('Cloudinary error:', error);
       throw new Error('Upload failed');
     }
 
     const data = await response.json();
     return data.secure_url;
   } catch (error) {
-    console.error('Cloudinary upload error:', error);
+    console.error('Upload error:', error);
     throw error;
   }
 };

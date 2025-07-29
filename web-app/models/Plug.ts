@@ -36,8 +36,11 @@ const plugSchema = new mongoose.Schema({
     department: String,
     postalCode: String
   },
-  country: String,
-  countryFlag: String,
+  countries: [{
+    type: String
+  }],
+  country: String, // Rétrocompatibilité
+  countryFlag: String, // Rétrocompatibilité
   department: String,
   postalCode: String,
   likes: {

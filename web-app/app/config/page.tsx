@@ -7,6 +7,8 @@ import toast from 'react-hot-toast'
 import useSWR, { mutate } from 'swr'
 import ImageUpload from '@/components/ImageUpload'
 import SocialNetworkManager from '@/components/SocialNetworkManager'
+import CountryDepartmentSelector from '@/components/CountryDepartmentSelector'
+import { countriesData, getCountryDepartments } from '@/lib/countries-data'
 import { 
   ChartBarIcon, 
   CogIcon, 
@@ -50,6 +52,7 @@ export default function ConfigPage() {
     customNetworks?: any[]
     methods: { delivery: boolean, shipping: boolean, meetup: boolean }
     deliveryDepartments: string[]
+    countries: string[]
     location: { country: string, department: string, postalCode: string }
     description: string
   }>({
@@ -59,6 +62,7 @@ export default function ConfigPage() {
     customNetworks: [],
     methods: { delivery: false, shipping: false, meetup: false },
     deliveryDepartments: [],
+    countries: ['FR'],
     location: { country: 'FR', department: '', postalCode: '' },
     description: ''
   })
@@ -175,10 +179,11 @@ export default function ConfigPage() {
       // Formater les données du plug
       const plugData = {
         ...newPlug,
-        country: newPlug.location.country,
+        countries: newPlug.countries,
+        country: newPlug.countries[0] || 'FR', // Rétrocompatibilité
         department: newPlug.location.department,
         postalCode: newPlug.location.postalCode,
-        countryFlag: getCountryFlag(newPlug.location.country),
+        countryFlag: getCountryFlag(newPlug.countries[0] || 'FR'),
         // Convertir customNetworks en socialNetworks pour la compatibilité
         socialNetworks: newPlug.customNetworks ? newPlug.customNetworks.reduce((acc: any, network: any) => {
           acc[network.name.toLowerCase()] = network.link
@@ -898,40 +903,34 @@ export default function ConfigPage() {
                     </div>
                   </div>
 
-                  {/* Section 2: Localisation */}
+                  {/* Section 2: Localisation et Pays */}
                   <div className="bg-gray-800/50 rounded-2xl p-6 border border-gray-700">
                     <h3 className="text-xl font-bold text-white mb-6 flex items-center gap-2">
-                      <span className="text-2xl">📍</span> Localisation du vendeur
+                      <span className="text-2xl">🌍</span> Pays et localisation
                     </h3>
                     
-                    <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                    <CountryDepartmentSelector
+                      selectedCountries={editingPlug?.countries || newPlug.countries}
+                      selectedDepartments={[]}
+                      onCountriesChange={(countries) => {
+                        if (editingPlug) {
+                          setEditingPlug({...editingPlug, countries})
+                        } else {
+                          setNewPlug({...newPlug, countries})
+                        }
+                      }}
+                      onDepartmentsChange={() => {}}
+                      showDepartments={false}
+                    />
+                    
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-6">
                       <div>
                         <label className="block text-sm font-semibold text-gray-300 mb-2">
-                          Pays *
-                        </label>
-                        <select
-                          value={editingPlug?.location?.country || editingPlug?.country || newPlug.location.country}
-                          onChange={(e) => editingPlug
-                            ? setEditingPlug({...editingPlug, location: {...(editingPlug.location || {}), country: e.target.value}})
-                            : setNewPlug({...newPlug, location: {...newPlug.location, country: e.target.value}})
-                          }
-                          className="w-full px-4 py-3 bg-gray-800 border-2 border-gray-600 rounded-xl text-white focus:border-blue-500 focus:outline-none transition-all"
-                        >
-                          <option value="FR">🇫🇷 France</option>
-                          <option value="BE">🇧🇪 Belgique</option>
-                          <option value="CH">🇨🇭 Suisse</option>
-                          <option value="CA">🇨🇦 Canada</option>
-                          <option value="LU">🇱🇺 Luxembourg</option>
-                        </select>
-                      </div>
-                      
-                      <div>
-                        <label className="block text-sm font-semibold text-gray-300 mb-2">
-                          Département *
+                          Département principal du vendeur
                         </label>
                         <input
                           type="text"
-                          placeholder="Ex: 75"
+                          placeholder="Ex: 75 ou Paris"
                           value={editingPlug?.location?.department || editingPlug?.department || newPlug.location.department}
                           onChange={(e) => editingPlug
                             ? setEditingPlug({...editingPlug, location: {...(editingPlug.location || {}), department: e.target.value}})
@@ -943,7 +942,7 @@ export default function ConfigPage() {
                       
                       <div>
                         <label className="block text-sm font-semibold text-gray-300 mb-2">
-                          Code postal *
+                          Code postal
                         </label>
                         <input
                           type="text"
@@ -1011,29 +1010,22 @@ export default function ConfigPage() {
                       {(editingPlug?.methods?.delivery || editingPlug?.methods?.shipping || 
                         newPlug.methods.delivery || newPlug.methods.shipping) && (
                         <div className="mt-6 p-4 bg-gray-800 rounded-xl border-2 border-green-600/30">
-                          <label className="block text-sm font-semibold text-gray-300 mb-2">
-                            📍 Départements où vous livrez/envoyez
-                          </label>
-                          <input
-                            type="text"
-                            placeholder="Ex: 75, 92, 93, 94, 77, 78..."
-                            value={editingPlug 
-                              ? (editingPlug.deliveryDepartments || []).join(', ')
-                              : (newPlug.deliveryDepartments || []).join(', ')
-                            }
-                            onChange={(e) => {
-                              const departments = e.target.value.split(',').map(d => d.trim()).filter(d => d);
+                          <h4 className="text-sm font-semibold text-gray-300 mb-4">
+                            📍 Sélectionnez les départements où vous livrez/envoyez
+                          </h4>
+                          <CountryDepartmentSelector
+                            selectedCountries={editingPlug?.countries || newPlug.countries}
+                            selectedDepartments={editingPlug?.deliveryDepartments || newPlug.deliveryDepartments}
+                            onCountriesChange={() => {}} // Pas de changement ici, juste affichage
+                            onDepartmentsChange={(departments) => {
                               if (editingPlug) {
-                                setEditingPlug({...editingPlug, deliveryDepartments: departments});
+                                setEditingPlug({...editingPlug, deliveryDepartments: departments})
                               } else {
-                                setNewPlug({...newPlug, deliveryDepartments: departments});
+                                setNewPlug({...newPlug, deliveryDepartments: departments})
                               }
                             }}
-                            className="w-full px-4 py-3 bg-gray-900 border-2 border-gray-600 rounded-xl text-white placeholder-gray-400 focus:border-green-500 focus:outline-none transition-all"
+                            showDepartments={true}
                           />
-                          <p className="text-xs text-gray-400 mt-2">
-                            Séparez les départements par des virgules. Laissez vide si vous livrez partout.
-                          </p>
                         </div>
                       )}
                     </div>
