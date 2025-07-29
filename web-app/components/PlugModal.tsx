@@ -214,7 +214,7 @@ export default function PlugModal({ plug, onClose, isOpen, onLike }: PlugModalPr
                         Réseaux sociaux
                       </h3>
                       <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
-                        {socialNetworks.map((network) => (
+                        {socialNetworks.map((network: any) => (
                           <motion.div
                             key={network.name}
                             whileHover={{ scale: 1.05 }}
