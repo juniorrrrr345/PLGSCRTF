@@ -22,7 +22,7 @@ Un système complet de boutique Telegram avec bot, mini-application web et panel
 ## 📋 Prérequis
 
 - Node.js 18+
-- MongoDB (MongoDB Atlas recommandé)
+- MongoDB (déjà configuré avec votre URI)
 - Compte Cloudinary
 - Bot Telegram (créé via @BotFather)
 - Compte Vercel
@@ -37,27 +37,27 @@ cd telegram-shop-bot
 npm install
 ```
 
-### 2. Configuration du Bot
-
-Créer `bot/.env` :
-```env
-TELEGRAM_BOT_TOKEN=7631105823:AAFIWjyN2hPR__R5QsvWTthVMkGVOCA_xd8
-MONGODB_URI=votre_uri_mongodb
-WEB_APP_URL=https://votre-app.vercel.app
-ADMIN_PASSWORD=JuniorAdmin123
+### 2. Initialiser les données de test
+```bash
+cd bot
+npm install
+npm run init-data
 ```
 
-### 3. Configuration de l'App Web
+### 3. Configuration du Bot
 
-Créer `web-app/.env.local` :
-```env
-MONGODB_URI=votre_uri_mongodb
-CLOUDINARY_CLOUD_NAME=votre_cloud_name
-CLOUDINARY_API_KEY=votre_api_key
-CLOUDINARY_API_SECRET=votre_api_secret
-NEXT_PUBLIC_TELEGRAM_BOT_USERNAME=votre_bot_username
-ADMIN_PASSWORD=JuniorAdmin123
-```
+Le fichier `bot/.env` est déjà configuré avec :
+- ✅ Token Telegram
+- ✅ MongoDB URI
+- ❌ À compléter : WEB_APP_URL (après déploiement Vercel)
+- ❌ À compléter : TELEGRAM_BOT_USERNAME
+
+### 4. Configuration de l'App Web
+
+Compléter `web-app/.env.local` avec :
+- ✅ MongoDB URI (déjà configuré)
+- ❌ Cloudinary credentials
+- ❌ NEXT_PUBLIC_TELEGRAM_BOT_USERNAME
 
 ## 🚀 Déploiement
 
@@ -65,29 +65,51 @@ ADMIN_PASSWORD=JuniorAdmin123
 
 1. Créer un nouveau Web Service sur Render
 2. Connecter votre repo GitHub
-3. Utiliser les paramètres suivants :
+3. Configuration :
    - Root Directory: `bot`
    - Build Command: `npm install`
    - Start Command: `npm start`
-4. Ajouter les variables d'environnement
+4. Variables d'environnement :
+   ```
+   TELEGRAM_BOT_TOKEN=7631105823:AAFIWjyN2hPR__R5QsvWTthVMkGVOCA_xd8
+   MONGODB_URI=mongodb+srv://juniorakz:w7q4GYF4NsXpGqUw@plgscrtf.tp0afas.mongodb.net/?retryWrites=true&w=majority&appName=PLGSCRTF
+   WEB_APP_URL=[URL de votre app Vercel]
+   ADMIN_PASSWORD=JuniorAdmin123
+   TELEGRAM_BOT_USERNAME=[username de votre bot]
+   ```
 
 ### App Web sur Vercel
 
 1. Importer le projet sur Vercel
-2. Root Directory: `web-app`
-3. Ajouter les variables d'environnement
-4. Déployer
+2. Configuration :
+   - Root Directory: `web-app`
+3. Variables d'environnement :
+   ```
+   MONGODB_URI=mongodb+srv://juniorakz:w7q4GYF4NsXpGqUw@plgscrtf.tp0afas.mongodb.net/?retryWrites=true&w=majority&appName=PLGSCRTF
+   CLOUDINARY_CLOUD_NAME=[votre cloud name]
+   CLOUDINARY_API_KEY=[votre api key]
+   CLOUDINARY_API_SECRET=[votre api secret]
+   NEXT_PUBLIC_TELEGRAM_BOT_USERNAME=[username de votre bot]
+   ADMIN_PASSWORD=JuniorAdmin123
+   ```
 
 ## 📱 Utilisation
 
 ### Commandes Bot
 - `/start` - Démarrer le bot
 - `/start ref_<plugId>` - Démarrer avec parrainage
-- `/config` - Accès panel admin (mot de passe requis)
+- `/config` - Accès panel admin (mot de passe : JuniorAdmin123)
 
 ### Panel Admin
-Accès via `/config` dans le bot ou `/config` sur l'app web.
-Mot de passe par défaut : `JuniorAdmin123`
+- Bot : `/config` dans Telegram
+- Web : `https://votre-app.vercel.app/config`
+- Mot de passe : `JuniorAdmin123`
+
+### Données de test
+Après l'initialisation, vous aurez :
+- 3 plugs de test (Paris, Marseille, Lyon)
+- Settings par défaut configurés
+- Pays et départements pré-remplis
 
 ## 🔧 Structure du Projet
 
@@ -96,14 +118,24 @@ telegram-shop-bot/
 ├── bot/                    # Bot Telegram
 │   ├── handlers/          # Gestionnaires d'événements
 │   ├── models/           # Modèles MongoDB
-│   └── index.js         # Point d'entrée
-├── web-app/              # Application Next.js
-│   ├── app/             # Pages et API routes
-│   ├── components/      # Composants React
-│   ├── lib/            # Utilitaires
-│   └── models/         # Modèles partagés
+│   ├── scripts/         # Scripts d'initialisation
+│   └── index.js        # Point d'entrée
+├── web-app/            # Application Next.js
+│   ├── app/           # Pages et API routes
+│   ├── components/   # Composants React
+│   ├── lib/         # Utilitaires
+│   └── models/     # Modèles partagés
 └── README.md
 ```
+
+## 🔐 Sécurité
+
+⚠️ **IMPORTANT** : Les fichiers `.env` contiennent des informations sensibles. Ne les commitez jamais sur GitHub !
+
+Pour la production :
+1. Changez le mot de passe admin
+2. Utilisez des variables d'environnement sécurisées
+3. Activez l'authentification à deux facteurs sur MongoDB Atlas
 
 ## 🤝 Contribution
 
