@@ -15,6 +15,9 @@ const plugSchema = new mongoose.Schema({
   deliveryDepartments: [{
     type: String
   }],
+  meetupDepartments: [{
+    type: String
+  }],
   socialNetworks: {
     snap: String,
     instagram: String,

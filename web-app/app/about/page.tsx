@@ -79,7 +79,7 @@ export default function AboutPage() {
               </div>
               <div className="flex items-center gap-3 text-gray-400">
                 <span className="text-2xl">🤝</span>
-                <span>Rencontre en personne</span>
+                                          <span>Meetup en personne</span>
               </div>
             </div>
           </motion.div>

@@ -16,6 +16,10 @@ const plugSchema = new mongoose.Schema({
   deliveryDepartments: [{
     type: String
   }],
+  // Zones où les meetups sont possibles
+  meetupDepartments: [{
+    type: String
+  }],
   socialNetworks: {
     snap: String,
     instagram: String,

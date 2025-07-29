@@ -203,7 +203,7 @@ export default function SearchPage() {
                     onChange={(e) => setSelectedMethods({ ...selectedMethods, meetup: e.target.checked })}
                     className="w-5 h-5 rounded border-white/20 bg-white/10 text-accent focus:ring-accent"
                   />
-                  <span>🤝 Rencontre</span>
+                                          <span>🤝 Meetup</span>
                 </label>
               </div>
             </div>

@@ -186,7 +186,7 @@ export default function PlugModal({ plug, onClose, isOpen, onLike }: PlugModalPr
                       {plug.methods?.meetup && (
                         <div className="bg-purple-600/20 border border-purple-600/30 rounded-xl p-4 text-center">
                           <span className="text-3xl mb-2 block">🤝</span>
-                          <span className="text-white font-medium">Rencontre</span>
+                          <span className="text-white font-medium">Meetup</span>
                         </div>
                       )}
                     </div>
@@ -198,6 +198,20 @@ export default function PlugModal({ plug, onClose, isOpen, onLike }: PlugModalPr
                         <div className="flex flex-wrap gap-2">
                           {plug.deliveryDepartments.map((dept: string) => (
                             <span key={dept} className="bg-green-600/20 text-green-400 px-3 py-1 rounded-lg text-sm font-medium border border-green-600/30">
+                              {dept}
+                            </span>
+                          ))}
+                        </div>
+                      </div>
+                    )}
+
+                    {/* Zones de meetup */}
+                    {plug.meetupDepartments && plug.meetupDepartments.length > 0 && (
+                      <div className="mt-4 pt-4 border-t border-gray-700">
+                        <h4 className="text-sm font-medium text-gray-400 mb-2">Meetup possible dans les zones :</h4>
+                        <div className="flex flex-wrap gap-2">
+                          {plug.meetupDepartments.map((dept: string) => (
+                            <span key={dept} className="bg-purple-600/20 text-purple-400 px-3 py-1 rounded-lg text-sm font-medium border border-purple-600/30">
                               {dept}
                             </span>
                           ))}

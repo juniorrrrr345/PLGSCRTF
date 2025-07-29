@@ -52,6 +52,7 @@ export default function ConfigPage() {
     customNetworks?: any[]
     methods: { delivery: boolean, shipping: boolean, meetup: boolean }
     deliveryDepartments: string[]
+    meetupDepartments: string[]
     countries: string[]
     location: { country: string, department: string, postalCode: string }
     description: string
@@ -62,6 +63,7 @@ export default function ConfigPage() {
     customNetworks: [],
     methods: { delivery: false, shipping: false, meetup: false },
     deliveryDepartments: [],
+    meetupDepartments: [],
     countries: ['FR'],
     location: { country: 'FR', department: '', postalCode: '' },
     description: ''
@@ -207,6 +209,7 @@ export default function ConfigPage() {
           customNetworks: [],
           methods: { delivery: false, shipping: false, meetup: false },
           deliveryDepartments: [],
+          meetupDepartments: [],
           countries: ['FR'],
           location: { country: 'FR', department: '', postalCode: '' },
           description: ''
@@ -1007,7 +1010,7 @@ export default function ConfigPage() {
                             }
                             className="w-5 h-5 text-purple-600"
                           />
-                          <span className="text-lg">🤝 Rencontre</span>
+                          <span className="text-lg">🤝 Meetup</span>
                         </label>
                       </div>
 
@@ -1016,7 +1019,7 @@ export default function ConfigPage() {
                         newPlug.methods.delivery || newPlug.methods.shipping) && (
                         <div className="mt-6 p-4 bg-gray-800 rounded-xl border-2 border-green-600/30">
                           <h4 className="text-sm font-semibold text-gray-300 mb-4">
-                            📍 Sélectionnez les départements où vous livrez/envoyez
+                            📦 Sélectionnez les départements où vous livrez/envoyez
                           </h4>
                           <CountryDepartmentSelector
                             selectedCountries={editingPlug?.countries || newPlug.countries}
@@ -1027,6 +1030,28 @@ export default function ConfigPage() {
                                 setEditingPlug({...editingPlug, deliveryDepartments: departments})
                               } else {
                                 setNewPlug({...newPlug, deliveryDepartments: departments})
+                              }
+                            }}
+                            showDepartments={true}
+                          />
+                        </div>
+                      )}
+
+                      {/* Zones de meetup */}
+                      {(editingPlug?.methods?.meetup || newPlug.methods.meetup) && (
+                        <div className="mt-6 p-4 bg-gray-800 rounded-xl border-2 border-purple-600/30">
+                          <h4 className="text-sm font-semibold text-gray-300 mb-4">
+                            🤝 Sélectionnez les zones où vous proposez des meetups
+                          </h4>
+                          <CountryDepartmentSelector
+                            selectedCountries={editingPlug?.countries || newPlug.countries}
+                            selectedDepartments={editingPlug?.meetupDepartments || newPlug.meetupDepartments || []}
+                            onCountriesChange={() => {}} // Pas de changement ici, juste affichage
+                            onDepartmentsChange={(departments) => {
+                              if (editingPlug) {
+                                setEditingPlug({...editingPlug, meetupDepartments: departments})
+                              } else {
+                                setNewPlug({...newPlug, meetupDepartments: departments})
                               }
                             }}
                             showDepartments={true}
