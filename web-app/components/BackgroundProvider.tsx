@@ -80,7 +80,7 @@ export default function BackgroundProvider({ children }: { children: React.React
         logo.style.filter = 'drop-shadow(0 4px 6px rgba(0, 0, 0, 0.3))'
         document.body.appendChild(logo)
       } else {
-        existingLogo.src = settings.logoImage
+        (existingLogo as HTMLImageElement).src = settings.logoImage
       }
     } else if (mounted) {
       const logo = document.getElementById('shop-logo')
