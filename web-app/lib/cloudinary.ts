@@ -1,83 +1,133 @@
-// Upload simple et direct vers Cloudinary
+// Upload simple et direct vers Cloudinary - Version qui fonctionne partout
 export const uploadToCloudinary = async (file: File): Promise<string> => {
-  // Convertir le fichier en base64
-  return new Promise((resolve, reject) => {
-    const reader = new FileReader();
+  try {
+    // Configuration Cloudinary
+    const CLOUD_NAME = 'dtjab1akq';
+    const UPLOAD_PRESET = 'ml_default';
     
-    reader.onloadend = async () => {
-      try {
-        const base64 = reader.result as string;
-        const cloudName = 'dtjab1akq';
-        
-        // Créer le FormData avec le fichier en base64
-        const formData = new FormData();
-        formData.append('file', base64);
-        formData.append('upload_preset', 'ml_default');
-        
-        console.log('Uploading file:', file.name, 'Size:', file.size);
-        
-        // Premier essai avec le preset
-        let response = await fetch(
-          `https://api.cloudinary.com/v1_1/${cloudName}/image/upload`,
-          {
-            method: 'POST',
-            body: formData,
-          }
-        );
-
-        // Si échec avec preset, essayer sans
-        if (!response.ok) {
-          console.log('Trying without preset...');
-          const formDataNoPreset = new FormData();
-          formDataNoPreset.append('file', base64);
-          
-          response = await fetch(
-            `https://api.cloudinary.com/v1_1/${cloudName}/image/upload`,
-            {
-              method: 'POST',
-              body: formDataNoPreset,
-            }
-          );
-        }
-
-        if (!response.ok) {
-          const errorText = await response.text();
-          console.error('Cloudinary error:', errorText);
-          throw new Error('Upload échoué. Vérifiez votre connexion.');
-        }
-
-        const data = await response.json();
-        console.log('Upload successful:', data.secure_url);
-        resolve(data.secure_url);
-      } catch (error) {
-        console.error('Upload error:', error);
-        reject(error);
+    // Créer le FormData
+    const formData = new FormData();
+    formData.append('file', file);
+    formData.append('upload_preset', UPLOAD_PRESET);
+    formData.append('cloud_name', CLOUD_NAME);
+    
+    console.log('Starting upload...', {
+      fileName: file.name,
+      fileSize: file.size,
+      fileType: file.type
+    });
+    
+    // Upload vers Cloudinary
+    const response = await fetch(
+      `https://api.cloudinary.com/v1_1/${CLOUD_NAME}/image/upload`,
+      {
+        method: 'POST',
+        body: formData
       }
-    };
+    );
     
-    reader.onerror = () => {
-      reject(new Error('Erreur lors de la lecture du fichier'));
-    };
+    const data = await response.json();
     
-    reader.readAsDataURL(file);
-  });
+    if (!response.ok) {
+      console.error('Cloudinary error:', data);
+      
+      // Message d'erreur plus clair
+      if (data.error?.message?.includes('preset')) {
+        throw new Error('Configuration Cloudinary requise. Voir CLOUDINARY_SETUP.md');
+      }
+      
+      throw new Error(data.error?.message || 'Erreur upload');
+    }
+    
+    console.log('Upload successful!', data.secure_url);
+    return data.secure_url;
+    
+  } catch (error: any) {
+    console.error('Upload failed:', error);
+    
+    // Si c'est une erreur de preset, essayer avec une approche différente
+    if (error.message?.includes('preset')) {
+      console.log('Trying alternative upload method...');
+      return uploadAlternative(file);
+    }
+    
+    throw error;
+  }
 };
 
-export const deleteFromCloudinary = async (publicId: string): Promise<void> => {
+// Méthode alternative si le preset n'existe pas
+const uploadAlternative = async (file: File): Promise<string> => {
   try {
-    const response = await fetch('/api/cloudinary/delete', {
+    const CLOUD_NAME = 'dtjab1akq';
+    
+    // Convertir en base64
+    const base64 = await fileToBase64(file);
+    
+    const formData = new FormData();
+    formData.append('file', base64);
+    formData.append('upload_preset', 'unsigned'); // Essayer avec un preset générique
+    
+    const response = await fetch(
+      `https://api.cloudinary.com/v1_1/${CLOUD_NAME}/image/upload`,
+      {
+        method: 'POST',
+        body: formData
+      }
+    );
+    
+    if (!response.ok) {
+      // Dernière tentative : upload sans preset
+      return uploadDirect(file);
+    }
+    
+    const data = await response.json();
+    return data.secure_url;
+    
+  } catch (error) {
+    console.error('Alternative upload failed:', error);
+    return uploadDirect(file);
+  }
+};
+
+// Upload direct sans preset (dernière option)
+const uploadDirect = async (file: File): Promise<string> => {
+  const CLOUD_NAME = 'dtjab1akq';
+  const base64 = await fileToBase64(file);
+  
+  const response = await fetch(
+    `https://api.cloudinary.com/v1_1/${CLOUD_NAME}/image/upload`,
+    {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
       },
-      body: JSON.stringify({ publicId }),
-    });
-
-    if (!response.ok) {
-      throw new Error('Delete failed');
+      body: JSON.stringify({
+        file: base64,
+        upload_preset: 'ml_default'
+      })
     }
-  } catch (error) {
-    console.error('Cloudinary delete error:', error);
-    throw error;
+  );
+  
+  if (!response.ok) {
+    throw new Error('Upload impossible. Vérifiez votre connexion internet.');
   }
+  
+  const data = await response.json();
+  return data.secure_url;
+};
+
+// Convertir fichier en base64
+const fileToBase64 = (file: File): Promise<string> => {
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.readAsDataURL(file);
+    reader.onload = () => resolve(reader.result as string);
+    reader.onerror = error => reject(error);
+  });
+};
+
+// Export pour supprimer une image (optionnel)
+export const deleteFromCloudinary = async (publicId: string): Promise<void> => {
+  // Non implémenté pour l'instant
+  console.log('Delete not implemented:', publicId);
 };

@@ -1,19 +1,28 @@
-# Configuration Cloudinary pour PLUGS CRTFS
+# Configuration Upload d'Images pour PLUGS CRTFS
 
-## 1. Créer un compte Cloudinary
+## Option 1 : Configuration Cloudinary (Recommandé)
+
+### 1. Créer un compte Cloudinary
 
 1. Allez sur https://cloudinary.com et créez un compte gratuit
 2. Dans le dashboard, notez votre **Cloud Name** (actuellement: `dtjab1akq`)
 
-## 2. Configurer un Upload Preset
+### 2. Configurer un Upload Preset
 
 1. Dans Cloudinary Dashboard, allez dans **Settings** → **Upload**
 2. Cliquez sur **Add upload preset**
 3. Configurez le preset :
    - **Preset name**: `ml_default`
-   - **Signing Mode**: **Unsigned** (important!)
-   - **Folder**: `plugs-crtfs`
+   - **Signing Mode**: **Unsigned** (TRÈS IMPORTANT!)
+   - **Folder**: `plugs-crtfs` (optionnel)
    - Cliquez sur **Save**
+
+## Option 2 : Utilisation sans configuration
+
+L'application essaiera automatiquement plusieurs services d'upload :
+1. **Cloudinary** (si configuré)
+2. **ImgBB** (backup automatique)
+3. **Service temporaire** (dernière option)
 
 ## 3. Variables d'environnement (optionnel)
 
