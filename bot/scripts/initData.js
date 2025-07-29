@@ -84,8 +84,7 @@ async function initializeData() {
         department: 'Paris',
         postalCode: '75001',
         likes: 127,
-        referralCount: 15,
-        referralLink: 'https://t.me/your_bot?start=ref_plug1'
+        referralCount: 15
       },
       {
         name: 'MarseillePlug 13',
@@ -100,8 +99,7 @@ async function initializeData() {
         department: 'Bouches-du-Rhône',
         postalCode: '13001',
         likes: 89,
-        referralCount: 8,
-        referralLink: 'https://t.me/your_bot?start=ref_plug2'
+        referralCount: 8
       },
       {
         name: 'LyonPlug 69',
@@ -116,16 +114,22 @@ async function initializeData() {
         department: 'Rhône',
         postalCode: '69001',
         likes: 65,
-        referralCount: 12,
-        referralLink: 'https://t.me/your_bot?start=ref_plug3'
+        referralCount: 12
       }
     ];
     
     // Vérifier si des plugs existent déjà
     const existingPlugs = await Plug.countDocuments();
     if (existingPlugs === 0) {
-      await Plug.insertMany(testPlugs);
-      console.log('✅ Test plugs created');
+      const createdPlugs = await Plug.insertMany(testPlugs);
+      
+      // Générer les liens de parrainage pour chaque plug
+      for (const plug of createdPlugs) {
+        plug.referralLink = `https://t.me/PLGSCRTF_BOT?start=ref_${plug._id}`;
+        await plug.save();
+      }
+      
+      console.log('✅ Test plugs created with referral links');
     }
     
     console.log('✅ Initialization complete!');

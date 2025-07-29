@@ -236,7 +236,7 @@ async function handlePlugDetails(bot, chatId, data) {
   
   // Générer le lien de parrainage si nécessaire
   if (!plug.referralLink) {
-    plug.referralLink = `https://t.me/${process.env.TELEGRAM_BOT_USERNAME || 'YourBotUsername'}?start=ref_${plugId}`;
+    plug.referralLink = `https://t.me/${process.env.TELEGRAM_BOT_USERNAME || 'PLGSCRTF_BOT'}?start=ref_${plugId}`;
     await plug.save();
   }
   

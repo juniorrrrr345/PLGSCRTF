@@ -17,23 +17,18 @@ CLOUDINARY_URL=cloudinary://851324984197634:bQJrdNdhts56XuPx4uCoWEme80g@dtjab1ak
 
 NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME=dtjab1akq
 
+NEXT_PUBLIC_TELEGRAM_BOT_USERNAME=PLGSCRTF_BOT
+
 ADMIN_PASSWORD=JuniorAdmin123
-```
-
-## Variable à compléter après création du bot :
-
-```
-NEXT_PUBLIC_TELEGRAM_BOT_USERNAME=votre_bot_username
 ```
 
 ## Instructions pour Vercel :
 
 1. Allez dans les paramètres de votre projet Vercel
 2. Cliquez sur "Environment Variables"
-3. Ajoutez chaque variable une par une
-4. Pour `NEXT_PUBLIC_TELEGRAM_BOT_USERNAME`, remplacez `votre_bot_username` par le username de votre bot (sans le @)
-5. Cliquez sur "Save" après avoir ajouté toutes les variables
-6. Redéployez votre application
+3. Ajoutez chaque variable une par une (copiez-collez directement)
+4. Cliquez sur "Save" après avoir ajouté toutes les variables
+5. Redéployez votre application
 
 ## Notes importantes :
 
@@ -41,3 +36,6 @@ NEXT_PUBLIC_TELEGRAM_BOT_USERNAME=votre_bot_username
 - Les autres variables sont uniquement accessibles côté serveur
 - Ne partagez jamais ces variables publiquement (sauf celles avec NEXT_PUBLIC_)
 - Pour la production, pensez à changer le mot de passe admin
+
+## Lien du bot :
+https://t.me/PLGSCRTF_BOT
