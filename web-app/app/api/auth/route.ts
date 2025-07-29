@@ -1,21 +1,19 @@
-import { NextRequest, NextResponse } from 'next/server'
+import { NextResponse } from 'next/server'
 
-export async function POST(request: NextRequest) {
+export async function POST(request: Request) {
   try {
     const { password } = await request.json()
     
-    if (password === process.env.ADMIN_PASSWORD) {
-      return NextResponse.json({ success: true })
-    }
+    // Vérifier le mot de passe
+    const adminPassword = process.env.ADMIN_PASSWORD || 'admin123'
     
-    return NextResponse.json(
-      { error: 'Invalid password' },
-      { status: 401 }
-    )
+    if (password === adminPassword) {
+      return NextResponse.json({ success: true })
+    } else {
+      return NextResponse.json({ error: 'Invalid password' }, { status: 401 })
+    }
   } catch (error) {
-    return NextResponse.json(
-      { error: 'Authentication failed' },
-      { status: 500 }
-    )
+    console.error('Auth error:', error)
+    return NextResponse.json({ error: 'Internal server error' }, { status: 500 })
   }
 }

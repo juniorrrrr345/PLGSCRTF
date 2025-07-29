@@ -31,6 +31,7 @@ const fetcher = (url: string) => fetch(url).then(res => res.json())
 export default function ConfigPage() {
   const router = useRouter()
   const [isAuthenticated, setIsAuthenticated] = useState(false)
+  const [isLoading, setIsLoading] = useState(true)
   const [password, setPassword] = useState('')
   const [activeTab, setActiveTab] = useState('dashboard')
   const [showAddPlug, setShowAddPlug] = useState(false)
@@ -66,19 +67,25 @@ export default function ConfigPage() {
   
   useEffect(() => {
     if (typeof window !== 'undefined') {
-      const authStatus = localStorage.getItem('adminAuth')
-      if (authStatus === 'true') {
-        setIsAuthenticated(true)
+      try {
+        const authStatus = localStorage.getItem('adminAuth')
+        if (authStatus === 'true') {
+          setIsAuthenticated(true)
+        }
+        
+        // Check if desktop
+        const checkDesktop = () => {
+          setIsDesktop(window.innerWidth >= 1024)
+        }
+        
+        checkDesktop()
+        window.addEventListener('resize', checkDesktop)
+        setIsLoading(false)
+        return () => window.removeEventListener('resize', checkDesktop)
+      } catch (error) {
+        console.error('Error checking auth:', error)
+        setIsLoading(false)
       }
-      
-      // Check if desktop
-      const checkDesktop = () => {
-        setIsDesktop(window.innerWidth >= 1024)
-      }
-      
-      checkDesktop()
-      window.addEventListener('resize', checkDesktop)
-      return () => window.removeEventListener('resize', checkDesktop)
     }
   }, [])
   
@@ -220,6 +227,18 @@ export default function ConfigPage() {
     }
   }
   
+  if (isLoading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-black">
+        <motion.div
+          animate={{ rotate: 360 }}
+          transition={{ duration: 1, repeat: Infinity, ease: "linear" }}
+          className="w-16 h-16 border-4 border-blue-500 border-t-transparent rounded-full"
+        />
+      </div>
+    )
+  }
+
   if (!isAuthenticated) {
     return (
       <div className="min-h-screen flex items-center justify-center px-4">
