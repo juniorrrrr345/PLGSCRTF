@@ -91,7 +91,9 @@ export default function ConfigPage() {
       
       if (res.ok) {
         setIsAuthenticated(true)
-        localStorage.setItem('adminAuth', 'true')
+        if (typeof window !== 'undefined') {
+          localStorage.setItem('adminAuth', 'true')
+        }
         toast.success('Connexion réussie !')
       } else {
         toast.error('Mot de passe incorrect')
@@ -103,7 +105,9 @@ export default function ConfigPage() {
   
   const handleLogout = () => {
     setIsAuthenticated(false)
-    localStorage.removeItem('adminAuth')
+    if (typeof window !== 'undefined') {
+      localStorage.removeItem('adminAuth')
+    }
     setPassword('')
     router.push('/')
   }

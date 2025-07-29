@@ -10,8 +10,9 @@ import { MagnifyingGlassIcon, FunnelIcon } from '@heroicons/react/24/outline'
 const fetcher = (url: string) => fetch(url).then(res => res.json())
 
 export default function SearchPage() {
-  const { data: plugs } = useSWR('/api/plugs', fetcher)
+  const { data: plugs, mutate } = useSWR('/api/plugs', fetcher)
   const { data: settings } = useSWR('/api/settings', fetcher)
+  const { data: locations } = useSWR('/api/locations', fetcher)
   
   const [searchTerm, setSearchTerm] = useState('')
   const [selectedCountry, setSelectedCountry] = useState('')
@@ -21,8 +22,9 @@ export default function SearchPage() {
     shipping: false,
     meetup: false
   })
-  const [selectedPlug, setSelectedPlug] = useState(null)
-  const [filteredPlugs, setFilteredPlugs] = useState([])
+  const [selectedPlug, setSelectedPlug] = useState<any>(null)
+  const [isModalOpen, setIsModalOpen] = useState(false)
+  const [filteredPlugs, setFilteredPlugs] = useState<any[]>([])
   const [showFilters, setShowFilters] = useState(false)
 
   useEffect(() => {
