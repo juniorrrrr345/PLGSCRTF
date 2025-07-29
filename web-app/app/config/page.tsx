@@ -8,6 +8,7 @@ import useSWR, { mutate } from 'swr'
 import ImageUpload from '@/components/ImageUpload'
 import SocialNetworkManager from '@/components/SocialNetworkManager'
 import CountryDepartmentSelector from '@/components/CountryDepartmentSelector'
+import PostalCodeManager from '@/components/PostalCodeManager'
 import { countriesData, getCountryDepartments } from '@/lib/countries-data'
 import { 
   ChartBarIcon, 
@@ -68,7 +69,9 @@ export default function ConfigPage() {
     customNetworks?: any[]
     methods: { delivery: boolean, shipping: boolean, meetup: boolean }
     deliveryDepartments: string[]
+    deliveryPostalCodes: string[]
     meetupDepartments: string[]
+    meetupPostalCodes: string[]
     countries: string[]
     location: { country: string, department: string, postalCode: string }
     description: string
@@ -79,7 +82,9 @@ export default function ConfigPage() {
     customNetworks: [],
     methods: { delivery: false, shipping: false, meetup: false },
     deliveryDepartments: [],
+    deliveryPostalCodes: [],
     meetupDepartments: [],
+    meetupPostalCodes: [],
     countries: ['FR'],
     location: { country: 'FR', department: '', postalCode: '' },
     description: ''
@@ -258,7 +263,9 @@ export default function ConfigPage() {
           customNetworks: [],
           methods: { delivery: false, shipping: false, meetup: false },
           deliveryDepartments: [],
+          deliveryPostalCodes: [],
           meetupDepartments: [],
+          meetupPostalCodes: [],
           countries: ['FR'],
           location: { country: 'FR', department: '', postalCode: '' },
           description: ''
@@ -1357,6 +1364,24 @@ export default function ConfigPage() {
                             }}
                             showDepartments={true}
                           />
+                          
+                          {/* Codes postaux de livraison */}
+                          <div className="mt-4">
+                            <h5 className="text-sm font-medium text-gray-300 mb-2">
+                              Codes postaux de livraison (optionnel)
+                            </h5>
+                            <PostalCodeManager
+                              postalCodes={editingPlug?.deliveryPostalCodes || newPlug.deliveryPostalCodes || []}
+                              onChange={(codes) => {
+                                if (editingPlug) {
+                                  setEditingPlug({...editingPlug, deliveryPostalCodes: codes})
+                                } else {
+                                  setNewPlug({...newPlug, deliveryPostalCodes: codes})
+                                }
+                              }}
+                              placeholder="Ex: 75001, 69002..."
+                            />
+                          </div>
                         </div>
                       )}
 
@@ -1379,6 +1404,24 @@ export default function ConfigPage() {
                             }}
                             showDepartments={true}
                           />
+                          
+                          {/* Codes postaux de meetup */}
+                          <div className="mt-4">
+                            <h5 className="text-sm font-medium text-gray-300 mb-2">
+                              Codes postaux de meetup (optionnel)
+                            </h5>
+                            <PostalCodeManager
+                              postalCodes={editingPlug?.meetupPostalCodes || newPlug.meetupPostalCodes || []}
+                              onChange={(codes) => {
+                                if (editingPlug) {
+                                  setEditingPlug({...editingPlug, meetupPostalCodes: codes})
+                                } else {
+                                  setNewPlug({...newPlug, meetupPostalCodes: codes})
+                                }
+                              }}
+                              placeholder="Ex: 75001, 69002..."
+                            />
+                          </div>
                         </div>
                       )}
                     </div>

@@ -202,6 +202,20 @@ export default function PlugModal({ plug, onClose, isOpen, onLike }: PlugModalPr
                             </span>
                           ))}
                         </div>
+                        
+                        {/* Codes postaux de livraison */}
+                        {plug.deliveryPostalCodes && plug.deliveryPostalCodes.length > 0 && (
+                          <div className="mt-3">
+                            <h5 className="text-xs font-medium text-gray-500 mb-1">Codes postaux spécifiques :</h5>
+                            <div className="flex flex-wrap gap-1">
+                              {plug.deliveryPostalCodes.map((code: string) => (
+                                <span key={code} className="bg-gray-700 text-gray-300 px-2 py-0.5 rounded text-xs">
+                                  {code}
+                                </span>
+                              ))}
+                            </div>
+                          </div>
+                        )}
                       </div>
                     )}
 
@@ -216,6 +230,20 @@ export default function PlugModal({ plug, onClose, isOpen, onLike }: PlugModalPr
                             </span>
                           ))}
                         </div>
+                        
+                        {/* Codes postaux de meetup */}
+                        {plug.meetupPostalCodes && plug.meetupPostalCodes.length > 0 && (
+                          <div className="mt-3">
+                            <h5 className="text-xs font-medium text-gray-500 mb-1">Codes postaux spécifiques :</h5>
+                            <div className="flex flex-wrap gap-1">
+                              {plug.meetupPostalCodes.map((code: string) => (
+                                <span key={code} className="bg-gray-700 text-gray-300 px-2 py-0.5 rounded text-xs">
+                                  {code}
+                                </span>
+                              ))}
+                            </div>
+                          </div>
+                        )}
                       </div>
                     )}
                   </div>

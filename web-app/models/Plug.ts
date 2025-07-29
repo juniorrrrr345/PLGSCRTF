@@ -15,7 +15,13 @@ const plugSchema = new mongoose.Schema({
   deliveryDepartments: [{
     type: String
   }],
+  deliveryPostalCodes: [{
+    type: String
+  }],
   meetupDepartments: [{
+    type: String
+  }],
+  meetupPostalCodes: [{
     type: String
   }],
   socialNetworks: {
