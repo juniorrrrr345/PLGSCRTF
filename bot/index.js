@@ -18,7 +18,15 @@ const { handleVendorApplication } = require('./handlers/vendorHandler');
 const { handleAdminCommand, handleAdminCallbacks } = require('./handlers/adminHandler');
 
 // Configuration du bot
-const bot = new TelegramBot(process.env.TELEGRAM_BOT_TOKEN, { polling: true });
+const bot = new TelegramBot(process.env.TELEGRAM_BOT_TOKEN, { 
+  polling: {
+    interval: 300,
+    autoStart: true,
+    params: {
+      timeout: 10
+    }
+  }
+});
 
 // État des utilisateurs pour les formulaires
 const userStates = new Map();
@@ -176,14 +184,36 @@ bot.on('callback_query', async (callbackQuery) => {
     else if (data === 'info') {
       await bot.deleteMessage(chatId, messageId);
       const settings = await Settings.findOne();
-      const message = settings?.welcomeMessage || 'Bienvenue sur PLUGS CRTFS !';
+      const infoMessage = settings?.infoText || 'Bienvenue sur PLUGS CRTFS !';
       
-      await bot.sendMessage(chatId, `ℹ️ <b>Informations</b>\n\n${message}`, {
-        parse_mode: 'HTML',
-        reply_markup: {
-          inline_keyboard: [[{ text: '⬅️ Retour', callback_data: 'main_menu' }]]
+      // Envoyer avec l'image d'accueil si elle existe
+      if (settings?.welcomeImage) {
+        try {
+          await bot.sendPhoto(chatId, settings.welcomeImage, {
+            caption: `ℹ️ <b>Informations</b>\n\n${infoMessage}`,
+            parse_mode: 'HTML',
+            reply_markup: {
+              inline_keyboard: [[{ text: '⬅️ Retour', callback_data: 'main_menu' }]]
+            }
+          });
+        } catch (error) {
+          console.error('Erreur envoi image:', error);
+          // Si l'image échoue, envoyer juste le message
+          await bot.sendMessage(chatId, `ℹ️ <b>Informations</b>\n\n${infoMessage}`, {
+            parse_mode: 'HTML',
+            reply_markup: {
+              inline_keyboard: [[{ text: '⬅️ Retour', callback_data: 'main_menu' }]]
+            }
+          });
         }
-      });
+      } else {
+        await bot.sendMessage(chatId, `ℹ️ <b>Informations</b>\n\n${infoMessage}`, {
+          parse_mode: 'HTML',
+          reply_markup: {
+            inline_keyboard: [[{ text: '⬅️ Retour', callback_data: 'main_menu' }]]
+          }
+        });
+      }
     }
     
     // Ajouter contact/réseaux
