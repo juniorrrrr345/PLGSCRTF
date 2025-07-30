@@ -809,47 +809,63 @@ export default function ConfigPage() {
                 <div className="space-y-6">
                   <h1 className="text-3xl font-bold">Candidatures Vendeurs</h1>
                   
-                  {applications?.filter((a: any) => a.status === 'pending').length === 0 ? (
+                  {!applications ? (
+                    <div className="glass-card p-8 text-center">
+                      <p className="text-gray-400">Chargement des candidatures...</p>
+                    </div>
+                  ) : applications.filter((a: any) => a.status === 'pending').length === 0 ? (
                     <div className="glass-card p-8 text-center">
                       <p className="text-gray-400">Aucune candidature en attente</p>
                     </div>
                   ) : (
                     <div className="grid gap-4">
-                      {applications?.filter((a: any) => a.status === 'pending').map((app: any) => (
-                        <motion.div
-                          key={app._id}
-                          whileHover={{ scale: 1.01 }}
-                          className="glass-card p-6"
-                        >
-                          <div className="flex justify-between items-start mb-4">
-                            <div>
-                              <h3 className="font-bold text-lg">@{app.username}</h3>
-                              <p className="text-sm text-gray-400">
-                                Candidature du {new Date(app.createdAt).toLocaleDateString()}
-                              </p>
+                      {applications.filter((a: any) => a.status === 'pending').map((app: any) => {
+                        try {
+                        // Vérifier et normaliser les données
+                        const safeApp = {
+                          ...app,
+                          socialNetworks: app.socialNetworks || { primary: [], others: '' },
+                          methods: app.methods || {},
+                          country: app.country || app.location?.country || '',
+                          department: app.department || app.location?.department || '',
+                          postalCode: app.postalCode || app.location?.postalCode || ''
+                        }
+                        
+                        return (
+                          <motion.div
+                            key={app._id}
+                            whileHover={{ scale: 1.01 }}
+                            className="glass-card p-6"
+                          >
+                            <div className="flex justify-between items-start mb-4">
+                              <div>
+                                <h3 className="font-bold text-lg">@{app.username || 'Utilisateur'}</h3>
+                                <p className="text-sm text-gray-400">
+                                  Candidature du {app.createdAt ? new Date(app.createdAt).toLocaleDateString() : 'Date inconnue'}
+                                </p>
+                              </div>
+                              <div className="flex gap-2">
+                                <button
+                                  onClick={() => handleApproveApplication(app._id)}
+                                  className="p-2 bg-green-500/20 text-green-500 rounded-lg hover:bg-green-500/30 transition-colors"
+                                >
+                                  <CheckIcon className="w-5 h-5" />
+                                </button>
+                                <button
+                                  className="p-2 bg-red-500/20 text-red-500 rounded-lg hover:bg-red-500/30 transition-colors"
+                                >
+                                  <XMarkIcon className="w-5 h-5" />
+                                </button>
+                              </div>
                             </div>
-                            <div className="flex gap-2">
-                              <button
-                                onClick={() => handleApproveApplication(app._id)}
-                                className="p-2 bg-green-500/20 text-green-500 rounded-lg hover:bg-green-500/30 transition-colors"
-                              >
-                                <CheckIcon className="w-5 h-5" />
-                              </button>
-                              <button
-                                className="p-2 bg-red-500/20 text-red-500 rounded-lg hover:bg-red-500/30 transition-colors"
-                              >
-                                <XMarkIcon className="w-5 h-5" />
-                              </button>
-                            </div>
-                          </div>
                           
                           <div className="space-y-4">
                             {/* Photo de la boutique */}
-                            {(app.photo || app.shopPhoto) && (
+                            {(safeApp.photo || safeApp.shopPhoto) && (
                               <div className="mb-4">
                                 <p className="text-gray-400 mb-2">📸 Photo de la boutique:</p>
                                 <div className="bg-gray-800 p-2 rounded-lg inline-block">
-                                  <p className="text-xs text-gray-500 mb-1">Photo ID: {app.photo || app.shopPhoto}</p>
+                                  <p className="text-xs text-gray-500 mb-1">Photo ID: {safeApp.photo || safeApp.shopPhoto}</p>
                                   <p className="text-xs text-gray-400">La photo est stockée sur Telegram</p>
                                 </div>
                               </div>
@@ -858,10 +874,10 @@ export default function ConfigPage() {
                             {/* Réseaux sociaux */}
                             <div className="bg-white/5 p-3 rounded-lg">
                               <p className="text-gray-400 font-semibold mb-2">📱 Réseaux sociaux:</p>
-                              {app.socialNetworks?.primary?.length > 0 ? (
+                              {safeApp.socialNetworks?.primary?.length > 0 ? (
                                 <div className="flex flex-wrap gap-2 mb-2">
-                                  {app.socialNetworks.primary.map((network: string) => (
-                                    <span key={network} className="bg-blue-500/20 text-blue-400 px-3 py-1 rounded-full text-sm">
+                                  {safeApp.socialNetworks.primary.map((network: string, idx: number) => (
+                                    <span key={`${network}-${idx}`} className="bg-blue-500/20 text-blue-400 px-3 py-1 rounded-full text-sm">
                                       {network}
                                     </span>
                                   ))}
@@ -869,9 +885,9 @@ export default function ConfigPage() {
                               ) : (
                                 <p className="text-gray-500 italic">Non spécifié</p>
                               )}
-                              {app.socialNetworks?.others && (
+                              {safeApp.socialNetworks?.others && (
                                 <p className="text-sm mt-2">
-                                  <span className="text-gray-400">Autres:</span> {app.socialNetworks.others}
+                                  <span className="text-gray-400">Autres:</span> {safeApp.socialNetworks.others}
                                 </p>
                               )}
                             </div>
@@ -880,37 +896,37 @@ export default function ConfigPage() {
                             <div className="bg-white/5 p-3 rounded-lg">
                               <p className="text-gray-400 font-semibold mb-2">📦 Méthodes de vente:</p>
                               <div className="space-y-2">
-                                {app.methods?.delivery && (
+                                {safeApp.methods?.delivery && (
                                   <div>
                                     <span className="bg-blue-500/20 text-blue-400 px-3 py-1 rounded-full text-sm">
                                       🚚 Livraison
                                     </span>
-                                    {app.deliveryZones && (
-                                      <p className="text-sm mt-1 ml-2">Zones: {app.deliveryZones || 'Non spécifié'}</p>
+                                    {safeApp.deliveryZones && (
+                                      <p className="text-sm mt-1 ml-2">Zones: {safeApp.deliveryZones || 'Non spécifié'}</p>
                                     )}
                                   </div>
                                 )}
-                                {app.methods?.shipping && (
+                                {safeApp.methods?.shipping && (
                                   <div>
                                     <span className="bg-green-500/20 text-green-400 px-3 py-1 rounded-full text-sm">
                                       📮 Envoi
                                     </span>
-                                    {app.shippingZones && (
-                                      <p className="text-sm mt-1 ml-2">Zones: {app.shippingZones || 'Non spécifié'}</p>
+                                    {safeApp.shippingZones && (
+                                      <p className="text-sm mt-1 ml-2">Zones: {safeApp.shippingZones || 'Non spécifié'}</p>
                                     )}
                                   </div>
                                 )}
-                                {app.methods?.meetup && (
+                                {safeApp.methods?.meetup && (
                                   <div>
                                     <span className="bg-purple-500/20 text-purple-400 px-3 py-1 rounded-full text-sm">
                                       🤝 Meetup
                                     </span>
-                                    {app.meetupZones && (
-                                      <p className="text-sm mt-1 ml-2">Zones: {app.meetupZones || 'Non spécifié'}</p>
+                                    {safeApp.meetupZones && (
+                                      <p className="text-sm mt-1 ml-2">Zones: {safeApp.meetupZones || 'Non spécifié'}</p>
                                     )}
                                   </div>
                                 )}
-                                {!app.methods?.delivery && !app.methods?.shipping && !app.methods?.meetup && (
+                                {!safeApp.methods?.delivery && !safeApp.methods?.shipping && !safeApp.methods?.meetup && (
                                   <p className="text-gray-500 italic">Aucune méthode sélectionnée</p>
                                 )}
                               </div>
@@ -922,15 +938,15 @@ export default function ConfigPage() {
                               <div className="grid grid-cols-3 gap-2 text-sm">
                                 <div>
                                   <p className="text-gray-500">Pays:</p>
-                                  <p>{app.country || app.location?.country || 'Non spécifié'}</p>
+                                  <p>{safeApp.country || 'Non spécifié'}</p>
                                 </div>
                                 <div>
                                   <p className="text-gray-500">Département:</p>
-                                  <p>{app.department || app.location?.department || 'Non spécifié'}</p>
+                                  <p>{safeApp.department || 'Non spécifié'}</p>
                                 </div>
                                 <div>
                                   <p className="text-gray-500">Code postal:</p>
-                                  <p>{app.postalCode || app.location?.postalCode || 'Non spécifié'}</p>
+                                  <p>{safeApp.postalCode || 'Non spécifié'}</p>
                                 </div>
                               </div>
                             </div>
@@ -938,11 +954,20 @@ export default function ConfigPage() {
                             {/* Description */}
                             <div className="bg-white/5 p-3 rounded-lg">
                               <p className="text-gray-400 font-semibold mb-2">📝 Description:</p>
-                              <p className="text-sm">{app.description || <span className="text-gray-500 italic">Non spécifié</span>}</p>
+                              <p className="text-sm">{safeApp.description || <span className="text-gray-500 italic">Non spécifié</span>}</p>
                             </div>
                           </div>
                         </motion.div>
-                      ))}
+                      )
+                    } catch (error) {
+                      console.error('Error rendering application:', app._id, error)
+                      return (
+                        <div key={app._id} className="glass-card p-6 text-center">
+                          <p className="text-red-400">Erreur lors de l'affichage de cette candidature</p>
+                        </div>
+                      )
+                    }
+                  })}
                     </div>
                   )}
                 </div>
