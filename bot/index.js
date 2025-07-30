@@ -458,12 +458,13 @@ async function submitVendorApplication(bot, chatId, userState) {
       username: user.username,
       socialNetworks: userState.data.socialNetworks,
       methods: userState.data.methods,
-      location: {
-        country: userState.data.country,
-        department: userState.data.department,
-        postalCode: userState.data.postalCode
-      },
-      shopPhoto: userState.data.photo,
+      deliveryZones: userState.data.deliveryZones,
+      shippingZones: userState.data.shippingZones,
+      meetupZones: userState.data.meetupZones,
+      country: userState.data.country,
+      department: userState.data.department,
+      postalCode: userState.data.postalCode,
+      photo: userState.data.photo,
       description: userState.data.description
     });
     

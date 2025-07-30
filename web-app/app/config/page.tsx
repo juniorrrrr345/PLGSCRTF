@@ -843,33 +843,103 @@ export default function ConfigPage() {
                             </div>
                           </div>
                           
-                          <div className="space-y-3 text-sm">
-                            <div>
-                              <p className="text-gray-400">Réseaux sociaux:</p>
-                              <p>{app.socialNetworks.primary.join(', ') || 'Aucun'}</p>
-                              {app.socialNetworks.others && <p className="text-gray-400">Autres: {app.socialNetworks.others}</p>}
-                            </div>
-                            
-                            <div>
-                              <p className="text-gray-400">Méthodes:</p>
-                              <div className="flex gap-2 mt-1">
-                                {app.methods.delivery && <span className="bg-blue-500/20 text-blue-400 px-2 py-1 rounded text-xs">Livraison</span>}
-                                {app.methods.shipping && <span className="bg-green-500/20 text-green-400 px-2 py-1 rounded text-xs">Envoi</span>}
-                                {app.methods.meetup && <span className="bg-purple-500/20 text-purple-400 px-2 py-1 rounded text-xs">Meetup</span>}
-                              </div>
-                            </div>
-                            
-                            <div>
-                              <p className="text-gray-400">Localisation:</p>
-                              <p>{app.location.country} - {app.location.department} - {app.location.postalCode}</p>
-                            </div>
-                            
-                            {app.description && (
-                              <div>
-                                <p className="text-gray-400">Description:</p>
-                                <p>{app.description}</p>
+                          <div className="space-y-4">
+                            {/* Photo de la boutique */}
+                            {(app.photo || app.shopPhoto) && (
+                              <div className="mb-4">
+                                <p className="text-gray-400 mb-2">📸 Photo de la boutique:</p>
+                                <div className="bg-gray-800 p-2 rounded-lg inline-block">
+                                  <p className="text-xs text-gray-500 mb-1">Photo ID: {app.photo || app.shopPhoto}</p>
+                                  <p className="text-xs text-gray-400">La photo est stockée sur Telegram</p>
+                                </div>
                               </div>
                             )}
+                            
+                            {/* Réseaux sociaux */}
+                            <div className="bg-white/5 p-3 rounded-lg">
+                              <p className="text-gray-400 font-semibold mb-2">📱 Réseaux sociaux:</p>
+                              {app.socialNetworks?.primary?.length > 0 ? (
+                                <div className="flex flex-wrap gap-2 mb-2">
+                                  {app.socialNetworks.primary.map((network: string) => (
+                                    <span key={network} className="bg-blue-500/20 text-blue-400 px-3 py-1 rounded-full text-sm">
+                                      {network}
+                                    </span>
+                                  ))}
+                                </div>
+                              ) : (
+                                <p className="text-gray-500 italic">Non spécifié</p>
+                              )}
+                              {app.socialNetworks?.others && (
+                                <p className="text-sm mt-2">
+                                  <span className="text-gray-400">Autres:</span> {app.socialNetworks.others}
+                                </p>
+                              )}
+                            </div>
+                            
+                            {/* Méthodes et zones */}
+                            <div className="bg-white/5 p-3 rounded-lg">
+                              <p className="text-gray-400 font-semibold mb-2">📦 Méthodes de vente:</p>
+                              <div className="space-y-2">
+                                {app.methods?.delivery && (
+                                  <div>
+                                    <span className="bg-blue-500/20 text-blue-400 px-3 py-1 rounded-full text-sm">
+                                      🚚 Livraison
+                                    </span>
+                                    {app.deliveryZones && (
+                                      <p className="text-sm mt-1 ml-2">Zones: {app.deliveryZones || 'Non spécifié'}</p>
+                                    )}
+                                  </div>
+                                )}
+                                {app.methods?.shipping && (
+                                  <div>
+                                    <span className="bg-green-500/20 text-green-400 px-3 py-1 rounded-full text-sm">
+                                      📮 Envoi
+                                    </span>
+                                    {app.shippingZones && (
+                                      <p className="text-sm mt-1 ml-2">Zones: {app.shippingZones || 'Non spécifié'}</p>
+                                    )}
+                                  </div>
+                                )}
+                                {app.methods?.meetup && (
+                                  <div>
+                                    <span className="bg-purple-500/20 text-purple-400 px-3 py-1 rounded-full text-sm">
+                                      🤝 Meetup
+                                    </span>
+                                    {app.meetupZones && (
+                                      <p className="text-sm mt-1 ml-2">Zones: {app.meetupZones || 'Non spécifié'}</p>
+                                    )}
+                                  </div>
+                                )}
+                                {!app.methods?.delivery && !app.methods?.shipping && !app.methods?.meetup && (
+                                  <p className="text-gray-500 italic">Aucune méthode sélectionnée</p>
+                                )}
+                              </div>
+                            </div>
+                            
+                            {/* Localisation */}
+                            <div className="bg-white/5 p-3 rounded-lg">
+                              <p className="text-gray-400 font-semibold mb-2">📍 Localisation:</p>
+                              <div className="grid grid-cols-3 gap-2 text-sm">
+                                <div>
+                                  <p className="text-gray-500">Pays:</p>
+                                  <p>{app.country || app.location?.country || 'Non spécifié'}</p>
+                                </div>
+                                <div>
+                                  <p className="text-gray-500">Département:</p>
+                                  <p>{app.department || app.location?.department || 'Non spécifié'}</p>
+                                </div>
+                                <div>
+                                  <p className="text-gray-500">Code postal:</p>
+                                  <p>{app.postalCode || app.location?.postalCode || 'Non spécifié'}</p>
+                                </div>
+                              </div>
+                            </div>
+                            
+                            {/* Description */}
+                            <div className="bg-white/5 p-3 rounded-lg">
+                              <p className="text-gray-400 font-semibold mb-2">📝 Description:</p>
+                              <p className="text-sm">{app.description || <span className="text-gray-500 italic">Non spécifié</span>}</p>
+                            </div>
                           </div>
                         </motion.div>
                       ))}

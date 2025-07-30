@@ -17,6 +17,9 @@ const vendorApplicationSchema = new mongoose.Schema({
     shipping: Boolean,
     meetup: Boolean
   },
+  deliveryZones: String,
+  shippingZones: String,
+  meetupZones: String,
   country: String,
   department: String,
   postalCode: String,
@@ -28,6 +31,10 @@ const vendorApplicationSchema = new mongoose.Schema({
     default: 'pending'
   },
   submittedAt: {
+    type: Date,
+    default: Date.now
+  },
+  createdAt: {
     type: Date,
     default: Date.now
   }

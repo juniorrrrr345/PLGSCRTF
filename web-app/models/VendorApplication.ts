@@ -20,19 +20,31 @@ const vendorApplicationSchema = new mongoose.Schema({
     shipping: Boolean,
     meetup: Boolean
   },
+  deliveryZones: String,
+  shippingZones: String,
+  meetupZones: String,
+  country: String,
+  department: String,
+  postalCode: String,
+  photo: String,
+  description: String,
+  // Support pour l'ancienne structure (rétrocompatibilité)
   location: {
     country: String,
     department: String,
     postalCode: String
   },
   shopPhoto: String,
-  description: String,
   status: {
     type: String,
     enum: ['pending', 'approved', 'rejected'],
     default: 'pending'
   },
   createdAt: {
+    type: Date,
+    default: Date.now
+  },
+  submittedAt: {
     type: Date,
     default: Date.now
   },
