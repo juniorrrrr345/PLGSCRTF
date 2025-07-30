@@ -25,33 +25,30 @@ async function handleReferralMenu(bot, chatId) {
     
     let message = '🏆 <b>TOP PARRAINS</b>\n';
     message += '━━━━━━━━━━━━━━━━\n\n';
-    
-    plugs.forEach((plug, index) => {
-      let emoji = '';
-      let badge = '';
-      
-      if (index === 0) {
-        emoji = '👑';
-        badge = ' <b>(Top Parrain)</b>';
-      } else if (index === 1) {
-        emoji = '🥈';
-      } else if (index === 2) {
-        emoji = '🥉';
-      } else {
-        emoji = '🔹';
-      }
-      
-      message += `${emoji} #${index + 1} – <b>${plug.name}</b> 🔌 – ${plug.referralCount} filleuls${badge}\n`;
-    });
-    
-    message += '\n💡 <i>Invitez des amis avec votre lien de parrainage pour grimper dans le classement !</i>';
-    
-    // Récupérer le lien de parrainage de l'utilisateur
-    const user = await User.findOne({ telegramId: chatId });
+    message += '👇 Cliquez sur un plug pour voir les détails\n\n';
     
     const keyboard = {
       inline_keyboard: []
     };
+    
+    // Créer les boutons pour chaque plug
+    plugs.forEach((plug, index) => {
+      let emoji = '';
+      
+      if (index === 0) emoji = '👑';
+      else if (index === 1) emoji = '🥈';
+      else if (index === 2) emoji = '🥉';
+      else emoji = `${index + 1}.`;
+      
+      const buttonText = `${emoji} ${plug.name} (${plug.referralCount} filleuls)`;
+      keyboard.inline_keyboard.push([{
+        text: buttonText,
+        callback_data: `plug_${plug._id}`
+      }]);
+    });
+    
+    // Récupérer le lien de parrainage de l'utilisateur
+    const user = await User.findOne({ telegramId: chatId });
     
     if (user) {
       keyboard.inline_keyboard.push([{ 

@@ -103,11 +103,7 @@ async function handlePlugDetails(bot, chatId, plugId) {
       if (plug.department) {
         message += ` - ${plug.department}`;
       }
-      message += '\n';
-      if (plug.postalCode) {
-        message += `📮 <b>Code postal:</b> ${plug.postalCode}\n`;
-      }
-      message += '\n';
+      message += '\n\n';
     }
     
     // Méthodes
@@ -135,34 +131,6 @@ async function handlePlugDetails(bot, chatId, plugId) {
     }
     message += '\n';
     
-    // Réseaux sociaux
-    const networks = [];
-    if (plug.socialNetworks) {
-      if (plug.socialNetworks.snap) networks.push('👻 Snapchat');
-      if (plug.socialNetworks.instagram) networks.push('📸 Instagram');
-      if (plug.socialNetworks.whatsapp) networks.push('💬 WhatsApp');
-      if (plug.socialNetworks.signal) networks.push('🔐 Signal');
-      if (plug.socialNetworks.threema) networks.push('🔒 Threema');
-      if (plug.socialNetworks.potato) networks.push('🥔 Potato');
-      if (plug.socialNetworks.telegram) networks.push('✈️ Telegram');
-      if (plug.socialNetworks.other) networks.push(`📱 ${plug.socialNetworks.other}`);
-    }
-    
-    // Ajouter les réseaux personnalisés
-    if (plug.customNetworks && plug.customNetworks.length > 0) {
-      plug.customNetworks.forEach(network => {
-        networks.push(`${network.emoji || '🔗'} ${network.name}`);
-      });
-    }
-    
-    if (networks.length > 0) {
-      message += `📱 <b>Réseaux sociaux:</b>\n`;
-      networks.forEach(network => {
-        message += `• ${network}\n`;
-      });
-      message += '\n';
-    }
-    
     // Description
     if (plug.description) {
       message += `📝 <b>Description:</b>\n${plug.description}\n\n`;
@@ -172,19 +140,78 @@ async function handlePlugDetails(bot, chatId, plugId) {
     message += `❤️ <b>Likes:</b> ${plug.likes || 0}\n`;
     message += `🔗 <b>Parrainages:</b> ${plug.referralCount || 0}\n`;
     
-    // Photo
+    // Créer le clavier avec les réseaux sociaux
     const keyboard = {
-      inline_keyboard: [
-        [
-          { text: `❤️ Like (${plug.likes || 0})`, callback_data: `like_${plug._id}` },
-          { text: '🔗 Partager', url: plug.referralLink || `https://t.me/${process.env.TELEGRAM_BOT_USERNAME}?start=plug_${plug._id}` }
-        ],
-        [
-          { text: '⬅️ Retour aux plugs', callback_data: 'plugs' },
-          { text: '🏠 Menu principal', callback_data: 'main_menu' }
-        ]
-      ]
+      inline_keyboard: []
     };
+    
+    // Réseaux sociaux en boutons
+    const socialButtons = [];
+    if (plug.socialNetworks) {
+      if (plug.socialNetworks.snap) {
+        const snapUrl = plug.socialNetworks.snap.startsWith('http') ? plug.socialNetworks.snap : `https://snapchat.com/add/${plug.socialNetworks.snap}`;
+        socialButtons.push({ text: '👻 Snapchat', url: snapUrl });
+      }
+      if (plug.socialNetworks.instagram) {
+        const instaUrl = plug.socialNetworks.instagram.startsWith('http') ? plug.socialNetworks.instagram : `https://instagram.com/${plug.socialNetworks.instagram.replace('@', '')}`;
+        socialButtons.push({ text: '📸 Instagram', url: instaUrl });
+      }
+      if (plug.socialNetworks.whatsapp) {
+        const whatsappUrl = plug.socialNetworks.whatsapp.startsWith('http') ? plug.socialNetworks.whatsapp : `https://wa.me/${plug.socialNetworks.whatsapp.replace(/[^0-9]/g, '')}`;
+        socialButtons.push({ text: '💬 WhatsApp', url: whatsappUrl });
+      }
+      if (plug.socialNetworks.signal) {
+        const signalUrl = plug.socialNetworks.signal.startsWith('http') ? plug.socialNetworks.signal : `https://signal.me/#p/${plug.socialNetworks.signal}`;
+        socialButtons.push({ text: '🔐 Signal', url: signalUrl });
+      }
+      if (plug.socialNetworks.telegram) {
+        const telegramUrl = plug.socialNetworks.telegram.startsWith('http') ? plug.socialNetworks.telegram : `https://t.me/${plug.socialNetworks.telegram.replace('@', '')}`;
+        socialButtons.push({ text: '✈️ Telegram', url: telegramUrl });
+      }
+    }
+    
+    // Ajouter les réseaux personnalisés
+    if (plug.customNetworks && plug.customNetworks.length > 0) {
+      plug.customNetworks.forEach(network => {
+        if (network.link) {
+          socialButtons.push({ 
+            text: `${network.emoji || '🔗'} ${network.name}`, 
+            url: network.link 
+          });
+        }
+      });
+    }
+    
+    // Organiser les boutons de réseaux sociaux par lignes de 2
+    for (let i = 0; i < socialButtons.length; i += 2) {
+      const row = [socialButtons[i]];
+      if (i + 1 < socialButtons.length) {
+        row.push(socialButtons[i + 1]);
+      }
+      keyboard.inline_keyboard.push(row);
+    }
+    
+    // Si des réseaux sociaux ont été ajoutés, ajouter un séparateur visuel
+    if (socialButtons.length > 0) {
+      keyboard.inline_keyboard.push([{ text: '━━━━━━━━━━━━━━━━', callback_data: 'separator' }]);
+    }
+    
+    // Boutons d'action
+    keyboard.inline_keyboard.push([
+      { text: `❤️ Like (${plug.likes || 0})`, callback_data: `like_${plug._id}` }
+    ]);
+    
+    // Lien de parrainage du plug
+    const referralLink = plug.referralLink || `https://t.me/${process.env.TELEGRAM_BOT_USERNAME}?start=plug_${plug._id}`;
+    keyboard.inline_keyboard.push([
+      { text: '🔗 Lien de parrainage', url: referralLink }
+    ]);
+    
+    // Navigation
+    keyboard.inline_keyboard.push([
+      { text: '⬅️ Retour aux plugs', callback_data: 'plugs' },
+      { text: '🏠 Menu principal', callback_data: 'main_menu' }
+    ]);
     
     if (plug.photo) {
       await bot.sendPhoto(chatId, plug.photo, {

@@ -267,6 +267,12 @@ bot.on('callback_query', async (callbackQuery) => {
       }
     }
     
+    // Callback pour le séparateur (ne rien faire)
+    else if (data === 'separator') {
+      // Ne rien faire, juste répondre à la callback
+      return;
+    }
+    
     // Détails d'un plug
     else if (data.startsWith('plug_')) {
       const plugId = data.replace('plug_', '');
