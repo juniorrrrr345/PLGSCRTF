@@ -54,6 +54,7 @@ export default function ConfigPage() {
   const [socialNetworks, setSocialNetworks] = useState<any>({})
   const [shopSocialNetworks, setShopSocialNetworks] = useState<any[]>([])
   const [showAddSocialNetwork, setShowAddSocialNetwork] = useState(false)
+  const [botSocialNetworks, setBotSocialNetworks] = useState<any[]>([])
   const [newProduct, setNewProduct] = useState({
     title: '',
     description: '',
@@ -123,6 +124,11 @@ export default function ConfigPage() {
   useEffect(() => {
     if (settings) {
       setWelcomeMessage(settings.welcomeMessage || '')
+      
+      // Charger les réseaux sociaux du bot
+      if (settings.botSocialNetworks) {
+        setBotSocialNetworks(settings.botSocialNetworks)
+      }
       
       // Charger les réseaux sociaux
       if (settings.socialNetworks) {
@@ -209,20 +215,20 @@ export default function ConfigPage() {
     }
   }
 
-  const handleUpdateBotSocialNetworks = async (networks: any[]) => {
+  const handleSaveBotSocialNetworks = async () => {
     try {
       const res = await fetch('/api/settings', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ botSocialNetworks: networks })
+        body: JSON.stringify({ botSocialNetworks })
       })
       
       if (res.ok) {
-        toast.success('Réseaux sociaux mis à jour !')
+        toast.success('Réseaux sociaux du bot sauvegardés !')
         mutate('/api/settings')
       }
     } catch (error) {
-      toast.error('Erreur lors de la mise à jour')
+      toast.error('Erreur lors de la sauvegarde')
     }
   }
   
@@ -1158,15 +1164,15 @@ export default function ConfigPage() {
                     <p className="text-gray-400 mb-4">Ces liens apparaîtront en bas du menu principal du bot Telegram</p>
                     
                     <div className="space-y-4">
-                      {settings?.botSocialNetworks?.map((network: any, index: number) => (
+                      {botSocialNetworks?.map((network: any, index: number) => (
                         <div key={index} className="flex items-center gap-3 p-3 bg-white/5 rounded-lg">
                           <input
                             type="text"
                             value={network.emoji || ''}
                             onChange={(e) => {
-                              const newNetworks = [...(settings.botSocialNetworks || [])]
+                              const newNetworks = [...botSocialNetworks]
                               newNetworks[index].emoji = e.target.value
-                              handleUpdateBotSocialNetworks(newNetworks)
+                              setBotSocialNetworks(newNetworks)
                             }}
                             placeholder="🔗"
                             className="w-16 px-3 py-2 bg-white/10 border border-white/20 rounded-lg text-center"
@@ -1175,9 +1181,9 @@ export default function ConfigPage() {
                             type="text"
                             value={network.name || ''}
                             onChange={(e) => {
-                              const newNetworks = [...(settings.botSocialNetworks || [])]
+                              const newNetworks = [...botSocialNetworks]
                               newNetworks[index].name = e.target.value
-                              handleUpdateBotSocialNetworks(newNetworks)
+                              setBotSocialNetworks(newNetworks)
                             }}
                             placeholder="Nom du réseau"
                             className="flex-1 px-3 py-2 bg-white/10 border border-white/20 rounded-lg"
@@ -1186,9 +1192,9 @@ export default function ConfigPage() {
                             type="text"
                             value={network.url || ''}
                             onChange={(e) => {
-                              const newNetworks = [...(settings.botSocialNetworks || [])]
+                              const newNetworks = [...botSocialNetworks]
                               newNetworks[index].url = e.target.value
-                              handleUpdateBotSocialNetworks(newNetworks)
+                              setBotSocialNetworks(newNetworks)
                             }}
                             placeholder="https://..."
                             className="flex-1 px-3 py-2 bg-white/10 border border-white/20 rounded-lg"
@@ -1197,17 +1203,17 @@ export default function ConfigPage() {
                             type="number"
                             value={network.order || 0}
                             onChange={(e) => {
-                              const newNetworks = [...(settings.botSocialNetworks || [])]
+                              const newNetworks = [...botSocialNetworks]
                               newNetworks[index].order = parseInt(e.target.value) || 0
-                              handleUpdateBotSocialNetworks(newNetworks)
+                              setBotSocialNetworks(newNetworks)
                             }}
                             placeholder="0"
                             className="w-20 px-3 py-2 bg-white/10 border border-white/20 rounded-lg text-center"
                           />
                           <button
                             onClick={() => {
-                              const newNetworks = settings.botSocialNetworks.filter((_: any, i: number) => i !== index)
-                              handleUpdateBotSocialNetworks(newNetworks)
+                              const newNetworks = botSocialNetworks.filter((_: any, i: number) => i !== index)
+                              setBotSocialNetworks(newNetworks)
                             }}
                             className="p-2 text-red-500 hover:bg-red-500/20 rounded-lg transition-colors"
                           >
@@ -1218,18 +1224,26 @@ export default function ConfigPage() {
                       
                       <button
                         onClick={() => {
-                          const newNetworks = [...(settings?.botSocialNetworks || []), {
+                          const newNetworks = [...botSocialNetworks, {
                             name: '',
                             url: '',
                             emoji: '🔗',
-                            order: settings?.botSocialNetworks?.length || 0
+                            order: botSocialNetworks.length
                           }]
-                          handleUpdateBotSocialNetworks(newNetworks)
+                          setBotSocialNetworks(newNetworks)
                         }}
                         className="btn-secondary w-full flex items-center justify-center gap-2"
                       >
                         <PlusIcon className="w-5 h-5" />
                         Ajouter un réseau social
+                      </button>
+                      
+                      <button
+                        onClick={handleSaveBotSocialNetworks}
+                        className="btn-primary w-full flex items-center justify-center gap-2 mt-4"
+                      >
+                        <CheckIcon className="w-5 h-5" />
+                        Sauvegarder les réseaux sociaux du bot
                       </button>
                     </div>
                   </div>
