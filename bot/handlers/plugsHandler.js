@@ -95,25 +95,71 @@ async function handlePlugDetails(bot, chatId, plugId) {
     message += `━━━━━━━━━━━━━━━━\n\n`;
     
     // Localisation
-    message += `📍 <b>Localisation:</b> ${plug.location.country} - ${plug.location.department}\n`;
-    message += `📮 <b>Zone:</b> ${plug.location.postalCode}\n\n`;
+    if (plug.country || plug.department || plug.postalCode) {
+      message += `📍 <b>Localisation:</b>\n`;
+      if (plug.countryFlag && plug.country) {
+        message += `${plug.countryFlag} ${plug.country}`;
+      }
+      if (plug.department) {
+        message += ` - ${plug.department}`;
+      }
+      message += '\n';
+      if (plug.postalCode) {
+        message += `📮 <b>Code postal:</b> ${plug.postalCode}\n`;
+      }
+      message += '\n';
+    }
     
     // Méthodes
-    message += `📦 <b>Méthodes:</b>\n`;
-    if (plug.methods.delivery) message += '• 🚚 Livraison\n';
-    if (plug.methods.shipping) message += '• 📮 Envoi\n';
-    if (plug.methods.meetup) message += '• 🤝 Meetup\n';
+    message += `📦 <b>Méthodes disponibles:</b>\n`;
+    if (plug.methods.delivery) {
+      message += '• 🚚 Livraison';
+      if (plug.deliveryDepartments && plug.deliveryDepartments.length > 0) {
+        message += ` (${plug.deliveryDepartments.join(', ')})`;
+      }
+      message += '\n';
+    }
+    if (plug.methods.shipping) {
+      message += '• 📮 Envoi';
+      if (plug.deliveryDepartments && plug.deliveryDepartments.length > 0) {
+        message += ` (${plug.deliveryDepartments.join(', ')})`;
+      }
+      message += '\n';
+    }
+    if (plug.methods.meetup) {
+      message += '• 🤝 Meetup';
+      if (plug.meetupDepartments && plug.meetupDepartments.length > 0) {
+        message += ` (${plug.meetupDepartments.join(', ')})`;
+      }
+      message += '\n';
+    }
     message += '\n';
     
     // Réseaux sociaux
-    if (plug.socialNetworks.primary.length > 0) {
+    const networks = [];
+    if (plug.socialNetworks) {
+      if (plug.socialNetworks.snap) networks.push('👻 Snapchat');
+      if (plug.socialNetworks.instagram) networks.push('📸 Instagram');
+      if (plug.socialNetworks.whatsapp) networks.push('💬 WhatsApp');
+      if (plug.socialNetworks.signal) networks.push('🔐 Signal');
+      if (plug.socialNetworks.threema) networks.push('🔒 Threema');
+      if (plug.socialNetworks.potato) networks.push('🥔 Potato');
+      if (plug.socialNetworks.telegram) networks.push('✈️ Telegram');
+      if (plug.socialNetworks.other) networks.push(`📱 ${plug.socialNetworks.other}`);
+    }
+    
+    // Ajouter les réseaux personnalisés
+    if (plug.customNetworks && plug.customNetworks.length > 0) {
+      plug.customNetworks.forEach(network => {
+        networks.push(`${network.emoji || '🔗'} ${network.name}`);
+      });
+    }
+    
+    if (networks.length > 0) {
       message += `📱 <b>Réseaux sociaux:</b>\n`;
-      plug.socialNetworks.primary.forEach(network => {
+      networks.forEach(network => {
         message += `• ${network}\n`;
       });
-      if (plug.socialNetworks.others) {
-        message += `• ${plug.socialNetworks.others}\n`;
-      }
       message += '\n';
     }
     
@@ -123,14 +169,14 @@ async function handlePlugDetails(bot, chatId, plugId) {
     }
     
     // Stats
-    message += `❤️ <b>Likes:</b> ${plug.likes}\n`;
+    message += `❤️ <b>Likes:</b> ${plug.likes || 0}\n`;
     message += `🔗 <b>Parrainages:</b> ${plug.referralCount || 0}\n`;
     
     // Photo
     const keyboard = {
       inline_keyboard: [
         [
-          { text: `❤️ Like (${plug.likes})`, callback_data: `like_${plug._id}` },
+          { text: `❤️ Like (${plug.likes || 0})`, callback_data: `like_${plug._id}` },
           { text: '🔗 Partager', url: plug.referralLink || `https://t.me/${process.env.TELEGRAM_BOT_USERNAME}?start=plug_${plug._id}` }
         ],
         [
@@ -217,37 +263,41 @@ async function handleLike(bot, callbackQuery, plugId) {
       show_alert: false
     });
     
-    // Mettre à jour le bouton like dans le message existant
-    const keyboard = callbackQuery.message.reply_markup;
-    if (keyboard && keyboard.inline_keyboard) {
-      // Mettre à jour le texte du bouton like
-      keyboard.inline_keyboard[0][0].text = `❤️ Like (${plug.likes})`;
-      
-      // Éditer le message pour mettre à jour le nombre de likes
-      if (callbackQuery.message.photo) {
-        // Si c'est une photo, mettre à jour la caption
-        let newCaption = callbackQuery.message.caption;
-        newCaption = newCaption.replace(/❤️ <b>Likes:<\/b> \d+/, `❤️ <b>Likes:</b> ${plug.likes}`);
-        
-        await bot.editMessageCaption(newCaption, {
-          chat_id: chatId,
-          message_id: callbackQuery.message.message_id,
-          reply_markup: keyboard,
-          parse_mode: 'HTML'
-        });
-      } else {
-        // Si c'est un message texte
-        let newText = callbackQuery.message.text;
-        newText = newText.replace(/❤️ <b>Likes:<\/b> \d+/, `❤️ <b>Likes:</b> ${plug.likes}`);
-        
-        await bot.editMessageText(newText, {
-          chat_id: chatId,
-          message_id: callbackQuery.message.message_id,
-          reply_markup: keyboard,
-          parse_mode: 'HTML'
-        });
+          // Mettre à jour le bouton like dans le message existant
+      try {
+        const keyboard = callbackQuery.message.reply_markup;
+        if (keyboard && keyboard.inline_keyboard) {
+          // Mettre à jour le texte du bouton like
+          keyboard.inline_keyboard[0][0].text = `❤️ Like (${plug.likes})`;
+          
+          // Éditer le message pour mettre à jour le nombre de likes
+          if (callbackQuery.message.photo) {
+            // Si c'est une photo, mettre à jour la caption
+            let newCaption = callbackQuery.message.caption;
+            newCaption = newCaption.replace(/❤️ <b>Likes:<\/b> \d+/, `❤️ <b>Likes:</b> ${plug.likes}`);
+            
+            await bot.editMessageCaption(newCaption, {
+              chat_id: chatId,
+              message_id: callbackQuery.message.message_id,
+              reply_markup: keyboard,
+              parse_mode: 'HTML'
+            });
+          } else {
+            // Si c'est un message texte
+            let newText = callbackQuery.message.text;
+            newText = newText.replace(/❤️ <b>Likes:<\/b> \d+/, `❤️ <b>Likes:</b> ${plug.likes}`);
+            
+            await bot.editMessageText(newText, {
+              chat_id: chatId,
+              message_id: callbackQuery.message.message_id,
+              reply_markup: keyboard,
+              parse_mode: 'HTML'
+            });
+          }
+        }
+      } catch (editError) {
+        console.error('Erreur lors de la mise à jour du message:', editError);
       }
-    }
     
   } catch (error) {
     console.error('Erreur dans handleLike:', error);
