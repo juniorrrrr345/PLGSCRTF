@@ -65,6 +65,39 @@ async function showMainMenu(bot, chatId) {
     ]
   };
   
+  // Ajouter les réseaux sociaux du bot s'ils existent
+  if (settings?.botSocialNetworks && settings.botSocialNetworks.length > 0) {
+    // Trier par ordre
+    const sortedNetworks = settings.botSocialNetworks.sort((a, b) => (a.order || 0) - (b.order || 0));
+    
+    // Créer des lignes de 2 boutons maximum
+    for (let i = 0; i < sortedNetworks.length; i += 2) {
+      const row = [];
+      const network1 = sortedNetworks[i];
+      
+      if (network1.name && network1.url) {
+        row.push({
+          text: `${network1.emoji || '🔗'} ${network1.name}`,
+          url: network1.url
+        });
+      }
+      
+      if (i + 1 < sortedNetworks.length) {
+        const network2 = sortedNetworks[i + 1];
+        if (network2.name && network2.url) {
+          row.push({
+            text: `${network2.emoji || '🔗'} ${network2.name}`,
+            url: network2.url
+          });
+        }
+      }
+      
+      if (row.length > 0) {
+        keyboard.inline_keyboard.push(row);
+      }
+    }
+  }
+  
   // Envoyer l'image d'accueil si elle existe
   if (settings?.welcomeImage) {
     try {
