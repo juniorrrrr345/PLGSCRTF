@@ -28,6 +28,21 @@ const bot = new TelegramBot(process.env.TELEGRAM_BOT_TOKEN, {
   }
 });
 
+// Gestion des erreurs de polling
+bot.on('polling_error', (error) => {
+  console.error('Polling error:', error.code);
+  if (error.code === 'ETELEGRAM' && error.response.body.error_code === 409) {
+    console.log('⚠️ Another instance is running. Waiting...');
+  }
+});
+
+// Nettoyer les webhooks au démarrage
+bot.deleteWebHook().then(() => {
+  console.log('✅ Webhook cleared, starting polling...');
+}).catch(err => {
+  console.log('⚠️ Error clearing webhook:', err.message);
+});
+
 // État des utilisateurs pour les formulaires
 const userStates = new Map();
 
@@ -184,13 +199,13 @@ bot.on('callback_query', async (callbackQuery) => {
     else if (data === 'info') {
       await bot.deleteMessage(chatId, messageId);
       const settings = await Settings.findOne();
-      const infoMessage = settings?.infoText || 'Bienvenue sur PLUGS CRTFS !';
+      const message = settings?.welcomeMessage || 'Bienvenue sur PLUGS CRTFS !';
       
       // Envoyer avec l'image d'accueil si elle existe
       if (settings?.welcomeImage) {
         try {
           await bot.sendPhoto(chatId, settings.welcomeImage, {
-            caption: `ℹ️ <b>Informations</b>\n\n${infoMessage}`,
+            caption: `ℹ️ <b>Informations</b>\n\n${message}`,
             parse_mode: 'HTML',
             reply_markup: {
               inline_keyboard: [[{ text: '⬅️ Retour', callback_data: 'main_menu' }]]
@@ -199,7 +214,7 @@ bot.on('callback_query', async (callbackQuery) => {
         } catch (error) {
           console.error('Erreur envoi image:', error);
           // Si l'image échoue, envoyer juste le message
-          await bot.sendMessage(chatId, `ℹ️ <b>Informations</b>\n\n${infoMessage}`, {
+          await bot.sendMessage(chatId, `ℹ️ <b>Informations</b>\n\n${message}`, {
             parse_mode: 'HTML',
             reply_markup: {
               inline_keyboard: [[{ text: '⬅️ Retour', callback_data: 'main_menu' }]]
@@ -207,7 +222,7 @@ bot.on('callback_query', async (callbackQuery) => {
           });
         }
       } else {
-        await bot.sendMessage(chatId, `ℹ️ <b>Informations</b>\n\n${infoMessage}`, {
+        await bot.sendMessage(chatId, `ℹ️ <b>Informations</b>\n\n${message}`, {
           parse_mode: 'HTML',
           reply_markup: {
             inline_keyboard: [[{ text: '⬅️ Retour', callback_data: 'main_menu' }]]
@@ -232,6 +247,24 @@ bot.on('callback_query', async (callbackQuery) => {
     else if (data === 'referrals') {
       await bot.deleteMessage(chatId, messageId);
       await handleReferralMenu(bot, chatId);
+    }
+    
+    // Mon lien de parrainage
+    else if (data === 'my_referral_link') {
+      const user = await User.findOne({ telegramId: callbackQuery.from.id });
+      if (user) {
+        const referralLink = `https://t.me/${process.env.TELEGRAM_BOT_USERNAME}?start=ref_${user._id}`;
+        await bot.answerCallbackQuery(callbackQuery.id, {
+          text: '🔗 Lien copié dans le presse-papier !',
+          show_alert: false
+        });
+        await bot.sendMessage(chatId, 
+          `🔗 <b>Votre lien de parrainage :</b>\n\n<code>${referralLink}</code>\n\n` +
+          `📊 Vous avez déjà parrainé <b>${user.referralCount || 0}</b> personnes.\n\n` +
+          `💡 Partagez ce lien pour inviter vos amis et monter dans le classement !`,
+          { parse_mode: 'HTML' }
+        );
+      }
     }
     
     // Détails d'un plug

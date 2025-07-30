@@ -1,17 +1,14 @@
-const Plug = require('../models/Plug');
+const User = require('../models/User');
 const Settings = require('../models/Settings');
 
-async function handleReferralRanking(bot, chatId) {
+async function handleReferralMenu(bot, chatId) {
   try {
-    // Récupérer les paramètres pour l'image d'accueil
-    const settings = await Settings.findOne();
-    
-    // Récupérer les plugs triés par nombre de parrainages
-    const plugs = await Plug.find({ isActive: true, referralCount: { $gt: 0 } })
+    // Récupérer les utilisateurs triés par nombre de parrainages
+    const users = await User.find({ referralCount: { $gt: 0 } })
       .sort({ referralCount: -1 })
-      .limit(20);
+      .limit(10);
     
-    if (plugs.length === 0) {
+    if (users.length === 0) {
       await bot.sendMessage(chatId, '📊 Aucun parrainage enregistré pour le moment.', {
         reply_markup: {
           inline_keyboard: [
@@ -25,59 +22,43 @@ async function handleReferralRanking(bot, chatId) {
     let message = '🏆 <b>TOP PARRAINS</b>\n';
     message += '━━━━━━━━━━━━━━━━\n\n';
     
-    plugs.forEach((plug, index) => {
+    users.forEach((user, index) => {
       let emoji = '';
       let badge = '';
       
       if (index === 0) {
-        emoji = '👑';
-        badge = ' <b>(Top Parrain)</b>';
+        emoji = '🥇';
+        badge = ' 👑';
       } else if (index === 1) {
         emoji = '🥈';
       } else if (index === 2) {
         emoji = '🥉';
       } else {
-        emoji = '🔹';
+        emoji = `${index + 1}.`;
       }
       
-      message += `${emoji} #${index + 1} – <b>${plug.name}</b> 🔌 – ${plug.referralCount} filleuls${badge}\n`;
+      const username = user.username || user.firstName || 'Utilisateur';
+      message += `${emoji} @${username} - ${user.referralCount} parrainages${badge}\n`;
     });
     
-    message += '\n💡 <i>Invitez des amis avec votre lien de parrainage pour grimper dans le classement !</i>';
+    message += '\n💡 <i>Partagez votre lien de parrainage pour monter dans le classement !</i>';
     
     const keyboard = {
       inline_keyboard: [
+        [{ text: '🔗 Mon lien de parrainage', callback_data: 'my_referral_link' }],
         [{ text: '⬅️ Retour au menu', callback_data: 'main_menu' }]
       ]
     };
     
-    // Envoyer avec l'image d'accueil si elle existe
-    if (settings?.welcomeImage) {
-      try {
-        await bot.sendPhoto(chatId, settings.welcomeImage, {
-          caption: message,
-          reply_markup: keyboard,
-          parse_mode: 'HTML'
-        });
-      } catch (error) {
-        console.error('Erreur envoi image:', error);
-        // Si l'image échoue, envoyer juste le message
-        await bot.sendMessage(chatId, message, {
-          reply_markup: keyboard,
-          parse_mode: 'HTML'
-        });
-      }
-    } else {
-      await bot.sendMessage(chatId, message, {
-        reply_markup: keyboard,
-        parse_mode: 'HTML'
-      });
-    }
+    await bot.sendMessage(chatId, message, {
+      reply_markup: keyboard,
+      parse_mode: 'HTML'
+    });
     
   } catch (error) {
-    console.error('Erreur dans handleReferralRanking:', error);
+    console.error('Erreur dans handleReferralMenu:', error);
     await bot.sendMessage(chatId, '❌ Une erreur est survenue lors du chargement du classement.');
   }
 }
 
-module.exports = { handleReferralMenu: handleReferralRanking };
+module.exports = { handleReferralMenu };
