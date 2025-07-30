@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { connectDB } from '@/lib/db'
+import { connectToDatabase } from '@/lib/mongodb'
 import Settings from '@/models/Settings'
 
 export const runtime = 'nodejs'
@@ -7,7 +7,7 @@ export const maxDuration = 60
 
 export async function GET() {
   try {
-    await connectDB()
+    await connectToDatabase()
     let settings = await Settings.findOne()
     
     if (!settings) {
@@ -24,7 +24,7 @@ export async function GET() {
 
 export async function POST(request: NextRequest) {
   try {
-    await connectDB()
+    await connectToDatabase()
     const data = await request.json()
     
     let settings = await Settings.findOne()

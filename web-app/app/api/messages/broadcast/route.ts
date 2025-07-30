@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { connectDB } from '@/lib/db'
+import { connectToDatabase } from '@/lib/mongodb'
 import User from '@/models/User'
 
 export const runtime = 'nodejs'
@@ -7,7 +7,7 @@ export const maxDuration = 60
 
 export async function POST(request: NextRequest) {
   try {
-    await connectDB()
+    await connectToDatabase()
     const { message } = await request.json()
     
     if (!message || !message.trim()) {
