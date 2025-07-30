@@ -296,6 +296,15 @@ bot.on('callback_query', async (callbackQuery) => {
     else if (data.startsWith('vendor_')) {
       const userState = userStates.get(chatId);
       
+      // Vérifier que l'utilisateur est bien dans le processus de candidature
+      if (!userState || userState.type !== 'vendor_application') {
+        await bot.answerCallbackQuery(callbackQuery.id, {
+          text: '❌ Session expirée. Veuillez recommencer.',
+          show_alert: true
+        });
+        return;
+      }
+      
       if (data.startsWith('vendor_toggle_')) {
         // Toggle réseau social
         const network = data.replace('vendor_toggle_', '');
@@ -336,10 +345,10 @@ bot.on('callback_query', async (callbackQuery) => {
         userStates.delete(chatId);
         await bot.deleteMessage(chatId, messageId);
       }
-      else {
-        // Autres actions vendeur (back, skip, cancel, next)
+      else if (data === 'vendor_back' || data === 'vendor_next' || data === 'vendor_skip' || data === 'vendor_cancel') {
+        // Actions de navigation vendeur
         await bot.deleteMessage(chatId, messageId);
-        await handleVendorApplication(bot, chatId, userStates, data.replace('vendor_', ''));
+        await handleVendorApplication(bot, chatId, userStates, data);
       }
     }
   } catch (error) {

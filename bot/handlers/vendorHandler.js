@@ -36,6 +36,9 @@ async function handleVendorApplication(bot, chatId, userStates, action = null, m
     userStates.set(chatId, userState);
   }
   
+  // Debug log
+  console.log(`Vendor action: ${action}, step: ${userState.step}, index: ${userState.stepIndex}`);
+  
   // Gestion des actions
   if (action === 'vendor_back' && userState.stepIndex > 0) {
     userState.stepIndex--;
@@ -55,7 +58,9 @@ async function handleVendorApplication(bot, chatId, userStates, action = null, m
       } else if (userState.step === 'photo') {
         userState.data.photo = '';
       } else if (userState.step === 'description') {
-        userState.data.description = 'Non spécifié';
+        userState.data.description = '';
+      } else if (userState.step === 'postal_code') {
+        userState.data.postalCode = '';
       }
       userState.stepIndex++;
       userState.step = vendorSteps[userState.stepIndex];
@@ -258,13 +263,15 @@ async function displayVendorStep(bot, chatId, userState) {
   }
   
   // Boutons spécifiques selon l'étape
-  if (userState.step === 'social_primary' || userState.step === 'methods') {
-    // Pour les étapes avec sélection multiple, ajouter un bouton "Suivant"
+  if (userState.step === 'social_primary' || userState.step === 'methods' || 
+      userState.step === 'country' || userState.step === 'department') {
+    // Pour les étapes avec sélection, ajouter un bouton "Suivant"
     navButtons.push({ text: '✅ Suivant', callback_data: 'vendor_next' });
   }
   
-  // Toujours montrer "Passer" sauf sur la dernière étape
-  if (userState.step !== 'confirm') {
+  // Montrer "Passer" pour les étapes optionnelles
+  if (userState.step === 'social_other' || userState.step === 'photo' || 
+      userState.step === 'description' || userState.step === 'postal_code') {
     navButtons.push({ text: '⏭ Passer', callback_data: 'vendor_skip' });
   }
   
