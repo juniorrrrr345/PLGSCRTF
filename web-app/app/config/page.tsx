@@ -557,11 +557,11 @@ export default function ConfigPage() {
   }
   
   const tabs = [
+    { id: 'social', label: 'Réseaux Sociaux', icon: LinkIcon },
     { id: 'dashboard', label: 'Tableau de bord', icon: ChartBarIcon },
     { id: 'plugs', label: 'Plugs', icon: BoltIcon },
     { id: 'products', label: 'Produits', icon: ShoppingBagIcon },
     { id: 'applications', label: 'Candidatures', icon: DocumentTextIcon },
-    { id: 'social', label: 'Réseaux Sociaux', icon: LinkIcon },
     { id: 'settings', label: 'Paramètres', icon: CogIcon }
   ]
   
