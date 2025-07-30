@@ -1,8 +1,12 @@
 const Plug = require('../models/Plug');
 const User = require('../models/User');
+const Settings = require('../models/Settings');
 
 async function handlePlugsMenu(bot, chatId) {
   try {
+    // Récupérer les paramètres pour l'image d'accueil
+    const settings = await Settings.findOne();
+    
     // Récupérer tous les plugs actifs, triés par likes (décroissant)
     const plugs = await Plug.find({ isActive: true })
       .sort({ likes: -1 })
@@ -49,10 +53,28 @@ async function handlePlugsMenu(bot, chatId) {
     
     message += '👆 Cliquez sur un plug pour voir les détails';
     
-    await bot.sendMessage(chatId, message, {
-      reply_markup: keyboard,
-      parse_mode: 'HTML'
-    });
+    // Envoyer avec l'image d'accueil si elle existe
+    if (settings?.welcomeImage) {
+      try {
+        await bot.sendPhoto(chatId, settings.welcomeImage, {
+          caption: message,
+          reply_markup: keyboard,
+          parse_mode: 'HTML'
+        });
+      } catch (error) {
+        console.error('Erreur envoi image:', error);
+        // Si l'image échoue, envoyer juste le message
+        await bot.sendMessage(chatId, message, {
+          reply_markup: keyboard,
+          parse_mode: 'HTML'
+        });
+      }
+    } else {
+      await bot.sendMessage(chatId, message, {
+        reply_markup: keyboard,
+        parse_mode: 'HTML'
+      });
+    }
     
   } catch (error) {
     console.error('Erreur dans handlePlugsMenu:', error);

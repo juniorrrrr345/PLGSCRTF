@@ -58,4 +58,4 @@ async function handleReferralRanking(bot, chatId) {
   }
 }
 
-module.exports = { handleReferralRanking };
+module.exports = { handleReferralMenu: handleReferralRanking };

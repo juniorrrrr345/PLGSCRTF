@@ -61,7 +61,7 @@ async function showMainMenu(bot, chatId) {
       [{ text: 'ℹ️ Informations', callback_data: 'info' }],
       [{ text: '📝 Devenir Vendeur', callback_data: 'apply' }],
       [{ text: '🔌 PLUGS CRTFS', callback_data: 'plugs' }],
-      [{ text: '🏆 Top Referrals', callback_data: 'referrals' }]
+      [{ text: '🏆 Top Parrains', callback_data: 'referrals' }]
     ]
   };
   

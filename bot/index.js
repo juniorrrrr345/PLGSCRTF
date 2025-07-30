@@ -198,7 +198,7 @@ bot.on('callback_query', async (callbackQuery) => {
       await handlePlugsMenu(bot, chatId);
     }
     
-    // Top Referrals
+    // Top Parrains
     else if (data === 'referrals') {
       await bot.deleteMessage(chatId, messageId);
       await handleReferralMenu(bot, chatId);
