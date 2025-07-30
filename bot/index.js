@@ -371,7 +371,12 @@ bot.on('message', async (msg) => {
   
   if (userState && userState.type === 'vendor_application') {
     // Traiter les réponses du formulaire vendeur
-    if (userState.step === 'social_other' || userState.step === 'postal_code' || userState.step === 'description') {
+    if (userState.step === 'social_other' || 
+        userState.step === 'delivery_zones' || 
+        userState.step === 'shipping_zones' || 
+        userState.step === 'meetup_zones' || 
+        userState.step === 'base_location' || 
+        userState.step === 'description') {
       await processVendorTextResponse(bot, chatId, msg.text, userState);
     }
   }
@@ -393,21 +398,49 @@ bot.on('photo', async (msg) => {
 
 // Fonction pour traiter les réponses texte du vendeur
 async function processVendorTextResponse(bot, chatId, text, userState) {
+  const { handleVendorApplication } = require('./handlers/vendorHandler');
+  
+  // Importer vendorSteps
+  const vendorSteps = [
+    'social_primary', 'social_other', 'methods', 'delivery_zones', 
+    'shipping_zones', 'meetup_zones', 'base_location', 'photo', 
+    'description', 'confirm'
+  ];
+  
   switch (userState.step) {
     case 'social_other':
       userState.data.socialNetworks.others = text;
       userState.stepIndex++;
-      userState.step = 'methods';
+      userState.step = vendorSteps[userState.stepIndex];
       break;
-    case 'postal_code':
-      userState.data.postalCode = text;
+    case 'delivery_zones':
+      userState.data.deliveryZones = text;
       userState.stepIndex++;
-      userState.step = 'photo';
+      userState.step = vendorSteps[userState.stepIndex];
+      break;
+    case 'shipping_zones':
+      userState.data.shippingZones = text;
+      userState.stepIndex++;
+      userState.step = vendorSteps[userState.stepIndex];
+      break;
+    case 'meetup_zones':
+      userState.data.meetupZones = text;
+      userState.stepIndex++;
+      userState.step = vendorSteps[userState.stepIndex];
+      break;
+    case 'base_location':
+      // Parser la localisation (pays, département, code postal)
+      const parts = text.split(',').map(p => p.trim());
+      if (parts[0]) userState.data.country = parts[0];
+      if (parts[1]) userState.data.department = parts[1];
+      if (parts[2]) userState.data.postalCode = parts[2];
+      userState.stepIndex++;
+      userState.step = vendorSteps[userState.stepIndex];
       break;
     case 'description':
       userState.data.description = text;
       userState.stepIndex++;
-      userState.step = 'confirm';
+      userState.step = vendorSteps[userState.stepIndex];
       break;
   }
   

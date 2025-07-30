@@ -6,9 +6,10 @@ const vendorSteps = [
   'social_primary',
   'social_other',
   'methods',
-  'country',
-  'department',
-  'postal_code',
+  'delivery_zones',     // Zones de livraison
+  'shipping_zones',     // Zones d'envoi
+  'meetup_zones',       // Zones de meetup
+  'base_location',      // Localisation principale du vendeur
   'photo',
   'description',
   'confirm'
@@ -26,6 +27,9 @@ async function handleVendorApplication(bot, chatId, userStates, action = null, m
       data: {
         socialNetworks: { primary: [], others: '' },
         methods: { delivery: false, shipping: false, meetup: false },
+        deliveryZones: '',    // Départements/codes postaux pour livraison
+        shippingZones: '',    // Pays/départements pour envoi
+        meetupZones: '',      // Villes/départements pour meetup
         country: '',
         department: '',
         postalCode: '',
@@ -55,12 +59,20 @@ async function handleVendorApplication(bot, chatId, userStates, action = null, m
       // Définir des valeurs par défaut pour les étapes optionnelles
       if (userState.step === 'social_other') {
         userState.data.socialNetworks.others = '';
+      } else if (userState.step === 'delivery_zones') {
+        userState.data.deliveryZones = '';
+      } else if (userState.step === 'shipping_zones') {
+        userState.data.shippingZones = '';
+      } else if (userState.step === 'meetup_zones') {
+        userState.data.meetupZones = '';
+      } else if (userState.step === 'base_location') {
+        userState.data.country = 'France';
+        userState.data.department = '';
+        userState.data.postalCode = '';
       } else if (userState.step === 'photo') {
         userState.data.photo = '';
       } else if (userState.step === 'description') {
         userState.data.description = '';
-      } else if (userState.step === 'postal_code') {
-        userState.data.postalCode = '';
       }
       userState.stepIndex++;
       userState.step = vendorSteps[userState.stepIndex];
@@ -87,8 +99,21 @@ async function processVendorResponse(userState, response) {
     case 'social_other':
       userState.data.socialNetworks.others = response;
       break;
-    case 'postal_code':
-      userState.data.postalCode = response;
+    case 'delivery_zones':
+      userState.data.deliveryZones = response;
+      break;
+    case 'shipping_zones':
+      userState.data.shippingZones = response;
+      break;
+    case 'meetup_zones':
+      userState.data.meetupZones = response;
+      break;
+    case 'base_location':
+      // Parser la localisation (pays, département, code postal)
+      const parts = response.split(',').map(p => p.trim());
+      if (parts[0]) userState.data.country = parts[0];
+      if (parts[1]) userState.data.department = parts[1];
+      if (parts[2]) userState.data.postalCode = parts[2];
       break;
     case 'description':
       userState.data.description = response;
@@ -149,54 +174,76 @@ async function displayVendorStep(bot, chatId, userState) {
       });
       break;
       
-    case 'country':
-      message = '🌍 <b>Étape 4/8 - Pays</b>\n\n';
-      message += 'Sélectionnez votre pays:';
-      
-      const settings = await Settings.findOne();
-      settings.countries.forEach(country => {
-        keyboard.inline_keyboard.push([{
-          text: `${country.flag} ${country.name}`,
-          callback_data: `vendor_country_${country.code}`
-        }]);
-      });
-      break;
-      
-    case 'department':
-      message = '📍 <b>Étape 5/8 - Département</b>\n\n';
-      message += 'Sélectionnez votre département:';
-      
-      const settingsDept = await Settings.findOne();
-      const selectedCountry = settingsDept.countries.find(c => c.code === userState.data.country);
-      
-      if (selectedCountry && selectedCountry.departments) {
-        selectedCountry.departments.forEach(dept => {
-          keyboard.inline_keyboard.push([{
-            text: dept.name,
-            callback_data: `vendor_dept_${dept.code}`
-          }]);
-        });
+    case 'delivery_zones':
+      message = '🚚 <b>Étape 4/10 - Zones de livraison</b>\n\n';
+      if (userState.data.methods.delivery) {
+        message += '📍 <b>Où livrez-vous ?</b>\n\n';
+        message += 'Indiquez les départements et/ou codes postaux où vous livrez.\n';
+        message += '<i>Exemples: 75, 92, 93 ou 75001-75020, 92100</i>\n\n';
+        message += '💡 Séparez par des virgules si plusieurs zones';
+      } else {
+        // Passer automatiquement si pas de livraison
+        userState.stepIndex++;
+        userState.step = vendorSteps[userState.stepIndex];
+        await displayVendorStep(bot, chatId, userState);
+        return;
       }
       break;
       
-    case 'postal_code':
-      message = '📮 <b>Étape 6/8 - Code postal</b>\n\n';
-      message += 'Entrez votre code postal ou ville principale:';
+    case 'shipping_zones':
+      message = '📮 <b>Étape 5/10 - Zones d\'envoi</b>\n\n';
+      if (userState.data.methods.shipping) {
+        message += '🌍 <b>Où envoyez-vous vos colis ?</b>\n\n';
+        message += 'Indiquez les pays et/ou départements.\n';
+        message += '<i>Exemples: France, Belgique, Suisse ou Toute la France, Europe</i>\n\n';
+        message += '💡 Séparez par des virgules si plusieurs zones';
+      } else {
+        // Passer automatiquement si pas d'envoi
+        userState.stepIndex++;
+        userState.step = vendorSteps[userState.stepIndex];
+        await displayVendorStep(bot, chatId, userState);
+        return;
+      }
+      break;
+      
+    case 'meetup_zones':
+      message = '🤝 <b>Étape 6/10 - Zones de meetup</b>\n\n';
+      if (userState.data.methods.meetup) {
+        message += '📍 <b>Où faites-vous des meetups ?</b>\n\n';
+        message += 'Indiquez les villes et/ou départements.\n';
+        message += '<i>Exemples: Paris, Lyon, 75, 92 ou Paris 15e, Neuilly</i>\n\n';
+        message += '💡 Séparez par des virgules si plusieurs zones';
+      } else {
+        // Passer automatiquement si pas de meetup
+        userState.stepIndex++;
+        userState.step = vendorSteps[userState.stepIndex];
+        await displayVendorStep(bot, chatId, userState);
+        return;
+      }
+      break;
+      
+    case 'base_location':
+      message = '📍 <b>Étape 7/10 - Votre localisation</b>\n\n';
+      message += '<b>Où êtes-vous basé ?</b>\n\n';
+      message += 'Indiquez votre pays, département et code postal.\n';
+      message += '<i>Exemple: France, 75, 75015</i>\n\n';
+      message += '💡 Cette information aide les clients à vous trouver';
       break;
       
     case 'photo':
-      message = '📸 <b>Étape 7/8 - Photo de votre boutique</b>\n\n';
+      message = '📸 <b>Étape 8/10 - Photo de votre boutique</b>\n\n';
       message += 'Envoyez une photo de votre boutique (optionnel):';
       break;
       
     case 'description':
-      message = '📝 <b>Étape 8/8 - Description</b>\n\n';
+      message = '📝 <b>Étape 9/10 - Description</b>\n\n';
       message += 'Décrivez votre boutique en quelques lignes:';
       break;
       
     case 'confirm':
-      message = '✅ <b>Confirmation - Résumé de votre candidature</b>\n\n';
-      message += '━━━━━━━━━━━━━━━━\n';
+      message = '✅ <b>Étape 10/10 - Confirmation</b>\n\n';
+      message += '<b>Résumé de votre candidature:</b>\n';
+      message += '━━━━━━━━━━━━━━━━\n\n';
       
       // Résumé des réseaux sociaux
       message += '📱 <b>Réseaux sociaux:</b>\n';
@@ -212,21 +259,24 @@ async function displayVendorStep(bot, chatId, userState) {
       }
       message += '\n';
       
-      // Résumé des méthodes
-      message += '📦 <b>Méthodes de vente:</b>\n';
-      const selectedMethods = [];
-      if (userState.data.methods.delivery) selectedMethods.push('🚚 Livraison');
-      if (userState.data.methods.shipping) selectedMethods.push('📮 Envoi');
-      if (userState.data.methods.meetup) selectedMethods.push('🤝 Meetup');
-      if (selectedMethods.length > 0) {
-        selectedMethods.forEach(method => message += `• ${method}\n`);
-      } else {
+      // Résumé des méthodes et zones
+      message += '📦 <b>Méthodes de vente et zones:</b>\n';
+      if (userState.data.methods.delivery) {
+        message += `• 🚚 Livraison: ${userState.data.deliveryZones || 'Non spécifié'}\n`;
+      }
+      if (userState.data.methods.shipping) {
+        message += `• 📮 Envoi: ${userState.data.shippingZones || 'Non spécifié'}\n`;
+      }
+      if (userState.data.methods.meetup) {
+        message += `• 🤝 Meetup: ${userState.data.meetupZones || 'Non spécifié'}\n`;
+      }
+      if (!userState.data.methods.delivery && !userState.data.methods.shipping && !userState.data.methods.meetup) {
         message += '• <i>Aucune méthode sélectionnée</i>\n';
       }
       message += '\n';
       
       // Résumé de la localisation
-      message += '📍 <b>Localisation:</b>\n';
+      message += '📍 <b>Votre localisation:</b>\n';
       if (userState.data.country) {
         message += `• Pays: ${userState.data.country}\n`;
         message += `• Département: ${userState.data.department || 'Non spécifié'}\n`;
@@ -263,15 +313,19 @@ async function displayVendorStep(bot, chatId, userState) {
   }
   
   // Boutons spécifiques selon l'étape
-  if (userState.step === 'social_primary' || userState.step === 'methods' || 
-      userState.step === 'country' || userState.step === 'department') {
-    // Pour les étapes avec sélection, ajouter un bouton "Suivant"
+  if (userState.step === 'social_primary' || userState.step === 'methods') {
+    // Pour les étapes avec sélection multiple, ajouter un bouton "Suivant"
     navButtons.push({ text: '✅ Suivant', callback_data: 'vendor_next' });
   }
   
-  // Montrer "Passer" pour les étapes optionnelles
-  if (userState.step === 'social_other' || userState.step === 'photo' || 
-      userState.step === 'description' || userState.step === 'postal_code') {
+  // Montrer "Passer" pour toutes les étapes textuelles (optionnelles)
+  if (userState.step === 'social_other' || 
+      userState.step === 'delivery_zones' || 
+      userState.step === 'shipping_zones' || 
+      userState.step === 'meetup_zones' || 
+      userState.step === 'base_location' ||
+      userState.step === 'photo' || 
+      userState.step === 'description') {
     navButtons.push({ text: '⏭ Passer', callback_data: 'vendor_skip' });
   }
   
