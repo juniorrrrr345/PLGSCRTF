@@ -1180,13 +1180,6 @@ export default function ConfigPage() {
                 <div className="space-y-6 max-w-4xl">
                   <div className="flex justify-between items-center">
                     <h1 className="text-3xl font-bold">Réseaux Sociaux de la Boutique</h1>
-                    <button
-                      onClick={() => setShowAddSocialNetwork(true)}
-                      className="btn-primary flex items-center gap-2"
-                    >
-                      <PlusIcon className="w-5 h-5" />
-                      Ajouter un réseau
-                    </button>
                   </div>
                   
                   <div className="glass-card p-6">
