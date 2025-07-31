@@ -568,7 +568,7 @@ async function handleLike(bot, callbackQuery, plugId) {
     if (timeSinceLastLike < cooldownMinutes) {
       const remainingTime = Math.ceil(cooldownMinutes - timeSinceLastLike);
       await bot.answerCallbackQuery(callbackQuery.id, {
-        text: `⏱️ Veuillez patienter ${remainingTime} minute${remainingTime > 1 ? 's' : ''} avant de liker à nouveau`,
+        text: `⏱️ Veuillez patienter ${remainingTime} minute${remainingTime > 1 ? 's' : ''} avant de liker à nouveau.\n\n💡 Vous pourrez voter à nouveau dans ${remainingTime} minute${remainingTime > 1 ? 's' : ''}.\n\n❤️ Merci pour votre soutien !`,
         show_alert: true
       });
       
@@ -576,6 +576,9 @@ async function handleLike(bot, callbackQuery, plugId) {
       try {
         const keyboard = callbackQuery.message.reply_markup;
         if (keyboard && keyboard.inline_keyboard) {
+          // Récupérer le plug pour avoir le nombre de likes actuel
+          const plug = await Plug.findById(plugId);
+          
           for (let row of keyboard.inline_keyboard) {
             for (let button of row) {
               if (button.callback_data && button.callback_data.startsWith('like_')) {
@@ -654,8 +657,8 @@ async function handleLike(bot, callbackQuery, plugId) {
     
     // Répondre avec succès SANS supprimer le message
     await bot.answerCallbackQuery(callbackQuery.id, {
-      text: `❤️ Vous avez liké ${plug.name} ! Total: ${plug.likes} likes`,
-      show_alert: false
+      text: `❤️ Merci pour votre vote !\n\n✅ ${plug.name} a maintenant ${plug.likes} like${plug.likes > 1 ? 's' : ''}\n\n⏱️ Prochain vote possible dans 30 minutes`,
+      show_alert: true
     });
     
     // Mettre à jour le bouton like dans le message existant
