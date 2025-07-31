@@ -181,32 +181,42 @@ async function handlePlugDetails(bot, chatId, plugId) {
           const link = plug.socialNetworks.links[network];
           if (link) {
             let url = link;
-            // Ajouter https:// si nécessaire
-            if (!link.startsWith('http') && !link.startsWith('@')) {
+            
+            // Si c'est déjà une URL complète, la garder
+            if (link.startsWith('http://') || link.startsWith('https://')) {
+              url = link;
+            }
+            // Gérer les usernames avec @
+            else if (link.startsWith('@')) {
+              const username = link.substring(1);
+              if (network === 'instagram') {
+                url = `https://instagram.com/${username}`;
+              } else if (network === 'telegram') {
+                url = `https://t.me/${username}`;
+              } else if (network === 'snap' || network === 'snapchat') {
+                url = `https://snapchat.com/add/${username}`;
+              } else {
+                url = `https://${network}.com/${username}`;
+              }
+            }
+            // Gérer les liens sans @ ni http
+            else {
               if (network === 'whatsapp') {
-                url = `https://wa.me/${link.replace(/[^0-9]/g, '')}`;
+                // Pour WhatsApp, extraire seulement les chiffres
+                const phoneNumber = link.replace(/[^0-9]/g, '');
+                url = phoneNumber ? `https://wa.me/${phoneNumber}` : `https://wa.me/${link}`;
               } else if (network === 'instagram') {
-                url = `https://instagram.com/${link.replace('@', '')}`;
+                url = `https://instagram.com/${link}`;
               } else if (network === 'snap' || network === 'snapchat') {
                 url = `https://snapchat.com/add/${link}`;
               } else if (network === 'telegram') {
-                url = `https://t.me/${link.replace('@', '')}`;
+                url = `https://t.me/${link}`;
+              } else if (network === 'signal') {
+                url = `https://signal.me/#p/${link}`;
               } else {
-                // Pour les autres réseaux, essayer de deviner l'URL
+                // Pour les autres, essayer de créer une URL valide
                 url = `https://${link}`;
               }
-            } else if (link.startsWith('@')) {
-              if (network === 'instagram') {
-                url = `https://instagram.com/${link.substring(1)}`;
-              } else if (network === 'telegram') {
-                url = `https://t.me/${link.substring(1)}`;
-              } else {
-                // Pour les autres réseaux avec @, supprimer le @
-                url = `https://${network}.com/${link.substring(1)}`;
-              }
-            } else if (!link.startsWith('http')) {
-              // Si ce n'est toujours pas une URL valide
-              url = `https://${link}`;
             }
             
             // Gérer les multiples comptes du même réseau
