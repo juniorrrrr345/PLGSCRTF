@@ -4,6 +4,7 @@ const Settings = require('../models/Settings');
 
 const vendorSteps = [
   'social_primary',
+  'social_links',       // Liens des réseaux sociaux sélectionnés
   'social_other',
   'methods',
   'delivery_zones',     // Zones de livraison
