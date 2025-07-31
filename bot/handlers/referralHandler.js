@@ -9,11 +9,29 @@ async function handleReferralMenu(bot, chatId) {
     
     // Récupérer les plugs triés par nombre de parrainages
     const plugs = await Plug.find({ isActive: true })
-      .populate('referralStats.userId', 'username')
-      .sort({ likes: -1 })
-      .limit(20);
+      .populate('referralStats.userId', 'username');
     
-    if (plugs.length === 0) {
+    // Calculer et trier par nombre de filleuls
+    const plugsWithStats = plugs.map(plug => {
+      let totalClicks = 0;
+      if (plug.referralStats && plug.referralStats.length > 0) {
+        plug.referralStats.forEach(stat => {
+          totalClicks += stat.clicks || 0;
+        });
+      }
+      return {
+        plug,
+        totalClicks
+      };
+    });
+    
+    // Trier par nombre de filleuls décroissant
+    plugsWithStats.sort((a, b) => b.totalClicks - a.totalClicks);
+    
+    // Limiter à 20 plugs
+    const sortedPlugs = plugsWithStats.slice(0, 20).map(item => item.plug);
+    
+    if (sortedPlugs.length === 0) {
       await bot.sendMessage(chatId, '📊 Aucun plug disponible pour le moment.', {
         reply_markup: {
           inline_keyboard: [
@@ -33,7 +51,7 @@ async function handleReferralMenu(bot, chatId) {
     };
     
     // Créer les boutons pour chaque plug
-    plugs.forEach((plug, index) => {
+    sortedPlugs.forEach((plug, index) => {
       let emoji = '';
       
       if (index === 0) emoji = '👑';
@@ -51,7 +69,7 @@ async function handleReferralMenu(bot, chatId) {
         });
       }
       
-      const buttonText = `${emoji} ${plug.name} (${plug.likes || 0} ❤️)`;
+      const buttonText = `${emoji} ${plug.name} (${totalClicks} filleul${totalClicks > 1 ? 's' : ''})`;
       keyboard.inline_keyboard.push([{
         text: buttonText,
         callback_data: `plug_from_referral_${plug._id}`
