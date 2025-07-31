@@ -1313,6 +1313,127 @@ export default function ConfigPage() {
                 </div>
               )}
               
+              {/* Maintenance */}
+              {activeTab === 'maintenance' && (
+                <div className="space-y-6 max-w-4xl">
+                  <h1 className="text-3xl font-bold">Mode Maintenance</h1>
+                  
+                  <div className="glass-card p-6">
+                    <h2 className="text-xl font-bold mb-6">Contrôle de la maintenance</h2>
+                    <p className="text-gray-400 mb-6">
+                      Activez le mode maintenance pour afficher un message aux utilisateurs du bot et du site web.
+                    </p>
+                    
+                    <div className="bg-gray-800 rounded-lg p-6 mb-6">
+                      <div className="flex items-center justify-between mb-4">
+                        <div>
+                          <h3 className="text-lg font-semibold">État actuel</h3>
+                          <p className="text-gray-400">
+                            Le système est actuellement {maintenanceMode ? 
+                              <span className="text-red-500 font-bold">en maintenance</span> : 
+                              <span className="text-green-500 font-bold">actif</span>
+                            }
+                          </p>
+                        </div>
+                        <div className={`px-4 py-2 rounded-lg font-bold ${
+                          maintenanceMode ? 'bg-red-600' : 'bg-green-600'
+                        }`}>
+                          {maintenanceMode ? 'MAINTENANCE' : 'ACTIF'}
+                        </div>
+                      </div>
+                      
+                      <button
+                        onClick={async () => {
+                          try {
+                            const res = await fetch('/api/settings', {
+                              method: 'POST',
+                              headers: { 'Content-Type': 'application/json' },
+                              body: JSON.stringify({ 
+                                maintenanceMode: !maintenanceMode
+                              })
+                            })
+                            
+                            if (res.ok) {
+                              setMaintenanceMode(!maintenanceMode)
+                              toast.success(maintenanceMode ? 'Mode maintenance désactivé' : 'Mode maintenance activé')
+                              mutate('/api/settings')
+                            }
+                          } catch (error) {
+                            toast.error('Erreur lors de la mise à jour')
+                          }
+                        }}
+                        className={`w-full px-6 py-3 rounded-lg font-medium transition-all flex items-center justify-center gap-2 ${
+                          maintenanceMode 
+                            ? 'bg-green-600 hover:bg-green-700 text-white' 
+                            : 'bg-red-600 hover:bg-red-700 text-white'
+                        }`}
+                      >
+                        {maintenanceMode ? (
+                          <>
+                            <CheckIcon className="w-5 h-5" />
+                            Désactiver la maintenance
+                          </>
+                        ) : (
+                          <>
+                            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6V4m0 2a2 2 0 100 4m0-4a2 2 0 110 4m-6 8a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4m6 6v10m6-2a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4" />
+                            </svg>
+                            Activer la maintenance
+                          </>
+                        )}
+                      </button>
+                    </div>
+                    
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                      <div className="bg-blue-900/20 border border-blue-600/30 rounded-lg p-4">
+                        <h4 className="font-semibold text-blue-400 mb-2 flex items-center gap-2">
+                          <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z" />
+                          </svg>
+                          Message Bot Telegram
+                        </h4>
+                        <p className="text-gray-300 text-sm">
+                          🔧 <strong>Maintenance en cours</strong><br/>
+                          <br/>
+                          Nous sommes bientôt de retour !<br/>
+                          <br/>
+                          Cordialement,<br/>
+                          PLUGS CRTFS
+                        </p>
+                        <p className="text-xs text-gray-500 mt-2">
+                          Affiché avec l'image d'accueil configurée
+                        </p>
+                      </div>
+                      
+                      <div className="bg-purple-900/20 border border-purple-600/30 rounded-lg p-4">
+                        <h4 className="font-semibold text-purple-400 mb-2 flex items-center gap-2">
+                          <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 12a9 9 0 01-9 9m9-9a9 9 0 00-9-9m9 9H3m9 9a9 9 0 01-9-9m9 9c1.657 0 3-4.03 3-9s-1.343-9-3-9m0 18c-1.657 0-3-4.03-3-9s1.343-9 3-9m-9 9a9 9 0 019-9" />
+                          </svg>
+                          Page Site Web
+                        </h4>
+                        <p className="text-gray-300 text-sm">
+                          Une page de maintenance sera affichée sur tout le site avec un design moderne et professionnel.
+                        </p>
+                        <p className="text-xs text-gray-500 mt-2">
+                          Les administrateurs peuvent toujours accéder au panel
+                        </p>
+                      </div>
+                    </div>
+                    
+                    <div className="bg-yellow-900/20 border border-yellow-600/30 rounded-lg p-4 mt-4">
+                      <h4 className="font-semibold text-yellow-400 mb-2">⚠️ Important</h4>
+                      <ul className="text-sm text-gray-300 space-y-1">
+                        <li>• Le mode maintenance affecte le bot Telegram ET le site web</li>
+                        <li>• Les administrateurs peuvent toujours accéder au panel admin</li>
+                        <li>• Les utilisateurs verront un message de maintenance</li>
+                        <li>• N'oubliez pas de désactiver la maintenance une fois terminée</li>
+                      </ul>
+                    </div>
+                  </div>
+                </div>
+              )}
+              
               {/* Settings */}
               {activeTab === 'settings' && (
                 <div className="space-y-6 max-w-4xl">
