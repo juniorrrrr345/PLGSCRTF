@@ -58,6 +58,7 @@ async function showMainMenu(bot, chatId) {
   
   const keyboard = {
     inline_keyboard: [
+      [{ text: '🔌 MINI APP PLGS CRTFS', url: 'https://t.me/PLGSCRTF_BOT/miniapp' }],
       [{ text: 'ℹ️ Informations', callback_data: 'info' }],
       [{ text: '📝 Devenir Vendeur', callback_data: 'apply' }],
       [{ text: '🔌 PLUGS CRTFS', callback_data: 'plugs' }],
