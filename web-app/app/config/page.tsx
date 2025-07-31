@@ -158,8 +158,12 @@ export default function ConfigPage() {
       
       // Charger les réseaux sociaux de la boutique
       if (settings.shopSocialNetworks && settings.shopSocialNetworks.length > 0) {
-        // Utiliser directement shopSocialNetworks sans ajouter Mini App
-        setShopSocialNetworks(settings.shopSocialNetworks)
+        // S'assurer que chaque réseau a un ID
+        const networksWithIds = settings.shopSocialNetworks.map((network: any, index: number) => ({
+          ...network,
+          id: network.id || `network-${index}-${Date.now()}`
+        }))
+        setShopSocialNetworks(networksWithIds)
       } else if (settings.socialNetworks) {
         // Fallback sur l'ancien format si shopSocialNetworks n'existe pas
         const networksArray = Object.entries(settings.socialNetworks).map(([key, value]: [string, any]) => ({
