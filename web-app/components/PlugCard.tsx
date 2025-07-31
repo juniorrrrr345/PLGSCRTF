@@ -32,14 +32,12 @@ export default function PlugCard({ plug, onClick }: PlugCardProps) {
       parts.push(`${flag} ${country}`)
     }
     
-    if (plug.location?.department || plug.department) {
-      const dept = plug.location?.department || plug.department
-      parts.push(`Dép. ${dept}`)
-    }
-    
-    if (plug.location?.postalCode || plug.postalCode) {
-      const postal = plug.location?.postalCode || plug.postalCode
-      parts.push(postal)
+    // Afficher tous les pays sélectionnés
+    if (plug.countries && plug.countries.length > 0) {
+      plug.countries.forEach((countryCode: string) => {
+        const flag = getCountryFlag(countryCode)
+        parts.push(`${flag} ${countryCode}`)
+      })
     }
     
     return parts.join(' • ')

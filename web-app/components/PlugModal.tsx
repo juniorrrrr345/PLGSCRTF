@@ -97,9 +97,16 @@ export default function PlugModal({ plug, onClose, isOpen }: PlugModalProps) {
                     <div className="flex items-center gap-2">
                       <MapPinIcon className="w-5 h-5" />
                       <span className="font-medium">
-                        {getCountryFlag(plug.location?.country || plug.country || 'FR')} {plug.location?.country || plug.country || 'FR'} • 
-                        Dép. {plug.location?.department || plug.department} • 
-                        {plug.location?.postalCode || plug.postalCode}
+                        {plug.countries && plug.countries.length > 0 ? (
+                          plug.countries.map((countryCode: string, index: number) => (
+                            <span key={countryCode}>
+                              {getCountryFlag(countryCode)} {countryCode}
+                              {index < plug.countries.length - 1 && ' • '}
+                            </span>
+                          ))
+                        ) : (
+                          <span>{getCountryFlag(plug.location?.country || plug.country || 'FR')} {plug.location?.country || plug.country || 'FR'}</span>
+                        )}
                       </span>
                     </div>
                   </div>
