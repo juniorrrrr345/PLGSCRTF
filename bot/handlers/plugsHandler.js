@@ -33,7 +33,7 @@ async function handlePlugsMenu(bot, chatId, filters = {}) {
     const query = { isActive: true };
     
     if (filters.country) {
-      query['location.countries'] = filters.country;
+      query.country = filters.country;
     }
     
     if (filters.method) {
@@ -57,11 +57,11 @@ async function handlePlugsMenu(bot, chatId, filters = {}) {
     };
     
     allPlugs.forEach(plug => {
-      if (plug.location && plug.location.countries) {
-        plug.location.countries.forEach(country => {
-          countriesSet.add(country);
-        });
+      // Récupérer le pays du plug
+      if (plug.country) {
+        countriesSet.add(plug.country);
       }
+      
       if (plug.methods) {
         if (plug.methods.delivery) methodsAvailable.delivery = true;
         if (plug.methods.shipping) methodsAvailable.shipping = true;
@@ -196,10 +196,10 @@ async function handlePlugsMenu(bot, chatId, filters = {}) {
       
       buttonText += plug.name;
       
-      // Ajouter les drapeaux si on n'a pas filtré par pays
-      if (!filters.country && plug.location?.countries) {
-        const flags = plug.location.countries.map(c => getCountryFlag(c)).join('');
-        if (flags) buttonText += ` ${flags}`;
+      // Ajouter le drapeau si on n'a pas filtré par pays
+      if (!filters.country && plug.country) {
+        const flag = getCountryFlag(plug.country);
+        if (flag) buttonText += ` ${flag}`;
       }
       
       // Ajouter les emojis de méthodes si on n'a pas filtré par méthode
