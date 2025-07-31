@@ -11,6 +11,17 @@ function getCountryFlag(countryCode) {
   };
   return flags[countryCode] || '🌍';
 }
+
+// Fonction pour obtenir le nom complet d'un pays
+function getCountryName(countryCode) {
+  const countries = {
+    'FR': 'France', 'ES': 'Espagne', 'IT': 'Italie', 'DE': 'Allemagne', 'GB': 'Royaume-Uni',
+    'PT': 'Portugal', 'NL': 'Pays-Bas', 'BE': 'Belgique', 'CH': 'Suisse', 'AT': 'Autriche',
+    'US': 'États-Unis', 'CA': 'Canada', 'MX': 'Mexique', 'BR': 'Brésil', 'AR': 'Argentine',
+    'JP': 'Japon', 'CN': 'Chine', 'KR': 'Corée du Sud', 'IN': 'Inde', 'AU': 'Australie'
+  };
+  return countries[countryCode] || countryCode;
+}
 const Settings = require('../models/Settings');
 
 async function handlePlugsMenu(bot, chatId) {
@@ -110,59 +121,82 @@ async function handlePlugDetails(bot, chatId, plugId) {
     let message = `🔌 <b>${plug.name}</b>\n`;
     message += `━━━━━━━━━━━━━━━━\n\n`;
     
-    // Localisation - Afficher tous les pays sélectionnés
+    // Localisation - Afficher les pays et villes organisés
+    message += `📍 <b>Localisation:</b>\n`;
+    
+    // Organiser les zones par pays
+    const zonesByCountry = {};
+    
+    // Si on a une liste de pays
     if (plug.countries && plug.countries.length > 0) {
-      message += `📍 <b>Localisation:</b>\n`;
-      plug.countries.forEach((countryCode, index) => {
-        const flag = getCountryFlag(countryCode);
-        message += `${flag} ${countryCode}`;
-        if (index < plug.countries.length - 1) {
-          message += ' • ';
-        }
+      plug.countries.forEach(countryCode => {
+        zonesByCountry[countryCode] = [];
       });
-      message += '\n\n';
     } else if (plug.country || plug.location?.country) {
       // Fallback sur l'ancien format
       const country = plug.country || plug.location?.country;
-      message += `📍 <b>Localisation:</b>\n`;
-      if (plug.countryFlag && country) {
-        message += `${plug.countryFlag} ${country}`;
-      } else if (country) {
-        message += country;
-      }
-      message += '\n\n';
+      zonesByCountry[country] = [];
     }
     
-    // Méthodes
-    message += `📦 <b>Méthodes disponibles:</b>\n`;
-    if (plug.methods?.delivery) {
-      message += '• 🚚 Livraison';
-      if (plug.deliveryZones) {
-        message += ` (${plug.deliveryZones})`;
-      } else if (plug.deliveryDepartments?.length > 0) {
-        message += ` (${plug.deliveryDepartments.join(', ')})`;
+    // Créer un objet pour stocker les zones par type
+    const deliveryZones = plug.deliveryZones ? plug.deliveryZones.split(',').map(z => z.trim()) : [];
+    const shippingZones = plug.shippingZones ? plug.shippingZones.split(',').map(z => z.trim()) : [];
+    const meetupZones = plug.meetupZones ? plug.meetupZones.split(',').map(z => z.trim()) : [];
+    
+    // Pour chaque pays, ajouter ses zones spécifiques
+    Object.keys(zonesByCountry).forEach(country => {
+      const countryZones = [];
+      
+      // Ajouter les zones de livraison
+      if (deliveryZones.length > 0 && plug.methods?.delivery) {
+        countryZones.push(`  🚚 Livraison: ${deliveryZones.join(', ')}`);
+      }
+      
+      // Ajouter les zones d'envoi
+      if (shippingZones.length > 0 && plug.methods?.shipping) {
+        countryZones.push(`  📮 Envoi: ${shippingZones.join(', ')}`);
+      }
+      
+      // Ajouter les zones de meetup
+      if (meetupZones.length > 0 && plug.methods?.meetup) {
+        countryZones.push(`  🤝 Meetup: ${meetupZones.join(', ')}`);
+      }
+      
+      zonesByCountry[country] = countryZones;
+    });
+    
+    // Afficher les pays avec leurs zones
+    Object.entries(zonesByCountry).forEach(([countryCode, zones]) => {
+      const flag = getCountryFlag(countryCode);
+      const countryName = getCountryName(countryCode);
+      message += `\n${flag} <b>${countryName}</b>`;
+      
+      if (zones.length > 0) {
+        message += '\n' + zones.join('\n');
       }
       message += '\n';
+    });
+    
+    message += '\n';
+    
+    // Méthodes disponibles (sans les zones car déjà affichées dans la localisation)
+    message += `📦 <b>Méthodes disponibles:</b>\n`;
+    const methods = [];
+    if (plug.methods?.delivery) {
+      methods.push('🚚 Livraison');
     }
     if (plug.methods?.shipping) {
-      message += '• 📮 Envoi';
-      if (plug.shippingZones) {
-        message += ` (${plug.shippingZones})`;
-      } else if (plug.deliveryDepartments?.length > 0) {
-        message += ` (${plug.deliveryDepartments.join(', ')})`;
-      }
-      message += '\n';
+      methods.push('📮 Envoi');
     }
     if (plug.methods?.meetup) {
-      message += '• 🤝 Meetup';
-      if (plug.meetupZones) {
-        message += ` (${plug.meetupZones})`;
-      } else if (plug.meetupDepartments?.length > 0) {
-        message += ` (${plug.meetupDepartments.join(', ')})`;
-      }
-      message += '\n';
+      methods.push('🤝 Meetup');
     }
-    message += '\n';
+    
+    if (methods.length > 0) {
+      message += methods.join(' • ') + '\n\n';
+    } else {
+      message += 'Aucune méthode spécifiée\n\n';
+    }
     
     // Description
     if (plug.description) {
