@@ -3,6 +3,7 @@ const Settings = require('../models/Settings');
 const { requireChannelMembership } = require('../middleware/channelCheck');
 
 async function handleStart(bot, msg, param) {
+  console.log('📱 handleStart appelé pour:', msg.from.username || msg.from.first_name);
   const chatId = msg.chat.id;
   const userId = msg.from.id;
   const username = msg.from.username || msg.from.first_name;

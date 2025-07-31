@@ -236,10 +236,16 @@ app.listen(PORT, () => {
 
 // Commande /start avec gestion des références
 bot.onText(/\/start(.*)/, async (msg, match) => {
+  console.log('🚀 Commande /start reçue');
   const chatId = msg.chat.id;
   const param = match[1].trim();
   
-  await handleStart(bot, msg, param);
+  try {
+    await handleStart(bot, msg, param);
+  } catch (error) {
+    console.error('❌ Erreur dans /start:', error);
+    await bot.sendMessage(chatId, '❌ Une erreur est survenue. Veuillez réessayer.');
+  }
 });
 
 // Gestion des callback queries (IMPORTANT: éviter les doublons)
