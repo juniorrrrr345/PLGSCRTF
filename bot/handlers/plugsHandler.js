@@ -183,35 +183,26 @@ async function handlePlugsMenu(bot, chatId, filters = {}) {
     
     // Liste des plugs
     plugs.forEach((plug, index) => {
-      // Construire le texte du bouton avec les infos appropriées
       let buttonText = '';
       
-      // Emoji de classement pour le top 3
-      if (!filters.country && !filters.method) {
-        if (index === 0) buttonText += '🥇 ';
-        else if (index === 1) buttonText += '🥈 ';
-        else if (index === 2) buttonText += '🥉 ';
+      // Toujours afficher le drapeau en premier
+      if (plug.country) {
+        const flag = getCountryFlag(plug.country);
+        if (flag) buttonText += `${flag} `;
       }
       
+      // Si un filtre méthode est actif, afficher l'emoji de la méthode
+      if (filters.method) {
+        if (filters.method === 'delivery') buttonText += '🚚 ';
+        else if (filters.method === 'shipping') buttonText += '📮 ';
+        else if (filters.method === 'meetup') buttonText += '🤝 ';
+      }
+      
+      // Nom du plug
       buttonText += plug.name;
       
-      // Ajouter le drapeau si on n'a pas filtré par pays
-      if (!filters.country && plug.country) {
-        const flag = getCountryFlag(plug.country);
-        if (flag) buttonText += ` ${flag}`;
-      }
-      
-      // Ajouter les emojis de méthodes si on n'a pas filtré par méthode
-      if (!filters.method) {
-        const methods = [];
-        if (plug.methods?.delivery) methods.push('🚚');
-        if (plug.methods?.shipping) methods.push('📮');
-        if (plug.methods?.meetup) methods.push('🤝');
-        if (methods.length > 0) buttonText += ` ${methods.join('')}`;
-      }
-      
-      // Ajouter le nombre de likes
-      buttonText += ` (❤️ ${plug.likes || 0})`;
+      // Nombre de likes
+      buttonText += ` (${plug.likes || 0}) ❤️`;
       
       keyboard.inline_keyboard.push([{
         text: buttonText,
@@ -517,13 +508,23 @@ async function handlePlugDetails(bot, chatId, plugId) {
     }
     
   } catch (error) {
-    console.error('Erreur dans handlePlugDetails:', error);
-    // Ne pas envoyer de message d'erreur à l'utilisateur
-    // Essayer de retourner au menu des plugs
+    console.error('❌ Erreur dans handlePlugDetails:', error);
+    console.error('Stack trace:', error.stack);
+    console.error('PlugId:', plugId);
+    
+    // Envoyer un message d'erreur à l'utilisateur
     try {
-      await handlePlugsMenu(bot, chatId);
-    } catch (e) {
-      // Si même ça échoue, ne rien faire
+      await bot.sendMessage(chatId, '❌ Une erreur est survenue lors du chargement des détails.\n\nVeuillez réessayer.', {
+        reply_markup: {
+          inline_keyboard: [[
+            { text: '⬅️ Retour aux plugs', callback_data: 'plugs' },
+            { text: '🏠 Menu principal', callback_data: 'main_menu' }
+          ]],
+        },
+        parse_mode: 'HTML'
+      });
+    } catch (sendError) {
+      console.error('❌ Erreur envoi message erreur:', sendError);
     }
   }
 }
