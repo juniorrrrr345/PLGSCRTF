@@ -1,5 +1,6 @@
 const User = require('../models/User');
 const Settings = require('../models/Settings');
+const { requireChannelMembership } = require('../middleware/channelCheck');
 
 async function handleStart(bot, msg, param) {
   const chatId = msg.chat.id;
