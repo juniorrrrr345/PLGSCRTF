@@ -102,32 +102,31 @@ async function handlePlugsMenu(bot, chatId, filters = {}) {
       inline_keyboard: []
     };
     
-    // Toujours afficher les pays en premier, même s'il n'y a pas de plugs
-    // Ligne 1: Drapeaux des pays (max 4 par ligne)
-    const countryButtons = countries.map(country => {
-      const isSelected = filters.country === country;
-      // Compter le nombre de plugs pour ce pays
-      const countryPlugsCount = allPlugs.filter(plug => 
-        plug.country === country
-      ).length;
-      
-      return {
-        text: isSelected 
-          ? `✅ ${getCountryFlag(country)} (${countryPlugsCount})`
-          : `${getCountryFlag(country)} (${countryPlugsCount})`,
-        callback_data: isSelected 
-          ? (filters.method ? `plugs_filter_method_${filters.method}` : 'plugs')
-          : `plugs_filter_country_${country}${filters.method ? '_method_' + filters.method : ''}`
-      };
-    });
-    
-    // Ajouter un bouton "Tous les pays" au début si un filtre pays est actif
-    if (filters.country) {
-      countryButtons.unshift({
-        text: '🌐 Tous les pays',
-        callback_data: filters.method ? `plugs_filter_method_${filters.method}` : 'plugs'
+    // Créer les boutons de pays uniquement pour ceux qui ont des plugs
+    const countryButtons = countries
+      .filter(country => {
+        // Ne garder que les pays qui ont au moins un plug
+        const countryPlugsCount = allPlugs.filter(plug => plug.country === country).length;
+        return countryPlugsCount > 0;
+      })
+      .map(country => {
+        const isSelected = filters.country === country;
+        // Compter le nombre de plugs pour ce pays
+        const countryPlugsCount = allPlugs.filter(plug => 
+          plug.country === country
+        ).length;
+        
+        return {
+          text: isSelected 
+            ? `✅ ${getCountryFlag(country)} (${countryPlugsCount})`
+            : `${getCountryFlag(country)} (${countryPlugsCount})`,
+          callback_data: isSelected 
+            ? (filters.method ? `plugs_filter_method_${filters.method}` : 'plugs')
+            : `plugs_filter_country_${country}${filters.method ? '_method_' + filters.method : ''}`
+        };
       });
-    }
+    
+
     
     // Diviser les pays en lignes de 4 maximum
     for (let i = 0; i < countryButtons.length; i += 4) {
