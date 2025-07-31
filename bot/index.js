@@ -488,12 +488,19 @@ bot.on('message', async (msg) => {
   
   if (userState && userState.type === 'vendor_application') {
     // Traiter les réponses du formulaire vendeur
-    if (userState.step === 'social_other' || 
+    if (userState.step === 'social_links' ||
+        userState.step === 'social_other' || 
         userState.step === 'delivery_zones' || 
         userState.step === 'shipping_zones' || 
         userState.step === 'meetup_zones' || 
         userState.step === 'base_location' || 
         userState.step === 'description') {
+      // Supprimer le message de l'utilisateur
+      try {
+        await bot.deleteMessage(chatId, msg.message_id);
+      } catch (e) {
+        console.log('Impossible de supprimer le message utilisateur:', e.message);
+      }
       await processVendorTextResponse(bot, chatId, msg.text, userState);
     }
   }
@@ -519,13 +526,24 @@ async function processVendorTextResponse(bot, chatId, text, userState) {
   
   // Importer vendorSteps
   const vendorSteps = [
-    'social_primary', 'social_other', 'methods', 'delivery_zones', 
+    'social_primary', 'social_links', 'social_other', 'methods', 'delivery_zones', 
     'shipping_zones', 'meetup_zones', 'base_location', 'photo', 
     'description', 'confirm'
   ];
   
   try {
     switch (userState.step) {
+      case 'social_links':
+        // Enregistrer le lien pour le réseau social actuel
+        if (userState.currentNetwork) {
+          if (!userState.data.socialNetworks.links) {
+            userState.data.socialNetworks.links = {};
+          }
+          userState.data.socialNetworks.links[userState.currentNetwork] = text;
+          delete userState.currentNetwork;
+        }
+        // handleVendorApplication gérera la transition vers le prochain réseau ou étape
+        break;
       case 'social_other':
         userState.data.socialNetworks.others = text;
         userState.stepIndex++;

@@ -12,6 +12,14 @@ interface CountryDepartmentSelectorProps {
   showDepartments?: boolean
 }
 
+interface CountryData {
+  [key: string]: {
+    name: string
+    flag: string
+    departments: string[]
+  }
+}
+
 export default function CountryDepartmentSelector({
   selectedCountries,
   selectedDepartments,
@@ -124,22 +132,41 @@ export default function CountryDepartmentSelector({
           />
 
           <div className="max-h-60 overflow-y-auto bg-gray-800 border border-gray-700 rounded-lg p-2">
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-1">
-              {filteredDepartments.map((dept) => (
-                <label
-                  key={dept}
-                  className="flex items-center gap-2 p-2 hover:bg-gray-700 rounded cursor-pointer"
-                >
-                  <input
-                    type="checkbox"
-                    checked={selectedDepartments.includes(dept)}
-                    onChange={() => toggleDepartment(dept)}
-                    className="w-4 h-4 text-blue-600 bg-gray-700 border-gray-600 rounded focus:ring-blue-500"
-                  />
-                  <span className="text-sm text-gray-300">{dept}</span>
-                </label>
-              ))}
-            </div>
+            {selectedCountries.map(countryCode => {
+              const country = (countriesData as CountryData)[countryCode];
+              if (!country) return null;
+              
+              const countryDepts = filteredDepartments.filter(dept => 
+                country.departments.includes(dept)
+              );
+              
+              if (countryDepts.length === 0) return null;
+              
+              return (
+                <div key={countryCode} className="mb-4 last:mb-0">
+                  <div className="flex items-center gap-2 mb-2 text-sm font-semibold text-gray-400 sticky top-0 bg-gray-800 py-1">
+                    <span className="text-lg">{country.flag}</span>
+                    <span>{country.name}</span>
+                  </div>
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-1 pl-6">
+                    {countryDepts.map((dept) => (
+                      <label
+                        key={dept}
+                        className="flex items-center gap-2 p-2 hover:bg-gray-700 rounded cursor-pointer"
+                      >
+                        <input
+                          type="checkbox"
+                          checked={selectedDepartments.includes(dept)}
+                          onChange={() => toggleDepartment(dept)}
+                          className="w-4 h-4 text-blue-600 bg-gray-700 border-gray-600 rounded focus:ring-blue-500"
+                        />
+                        <span className="text-sm text-gray-300">{dept}</span>
+                      </label>
+                    ))}
+                  </div>
+                </div>
+              );
+            })}
           </div>
         </div>
       )}
