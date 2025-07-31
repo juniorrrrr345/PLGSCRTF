@@ -413,7 +413,6 @@ async function displayVendorStep(bot, chatId, userState, userStates) {
   });
   
   // Sauvegarder l'ID du message pour pouvoir le supprimer plus tard
-  const userState = userStates.get(chatId);
   if (userState) {
     userState.lastQuestionMessageId = sentMessage.message_id;
   }
