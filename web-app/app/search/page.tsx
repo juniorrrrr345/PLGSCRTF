@@ -67,22 +67,7 @@ export default function SearchPage() {
   // Obtenir les départements disponibles pour le pays sélectionné
   const availableDepartments = locations?.countries?.find((c: any) => c.code === selectedCountry)?.departments || []
 
-  const handleLike = async () => {
-    if (!selectedPlug) return
-    
-    try {
-      const res = await fetch(`/api/plugs/${selectedPlug._id}/like`, {
-        method: 'POST'
-      })
-      
-      if (res.ok) {
-        // Rafraîchir les données
-        mutate('/api/plugs')
-      }
-    } catch (error) {
-      console.error('Error liking plug:', error)
-    }
-  }
+
 
   return (
     <div className="min-h-screen pt-20 px-4">
@@ -261,14 +246,13 @@ export default function SearchPage() {
       </div>
 
       {/* Modal */}
-      <PlugModal
+            <PlugModal 
         plug={selectedPlug}
         isOpen={isModalOpen}
         onClose={() => {
           setIsModalOpen(false)
           setSelectedPlug(null)
         }}
-        onLike={handleLike}
       />
     </div>
   )
