@@ -94,6 +94,7 @@ export default function ConfigPage() {
     countries: string[]
     location: { country: string, department: string, postalCode: string }
     description: string
+    referralLink?: string
   }>({
     name: '',
     photo: '',
@@ -106,7 +107,8 @@ export default function ConfigPage() {
     meetupPostalCodes: [],
     countries: ['FR'],
     location: { country: 'FR', department: '', postalCode: '' },
-    description: ''
+    description: '',
+    referralLink: ''
   })
   
   const { data: stats } = useSWR(isAuthenticated ? '/api/stats' : null, fetcher)
@@ -346,7 +348,8 @@ export default function ConfigPage() {
           meetupPostalCodes: [],
           countries: ['FR'],
           location: { country: 'FR', department: '', postalCode: '' },
-          description: ''
+          description: '',
+          referralLink: ''
         })
         mutate('/api/plugs?all=true')
       }
@@ -2121,6 +2124,31 @@ export default function ConfigPage() {
                         }
                       }}
                     />
+                  </div>
+
+                  {/* Section 5: Lien de parrainage */}
+                  <div className="bg-gray-800/50 rounded-2xl p-6 border border-gray-700">
+                    <h3 className="text-xl font-bold text-white mb-4 flex items-center gap-2">
+                      <span className="text-2xl">🔗</span> Lien de parrainage
+                    </h3>
+                    <div>
+                      <label className="block text-sm font-semibold text-gray-300 mb-2">
+                        Lien de parrainage personnalisé (optionnel)
+                      </label>
+                      <input
+                        type="text"
+                        placeholder="https://t.me/votrebot?start=..."
+                        value={editingPlug ? (editingPlug.referralLink || '') : (newPlug.referralLink || '')}
+                        onChange={(e) => editingPlug
+                          ? setEditingPlug({...editingPlug, referralLink: e.target.value})
+                          : setNewPlug({...newPlug, referralLink: e.target.value})
+                        }
+                        className="w-full px-4 py-3 bg-gray-800 border-2 border-gray-600 rounded-xl text-white placeholder-gray-400 focus:border-blue-500 focus:outline-none transition-all"
+                      />
+                      <p className="text-xs text-gray-400 mt-2">
+                        Si vide, un lien sera généré automatiquement
+                      </p>
+                    </div>
                   </div>
 
                   {/* Actions */}

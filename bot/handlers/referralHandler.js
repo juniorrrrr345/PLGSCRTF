@@ -47,15 +47,7 @@ async function handleReferralMenu(bot, chatId) {
       }]);
     });
     
-    // Récupérer le lien de parrainage de l'utilisateur
-    const user = await User.findOne({ telegramId: chatId });
-    
-    if (user) {
-      keyboard.inline_keyboard.push([{ 
-        text: '🔗 Mon lien de parrainage', 
-        callback_data: 'my_referral_link' 
-      }]);
-    }
+
     
     keyboard.inline_keyboard.push([{ 
       text: '⬅️ Retour au menu', 
