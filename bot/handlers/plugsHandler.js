@@ -257,10 +257,12 @@ async function handlePlugsMenu(bot, chatId, filters = {}) {
 async function handlePlugDetails(bot, chatId, plugId) {
   try {
     console.log(`📱 Chargement des détails du plug: ${plugId}`);
+    console.log(`📱 ChatId: ${chatId}`);
+    
     const plug = await Plug.findById(plugId).populate('userId', 'username');
     
     if (!plug) {
-      console.error('Plug introuvable:', plugId);
+      console.error('❌ Plug introuvable:', plugId);
       // Retourner au menu principal sans message d'erreur
       await handlePlugsMenu(bot, chatId);
       return;

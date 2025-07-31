@@ -398,8 +398,16 @@ bot.on('callback_query', async (callbackQuery) => {
     else if (data.startsWith('plug_')) {
       const plugId = data.replace('plug_', '');
       console.log(`🔌 Callback reçu pour afficher le plug: ${plugId}`);
-      await bot.deleteMessage(chatId, messageId);
-      await handlePlugDetails(bot, chatId, plugId);
+      try {
+        await bot.deleteMessage(chatId, messageId);
+        await handlePlugDetails(bot, chatId, plugId);
+      } catch (error) {
+        console.error('❌ Erreur lors de l\'affichage du plug:', error);
+        await bot.answerCallbackQuery(callbackQuery.id, {
+          text: 'Erreur lors du chargement du plug',
+          show_alert: true
+        });
+      }
     }
     
     // Like d'un plug
