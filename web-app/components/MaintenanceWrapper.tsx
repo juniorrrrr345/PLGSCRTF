@@ -1,11 +1,13 @@
 'use client'
 
 import { useEffect, useState } from 'react'
+import { usePathname } from 'next/navigation'
 import MaintenancePage from './MaintenancePage'
 
 export default function MaintenanceWrapper({ children }: { children: React.ReactNode }) {
   const [isLoading, setIsLoading] = useState(true)
   const [isInMaintenance, setIsInMaintenance] = useState(false)
+  const pathname = usePathname()
 
   useEffect(() => {
     // Vérifier le mode maintenance
@@ -32,8 +34,8 @@ export default function MaintenanceWrapper({ children }: { children: React.React
     )
   }
 
-  // Si en maintenance, afficher la page de maintenance
-  if (isInMaintenance) {
+  // Si en maintenance ET pas sur la page /config, afficher la page de maintenance
+  if (isInMaintenance && pathname !== '/config') {
     return <MaintenancePage />
   }
 

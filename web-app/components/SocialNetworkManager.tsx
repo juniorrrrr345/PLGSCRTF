@@ -16,6 +16,7 @@ interface SocialNetworkManagerProps {
 }
 
 export default function SocialNetworkManager({ networks = [], onChange }: SocialNetworkManagerProps) {
+  console.log('SocialNetworkManager - networks reçus:', networks)
   const [isAdding, setIsAdding] = useState(false)
   const [editingId, setEditingId] = useState<string | null>(null)
   const [newNetwork, setNewNetwork] = useState({ name: '', emoji: '', link: '' })

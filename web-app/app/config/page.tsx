@@ -157,7 +157,9 @@ export default function ConfigPage() {
       }
       
       // Charger les réseaux sociaux de la boutique
+      console.log('Settings reçus:', settings)
       if (settings.shopSocialNetworks && settings.shopSocialNetworks.length > 0) {
+        console.log('shopSocialNetworks trouvés:', settings.shopSocialNetworks)
         // S'assurer que chaque réseau a un ID
         const networksWithIds = settings.shopSocialNetworks.map((network: any, index: number) => ({
           ...network,
@@ -165,17 +167,18 @@ export default function ConfigPage() {
         }))
         setShopSocialNetworks(networksWithIds)
       } else if (settings.socialNetworks) {
+        console.log('Fallback sur socialNetworks:', settings.socialNetworks)
         // Fallback sur l'ancien format si shopSocialNetworks n'existe pas
         const networksArray = Object.entries(settings.socialNetworks).map(([key, value]: [string, any]) => ({
           id: key,
-          name: typeof value === 'object' ? value.name : key.charAt(0).toUpperCase() + key.slice(1),
-          emoji: typeof value === 'object' ? value.emoji : getDefaultEmoji(key),
-          link: typeof value === 'object' ? value.link : value
+          name: value.name || key,
+          emoji: value.emoji || '🔗',
+          link: value.link || value.url || '',
+          order: value.order || 0
         }))
         setShopSocialNetworks(networksArray)
       } else {
-        // Si aucun réseau social, tableau vide
-        setShopSocialNetworks([])
+        console.log('Aucun réseau social trouvé')
       }
     }
   }, [settings])
@@ -448,36 +451,22 @@ export default function ConfigPage() {
     try {
       console.log('Sauvegarde des réseaux sociaux:', shopSocialNetworks)
       
-      console.log('Réseaux à sauvegarder:', shopSocialNetworks)
-      
-      // Convertir en format objet pour la compatibilité
-      const socialNetworksObject = shopSocialNetworks.reduce((acc, network) => {
-        if (network.name && network.link) {
-          const key = network.name.toLowerCase().replace(/\s+/g, '')
-          acc[key] = {
-            name: network.name,
-            emoji: network.emoji || '🔗',
-            link: network.link
-          }
-        }
-        return acc
-      }, {})
-
       const res = await fetch('/api/settings', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ 
-          socialNetworks: socialNetworksObject,
-          shopSocialNetworks: shopSocialNetworks 
+          shopSocialNetworks: shopSocialNetworks
         })
       })
-      
+
       if (res.ok) {
-        toast.success('Réseaux sociaux mis à jour !')
-        mutate('/api/settings')
+        toast.success('Réseaux sociaux sauvegardés')
+      } else {
+        toast.error('Erreur lors de la sauvegarde')
       }
     } catch (error) {
-      toast.error('Erreur lors de la mise à jour')
+      console.error('Erreur:', error)
+      toast.error('Erreur lors de la sauvegarde')
     }
   }
 
