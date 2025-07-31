@@ -34,22 +34,7 @@ export default function PlugsPage() {
     }
   }, [plugs, searchTerm])
 
-  const handleLike = async () => {
-    if (!selectedPlug) return
-    
-    try {
-      const res = await fetch(`/api/plugs/${selectedPlug._id}/like`, {
-        method: 'POST'
-      })
-      
-      if (res.ok) {
-        // Rafraîchir les données
-        mutate('/api/plugs')
-      }
-    } catch (error) {
-      console.error('Error liking plug:', error)
-    }
-  }
+
 
   if (error) {
     return (
@@ -159,7 +144,6 @@ export default function PlugsPage() {
           setIsModalOpen(false)
           setSelectedPlug(null)
         }}
-        onLike={handleLike}
       />
     </div>
   )

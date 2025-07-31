@@ -1,44 +1,19 @@
 'use client'
 
 import { motion, AnimatePresence } from 'framer-motion'
-import { XMarkIcon, HeartIcon, ShareIcon, MapPinIcon, TruckIcon, CubeIcon, UsersIcon, LinkIcon, ChatBubbleLeftIcon, CameraIcon } from '@heroicons/react/24/outline'
+import { XMarkIcon, MapPinIcon, TruckIcon, UsersIcon, LinkIcon, ChatBubbleLeftIcon } from '@heroicons/react/24/outline'
 import { HeartIcon as HeartSolid } from '@heroicons/react/24/solid'
-import { useState } from 'react'
 import toast from 'react-hot-toast'
 
 interface PlugModalProps {
   plug: any
   onClose: () => void
   isOpen: boolean
-  onLike?: () => void
 }
 
-export default function PlugModal({ plug, onClose, isOpen, onLike }: PlugModalProps) {
-  const [isLiking, setIsLiking] = useState(false)
-  const [localLikes, setLocalLikes] = useState(plug?.likes || 0)
-  const [hasLiked, setHasLiked] = useState(false)
+export default function PlugModal({ plug, onClose, isOpen }: PlugModalProps) {
 
   if (!plug) return null
-
-  const handleLike = async () => {
-    if (isLiking || hasLiked) return
-    
-    setIsLiking(true)
-    setHasLiked(true)
-    setLocalLikes(localLikes + 1)
-    
-    if (onLike) {
-      await onLike()
-    }
-    
-    setTimeout(() => setIsLiking(false), 1000)
-  }
-
-  const handleShare = () => {
-    const url = `${window.location.origin}/plugs?id=${plug._id}`
-    navigator.clipboard.writeText(url)
-    toast.success('Lien copié dans le presse-papier!')
-  }
 
   // Utiliser customNetworks s'il existe, sinon utiliser l'ancien format
   const socialNetworks = plug.customNetworks && plug.customNetworks.length > 0
@@ -141,7 +116,7 @@ export default function PlugModal({ plug, onClose, isOpen, onLike }: PlugModalPr
                       className="bg-gradient-to-r from-red-600/20 to-pink-600/20 rounded-2xl p-4 text-center border border-red-600/30"
                     >
                       <HeartSolid className="w-8 h-8 text-red-500 mx-auto mb-2" />
-                      <div className="text-2xl font-bold text-white">{localLikes}</div>
+                      <div className="text-2xl font-bold text-white">{plug.likes || 0}</div>
                       <div className="text-sm text-gray-400">J'aime</div>
                     </motion.div>
                     
@@ -279,42 +254,7 @@ export default function PlugModal({ plug, onClose, isOpen, onLike }: PlugModalPr
                     </div>
                   )}
 
-                  {/* Actions */}
-                  <div className="flex gap-4 pt-4">
-                    <motion.button
-                      whileHover={{ scale: 1.05 }}
-                      whileTap={{ scale: 0.95 }}
-                      onClick={handleLike}
-                      disabled={isLiking || hasLiked}
-                      className={`flex-1 py-4 rounded-xl font-bold text-lg transition-all flex items-center justify-center gap-2 ${
-                        hasLiked 
-                          ? 'bg-gray-700 text-gray-400 cursor-not-allowed' 
-                          : 'bg-gradient-to-r from-red-600 to-pink-600 text-white hover:from-red-700 hover:to-pink-700'
-                      }`}
-                    >
-                      {hasLiked ? (
-                        <>
-                          <HeartSolid className="w-6 h-6" />
-                          Déjà aimé
-                        </>
-                      ) : (
-                        <>
-                          <HeartIcon className="w-6 h-6" />
-                          J'aime
-                        </>
-                      )}
-                    </motion.button>
-                    
-                    <motion.button
-                      whileHover={{ scale: 1.05 }}
-                      whileTap={{ scale: 0.95 }}
-                      onClick={handleShare}
-                      className="flex-1 bg-gradient-to-r from-blue-600 to-purple-600 text-white py-4 rounded-xl font-bold text-lg hover:from-blue-700 hover:to-purple-700 transition-all flex items-center justify-center gap-2"
-                    >
-                      <ShareIcon className="w-6 h-6" />
-                      Partager
-                    </motion.button>
-                  </div>
+
                 </div>
               </div>
             </div>
