@@ -240,10 +240,10 @@ async function handlePlugsMenu(bot, chatId, filters = {}) {
   }
 }
 
-async function handlePlugDetails(bot, chatId, plugId, fromMenu = 'plugs') {
+async function handlePlugDetails(bot, chatId, plugId, fromMenu = 'plugs', userId = null) {
   try {
     console.log(`📱 Chargement des détails du plug: ${plugId}`);
-    console.log(`📱 ChatId: ${chatId}`);
+    console.log(`📱 ChatId: ${chatId}, UserId: ${userId || chatId}`);
     
     // Récupérer le plug
     const plug = await Plug.findById(plugId);
@@ -455,11 +455,12 @@ async function handlePlugDetails(bot, chatId, plugId, fromMenu = 'plugs') {
     
     // Boutons d'action - Vérifier le temps restant pour le like
     const User = require('../models/User');
-    const user = await User.findOne({ telegramId: chatId });
+    const userIdToSearch = userId || chatId; // Utiliser userId si fourni, sinon chatId
+    const user = await User.findOne({ telegramId: userIdToSearch });
     let likeButtonText = `❤️ Like (${plug.likes || 0})`;
     let isInCooldown = false;
     
-    console.log(`🔍 Vérification cooldown pour user ${chatId}:`, {
+    console.log(`🔍 Vérification cooldown pour user ${userIdToSearch}:`, {
       userFound: !!user,
       lastLikeTime: user?.lastLikeTime,
       telegramId: user?.telegramId

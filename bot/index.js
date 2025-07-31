@@ -397,6 +397,7 @@ bot.on('callback_query', async (callbackQuery) => {
     // Callback pour le cooldown (afficher le message de cooldown)
     else if (data.startsWith('cooldown_')) {
       const plugId = data.replace('cooldown_', '');
+      const userId = callbackQuery.from.id;
       
       // Vérifier le temps restant
       const User = require('./models/User');
@@ -488,10 +489,11 @@ bot.on('callback_query', async (callbackQuery) => {
     // Détails d'un plug depuis le top parrains
     else if (data.startsWith('plug_from_referral_')) {
       const plugId = data.replace('plug_from_referral_', '');
+      const userId = callbackQuery.from.id;
       console.log(`🔌 Callback reçu pour afficher le plug depuis top parrains: ${plugId}`);
       try {
         await bot.deleteMessage(chatId, messageId);
-        await handlePlugDetails(bot, chatId, plugId, 'top_referrals');
+        await handlePlugDetails(bot, chatId, plugId, 'top_referrals', userId);
       } catch (error) {
         console.error('❌ Erreur lors de l\'affichage du plug:', error);
         await bot.answerCallbackQuery(callbackQuery.id, {
@@ -504,10 +506,11 @@ bot.on('callback_query', async (callbackQuery) => {
     // Détails d'un plug
     else if (data.startsWith('plug_')) {
       const plugId = data.replace('plug_', '');
+      const userId = callbackQuery.from.id;
       console.log(`🔌 Callback reçu pour afficher le plug: ${plugId}`);
       try {
         await bot.deleteMessage(chatId, messageId);
-        await handlePlugDetails(bot, chatId, plugId);
+        await handlePlugDetails(bot, chatId, plugId, 'plugs', userId);
       } catch (error) {
         console.error('❌ Erreur lors de l\'affichage du plug:', error);
         await bot.answerCallbackQuery(callbackQuery.id, {

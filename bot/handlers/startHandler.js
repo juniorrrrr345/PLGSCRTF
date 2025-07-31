@@ -118,7 +118,7 @@ async function handleStart(bot, msg, param) {
       }
       
       // Afficher directement les détails du plug
-      await handlePlugDetails(bot, chatId, plugId);
+      await handlePlugDetails(bot, chatId, plugId, 'plugs', user.telegramId);
       return; // Ne pas afficher le menu principal
     }
     
