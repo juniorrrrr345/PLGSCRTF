@@ -20,7 +20,11 @@ export async function GET() {
       postalCode: app.postalCode || app.location?.postalCode || '',
       photo: app.photo || app.shopPhoto || null,
       // S'assurer que les objets existent
-      socialNetworks: app.socialNetworks || { primary: [], others: '' },
+      socialNetworks: {
+        primary: app.socialNetworks?.primary || [],
+        links: app.socialNetworks?.links || {},
+        others: app.socialNetworks?.others || ''
+      },
       methods: app.methods || {}
     }))
     

@@ -53,10 +53,13 @@ export default function ConfigPage() {
   // Form states
   const [welcomeMessage, setWelcomeMessage] = useState('')
   const [globalMessage, setGlobalMessage] = useState('')
+  const [miniAppButtonText, setMiniAppButtonText] = useState('MINI APP PLGS CRTFS 🔌')
   const [socialNetworks, setSocialNetworks] = useState<any>({})
   const [shopSocialNetworks, setShopSocialNetworks] = useState<any[]>([])
   const [showAddSocialNetwork, setShowAddSocialNetwork] = useState(false)
   const [botSocialNetworks, setBotSocialNetworks] = useState<any[]>([])
+  const [editingApplication, setEditingApplication] = useState<any>(null)
+  const [showEditApplication, setShowEditApplication] = useState(false)
   const [newProduct, setNewProduct] = useState({
     title: '',
     description: '',
@@ -126,6 +129,7 @@ export default function ConfigPage() {
   useEffect(() => {
     if (settings) {
       setWelcomeMessage(settings.welcomeMessage || '')
+      setMiniAppButtonText(settings.miniAppButtonText || 'MINI APP PLGS CRTFS 🔌')
       
       // Charger les réseaux sociaux du bot
       if (settings.botSocialNetworks) {
@@ -228,7 +232,7 @@ export default function ConfigPage() {
       const res = await fetch('/api/settings', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ welcomeMessage })
+        body: JSON.stringify({ welcomeMessage, miniAppButtonText })
       })
       
       if (res.ok) {
@@ -541,6 +545,21 @@ export default function ConfigPage() {
     }
   }
   
+  const handleRejectApplication = async (applicationId: string) => {
+    try {
+      const res = await fetch(`/api/applications/${applicationId}/reject`, {
+        method: 'POST'
+      })
+      
+      if (res.ok) {
+        toast.success('Candidature rejetée')
+        mutate('/api/applications')
+      }
+    } catch (error) {
+      toast.error('Erreur lors du rejet')
+    }
+  }
+  
   if (isLoading) {
     return (
       <div className="min-h-screen flex items-center justify-center">
@@ -743,6 +762,36 @@ export default function ConfigPage() {
                       ))}
                     </div>
                   </div>
+                  
+                  {/* Top Parrains */}
+                  <div className="glass-card p-6">
+                    <h2 className="text-xl font-bold mb-4">👥 Top Parrains</h2>
+                    <div className="space-y-3">
+                      {plugs?.sort((a: any, b: any) => (b.referralCount || 0) - (a.referralCount || 0))
+                        .slice(0, 5)
+                        .map((plug: any, index: number) => (
+                          <div key={plug._id} className="flex items-center justify-between p-3 bg-white/5 rounded-lg">
+                            <div className="flex items-center gap-3">
+                              <span className="text-2xl">
+                                {index === 0 && '🥇'}
+                                {index === 1 && '🥈'}
+                                {index === 2 && '🥉'}
+                                {index > 2 && `${index + 1}.`}
+                              </span>
+                              <div>
+                                <p className="font-semibold">{plug.name}</p>
+                                <p className="text-sm text-gray-400">
+                                  {plug.location?.department || plug.department || ''}
+                                </p>
+                              </div>
+                            </div>
+                            <div className="text-sm font-medium text-blue-400">
+                              {plug.referralCount || 0} parrainages
+                            </div>
+                          </div>
+                        ))}
+                    </div>
+                  </div>
                 </div>
               )}
               
@@ -883,13 +932,26 @@ export default function ConfigPage() {
                               </div>
                               <div className="flex gap-2">
                                 <button
+                                  onClick={() => {
+                                    setEditingApplication(app)
+                                    setShowEditApplication(true)
+                                  }}
+                                  className="p-2 bg-blue-500/20 text-blue-500 rounded-lg hover:bg-blue-500/30 transition-colors"
+                                  title="Modifier"
+                                >
+                                  <PencilIcon className="w-5 h-5" />
+                                </button>
+                                <button
                                   onClick={() => handleApproveApplication(app._id)}
                                   className="p-2 bg-green-500/20 text-green-500 rounded-lg hover:bg-green-500/30 transition-colors"
+                                  title="Approuver"
                                 >
                                   <CheckIcon className="w-5 h-5" />
                                 </button>
                                 <button
+                                  onClick={() => handleRejectApplication(app._id)}
                                   className="p-2 bg-red-500/20 text-red-500 rounded-lg hover:bg-red-500/30 transition-colors"
+                                  title="Rejeter"
                                 >
                                   <XMarkIcon className="w-5 h-5" />
                                 </button>
@@ -912,20 +974,40 @@ export default function ConfigPage() {
                             <div className="bg-white/5 p-3 rounded-lg">
                               <p className="text-gray-400 font-semibold mb-2">📱 Réseaux sociaux:</p>
                               {safeApp.socialNetworks?.primary?.length > 0 ? (
-                                <div className="flex flex-wrap gap-2 mb-2">
-                                  {safeApp.socialNetworks.primary.map((network: string, idx: number) => (
-                                    <span key={`${network}-${idx}`} className="bg-blue-500/20 text-blue-400 px-3 py-1 rounded-full text-sm">
-                                      {network}
-                                    </span>
-                                  ))}
+                                <div className="space-y-2">
+                                  {safeApp.socialNetworks.primary.map((network: string, idx: number) => {
+                                    const networkNames: any = {
+                                      snap: '👻 Snapchat',
+                                      instagram: '📸 Instagram',
+                                      whatsapp: '💬 WhatsApp',
+                                      signal: '🔐 Signal',
+                                      threema: '🔒 Threema',
+                                      potato: '🥔 Potato',
+                                      telegram: '✈️ Telegram'
+                                    };
+                                    const link = safeApp.socialNetworks?.links?.[network] || 'Pas de lien';
+                                    return (
+                                      <div key={`${network}-${idx}`} className="flex items-center justify-between bg-gray-800/50 p-2 rounded-lg">
+                                        <span className="text-sm font-medium">
+                                          {networkNames[network] || network}
+                                        </span>
+                                        <span className="text-xs text-gray-400 ml-2 truncate max-w-[200px]">
+                                          {link}
+                                        </span>
+                                      </div>
+                                    );
+                                  })}
                                 </div>
                               ) : (
                                 <p className="text-gray-500 italic">Non spécifié</p>
                               )}
                               {safeApp.socialNetworks?.others && (
-                                <p className="text-sm mt-2">
-                                  <span className="text-gray-400">Autres:</span> {safeApp.socialNetworks.others}
-                                </p>
+                                <div className="mt-3 pt-3 border-t border-gray-700">
+                                  <p className="text-sm">
+                                    <span className="text-gray-400 font-medium">Autres réseaux:</span>
+                                  </p>
+                                  <p className="text-sm text-gray-300 mt-1">{safeApp.socialNetworks.others}</p>
+                                </div>
                               )}
                             </div>
                             
@@ -1241,6 +1323,27 @@ export default function ConfigPage() {
               {activeTab === 'settings' && (
                 <div className="space-y-6 max-w-4xl">
                   <h1 className="text-3xl font-bold">Paramètres</h1>
+                  
+                  {/* Mini App Button Text */}
+                  <div className="glass-card p-6">
+                    <h2 className="text-xl font-bold mb-4">🔌 Texte du bouton Mini App</h2>
+                    <p className="text-gray-400 mb-4">
+                      Personnalisez le texte affiché sur le bouton Mini App en haut de la boutique.
+                    </p>
+                    <input
+                      type="text"
+                      value={miniAppButtonText}
+                      onChange={(e) => setMiniAppButtonText(e.target.value)}
+                      className="w-full px-4 py-3 bg-white/10 border border-white/20 rounded-lg focus:border-primary focus:outline-none transition-colors"
+                      placeholder="Ex: MINI APP PLGS CRTFS 🔌"
+                    />
+                    <button
+                      onClick={handleSaveSettings}
+                      className="btn-primary mt-4"
+                    >
+                      Enregistrer
+                    </button>
+                  </div>
                   
                   {/* Welcome Message */}
                   <div className="glass-card p-6">
@@ -2097,6 +2200,127 @@ export default function ConfigPage() {
                 >
                   Annuler
                 </button>
+              </div>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+      
+      {/* Edit Application Modal */}
+      <AnimatePresence>
+        {showEditApplication && editingApplication && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="fixed inset-0 bg-black/80 backdrop-blur-sm z-50 flex items-center justify-center p-4"
+            onClick={() => setShowEditApplication(false)}
+          >
+            <motion.div
+              initial={{ scale: 0.95, opacity: 0 }}
+              animate={{ scale: 1, opacity: 1 }}
+              exit={{ scale: 0.95, opacity: 0 }}
+              className="bg-gray-900 rounded-2xl p-6 max-w-4xl w-full max-h-[90vh] overflow-y-auto"
+              onClick={(e) => e.stopPropagation()}
+            >
+              <h3 className="text-2xl font-bold mb-6">Modifier la candidature</h3>
+              
+              <div className="space-y-6">
+                {/* Nom d'utilisateur */}
+                <div>
+                  <label className="block text-sm font-medium text-gray-300 mb-2">
+                    Nom d'utilisateur
+                  </label>
+                  <input
+                    type="text"
+                    value={editingApplication.username || ''}
+                    onChange={(e) => setEditingApplication({...editingApplication, username: e.target.value})}
+                    className="w-full px-4 py-2 bg-gray-800 border border-gray-700 rounded-lg"
+                  />
+                </div>
+                
+                {/* Description */}
+                <div>
+                  <label className="block text-sm font-medium text-gray-300 mb-2">
+                    Description
+                  </label>
+                  <textarea
+                    value={editingApplication.description || ''}
+                    onChange={(e) => setEditingApplication({...editingApplication, description: e.target.value})}
+                    rows={4}
+                    className="w-full px-4 py-2 bg-gray-800 border border-gray-700 rounded-lg"
+                  />
+                </div>
+                
+                {/* Localisation */}
+                <div className="grid grid-cols-3 gap-4">
+                  <div>
+                    <label className="block text-sm font-medium text-gray-300 mb-2">
+                      Pays
+                    </label>
+                    <input
+                      type="text"
+                      value={editingApplication.country || ''}
+                      onChange={(e) => setEditingApplication({...editingApplication, country: e.target.value})}
+                      className="w-full px-4 py-2 bg-gray-800 border border-gray-700 rounded-lg"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-300 mb-2">
+                      Département
+                    </label>
+                    <input
+                      type="text"
+                      value={editingApplication.department || ''}
+                      onChange={(e) => setEditingApplication({...editingApplication, department: e.target.value})}
+                      className="w-full px-4 py-2 bg-gray-800 border border-gray-700 rounded-lg"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-300 mb-2">
+                      Code postal
+                    </label>
+                    <input
+                      type="text"
+                      value={editingApplication.postalCode || ''}
+                      onChange={(e) => setEditingApplication({...editingApplication, postalCode: e.target.value})}
+                      className="w-full px-4 py-2 bg-gray-800 border border-gray-700 rounded-lg"
+                    />
+                  </div>
+                </div>
+                
+                {/* Actions */}
+                <div className="flex gap-4 pt-4">
+                  <button
+                    onClick={async () => {
+                      // Sauvegarder les modifications
+                      try {
+                        const res = await fetch(`/api/applications/${editingApplication._id}`, {
+                          method: 'PUT',
+                          headers: { 'Content-Type': 'application/json' },
+                          body: JSON.stringify(editingApplication)
+                        })
+                        
+                        if (res.ok) {
+                          toast.success('Candidature modifiée')
+                          mutate('/api/applications')
+                          setShowEditApplication(false)
+                        }
+                      } catch (error) {
+                        toast.error('Erreur lors de la modification')
+                      }
+                    }}
+                    className="flex-1 btn-primary"
+                  >
+                    Sauvegarder
+                  </button>
+                  <button
+                    onClick={() => setShowEditApplication(false)}
+                    className="flex-1 px-4 py-2 bg-gray-700 text-white rounded-lg hover:bg-gray-600 transition-colors"
+                  >
+                    Annuler
+                  </button>
+                </div>
               </div>
             </motion.div>
           </motion.div>

@@ -13,6 +13,10 @@ const vendorApplicationSchema = new mongoose.Schema({
   username: String,
   socialNetworks: {
     primary: [String],
+    links: {
+      type: Map,
+      of: String
+    },
     others: String
   },
   methods: {

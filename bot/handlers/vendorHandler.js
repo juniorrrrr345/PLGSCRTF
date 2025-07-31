@@ -26,7 +26,7 @@ async function handleVendorApplication(bot, chatId, userStates, action = null, m
       step: 'social_primary',
       stepIndex: 0,
       data: {
-        socialNetworks: { primary: [], others: '' },
+        socialNetworks: { primary: [], links: {}, others: '' },
         methods: { delivery: false, shipping: false, meetup: false },
         deliveryZones: '',    // Départements/codes postaux pour livraison
         shippingZones: '',    // Pays/départements pour envoi
@@ -97,6 +97,12 @@ async function handleVendorApplication(bot, chatId, userStates, action = null, m
 
 async function processVendorResponse(userState, response) {
   switch (userState.step) {
+    case 'social_links':
+      if (userState.currentNetwork) {
+        userState.data.socialNetworks.links[userState.currentNetwork] = response;
+        delete userState.currentNetwork;
+      }
+      break;
     case 'social_other':
       userState.data.socialNetworks.others = response;
       break;
@@ -150,9 +156,59 @@ async function displayVendorStep(bot, chatId, userState) {
       });
       break;
       
+    case 'social_links':
+      message = '🔗 <b>Étape 2/11 - Liens des réseaux sociaux</b>\n\n';
+      const selectedNetworks = userState.data.socialNetworks.primary;
+      
+      if (selectedNetworks.length === 0) {
+        // Si aucun réseau sélectionné, passer à l'étape suivante
+        userState.stepIndex++;
+        userState.step = vendorSteps[userState.stepIndex];
+        await displayVendorStep(bot, chatId, userState);
+        return;
+      }
+      
+      // Trouver le prochain réseau sans lien
+      let currentNetwork = null;
+      for (const network of selectedNetworks) {
+        if (!userState.data.socialNetworks.links[network]) {
+          currentNetwork = network;
+          break;
+        }
+      }
+      
+      if (!currentNetwork) {
+        // Tous les liens sont remplis, passer à l'étape suivante
+        userState.stepIndex++;
+        userState.step = vendorSteps[userState.stepIndex];
+        await displayVendorStep(bot, chatId, userState);
+        return;
+      }
+      
+      const networkNames = {
+        snap: '👻 Snapchat',
+        instagram: '📸 Instagram',
+        whatsapp: '💬 WhatsApp',
+        signal: '🔐 Signal',
+        threema: '🔒 Threema',
+        potato: '🥔 Potato',
+        telegram: '✈️ Telegram'
+      };
+      
+      message += `Quel est votre lien/username pour ${networkNames[currentNetwork]} ?\n\n`;
+      message += '💡 Exemples:\n';
+      message += '• @username\n';
+      message += '• https://...\n';
+      message += '• Numéro de téléphone\n';
+      
+      userState.currentNetwork = currentNetwork;
+      break;
+      
     case 'social_other':
-      message = '📝 <b>Étape 2/8 - Autres réseaux</b>\n\n';
+      message = '📝 <b>Étape 3/11 - Autres réseaux</b>\n\n';
       message += 'Avez-vous d\'autres réseaux sociaux ? (optionnel)\n';
+      message += 'Format: NomDuRéseau: @username ou lien\n';
+      message += 'Exemple: TikTok: @moncompte\n\n';
       message += 'Envoyez votre réponse ou passez à l\'étape suivante.';
       break;
       

@@ -13,6 +13,7 @@ export default function Home() {
   const { data: stats } = useSWR('/api/stats', fetcher, {
     refreshInterval: 5000
   })
+  const { data: settings } = useSWR('/api/settings', fetcher)
 
   const [mounted, setMounted] = useState(false)
   const [showSplash, setShowSplash] = useState(true)
@@ -53,6 +54,33 @@ export default function Home() {
         animate={{ opacity: showSplash ? 0 : 1 }}
         transition={{ duration: 0.5 }}
         className="relative min-h-screen">
+        
+      {/* Mini App Button */}
+      <motion.div
+        initial={{ y: -100, opacity: 0 }}
+        animate={{ y: 0, opacity: 1 }}
+        transition={{ duration: 0.6, delay: 0.2 }}
+        className="fixed top-20 left-1/2 transform -translate-x-1/2 z-40"
+      >
+        <Link
+          href="https://t.me/PLGSCRTF_BOT/miniapp"
+          target="_blank"
+          className="group relative inline-flex items-center gap-2 px-6 py-3 bg-gradient-to-r from-purple-600 to-blue-600 rounded-full font-bold text-white shadow-2xl hover:shadow-purple-500/50 transition-all duration-300 hover:scale-105"
+        >
+          <span className="absolute -inset-1 bg-gradient-to-r from-purple-600 to-blue-600 rounded-full blur-lg opacity-70 group-hover:opacity-100 transition-opacity"></span>
+          <span className="relative flex items-center gap-2">
+            {settings?.miniAppButtonText || 'MINI APP PLGS CRTFS 🔌'}
+          </span>
+          <motion.span
+            animate={{ rotate: [0, 10, -10, 0] }}
+            transition={{ duration: 2, repeat: Infinity }}
+            className="relative"
+          >
+            ✨
+          </motion.span>
+        </Link>
+      </motion.div>
+      
       {/* Animated Background - Plus sombre pour meilleur contraste */}
       <div className="fixed inset-0 -z-10">
         <motion.div
