@@ -108,7 +108,7 @@ async function handlePlugsMenu(bot, chatId, filters = {}) {
       const isSelected = filters.country === country;
       // Compter le nombre de plugs pour ce pays
       const countryPlugsCount = allPlugs.filter(plug => 
-        plug.location?.countries?.includes(country)
+        plug.country === country
       ).length;
       
       return {

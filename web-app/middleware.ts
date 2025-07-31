@@ -21,10 +21,8 @@ export async function middleware(request: NextRequest) {
       return NextResponse.rewrite(new URL('/maintenance', request.url))
     }
 
-    // Si pas de cookie, vérifier via l'API (sera mis en cache)
-    const response = await fetch(`${request.nextUrl.origin}/api/settings`, {
-      cache: 'no-store'
-    })
+    // Si pas de cookie, vérifier via l'API
+    const response = await fetch(`${request.nextUrl.origin}/api/settings`)
     
     if (response.ok) {
       const data = await response.json()

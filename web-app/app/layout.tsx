@@ -21,6 +21,26 @@ export default function RootLayout({
 }) {
   return (
     <html lang="fr">
+      <head>
+        <script
+          dangerouslySetInnerHTML={{
+            __html: `
+              // Vérifier immédiatement le mode maintenance
+              (function() {
+                const maintenanceMode = document.cookie
+                  .split('; ')
+                  .find(row => row.startsWith('maintenanceMode='))
+                  ?.split('=')[1];
+                
+                if (maintenanceMode === 'true' && !window.location.pathname.includes('/config')) {
+                  // Masquer le body pendant le chargement
+                  document.documentElement.style.visibility = 'hidden';
+                }
+              })();
+            `,
+          }}
+        />
+      </head>
       <body className={`${inter.className} bg-dark text-white min-h-screen`}>
         <BackgroundProvider>
           <Navbar />
