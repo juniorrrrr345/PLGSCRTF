@@ -466,8 +466,14 @@ async function handlePlugDetails(bot, chatId, plugId, fromMenu = 'plugs') {
       }
     }
     
+    // Créer le bouton avec callback_data différent si en cooldown
+    const isInCooldown = user && user.lastLikeTime && ((new Date() - user.lastLikeTime) / 1000 / 60) < 30;
+    
     keyboard.inline_keyboard.push([
-      { text: likeButtonText, callback_data: `like_${plug._id}` }
+      { 
+        text: likeButtonText, 
+        callback_data: isInCooldown ? `cooldown_${plugId}` : `like_${plugId}` 
+      }
     ]);
     
     // Lien de parrainage (visible uniquement pour les admins)
@@ -583,6 +589,7 @@ async function handleLike(bot, callbackQuery, plugId) {
             for (let button of row) {
               if (button.callback_data && button.callback_data.startsWith('like_')) {
                 button.text = `⏱️ Restant ${remainingTime}min (${plug.likes || 0})`;
+                button.callback_data = `cooldown_${plugId}`; // Désactiver le bouton
                 break;
               }
             }
@@ -670,6 +677,7 @@ async function handleLike(bot, callbackQuery, plugId) {
           for (let button of row) {
             if (button.callback_data && button.callback_data.startsWith('like_')) {
               button.text = `⏱️ Restant 30min (${plug.likes})`;
+              button.callback_data = `cooldown_${plug._id}`; // Changer le callback pour désactiver le bouton
               break;
             }
           }
