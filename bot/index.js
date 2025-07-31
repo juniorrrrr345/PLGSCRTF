@@ -22,16 +22,28 @@ let bot;
 let pollingError = false;
 
 // Vérifier si on est sur Render (webhook) ou local (polling)
-const isRender = process.env.RENDER === 'true';
+const isRender = process.env.RENDER === 'true' || process.env.RENDER_SERVICE_NAME !== undefined;
 const PORT = process.env.PORT || 3000;
+
+console.log('🔍 Environment check:', {
+  RENDER: process.env.RENDER,
+  RENDER_SERVICE_NAME: process.env.RENDER_SERVICE_NAME,
+  isRender: isRender
+});
 
 if (isRender) {
   // Mode webhook pour Render
   bot = new TelegramBot(process.env.TELEGRAM_BOT_TOKEN, { webHook: true });
   
-  // Configurer le webhook
-  const url = process.env.RENDER_EXTERNAL_URL || `https://${process.env.RENDER_SERVICE_NAME}.onrender.com`;
-  bot.setWebHook(`${url}/bot${process.env.TELEGRAM_BOT_TOKEN}`);
+  // Configurer le webhook avec le bon URL
+  const webhookUrl = `https://plgscrtf.onrender.com/bot${process.env.TELEGRAM_BOT_TOKEN}`;
+  
+  // Définir le webhook
+  bot.setWebHook(webhookUrl).then(() => {
+    console.log(`✅ Webhook configuré: ${webhookUrl}`);
+  }).catch(err => {
+    console.error('❌ Erreur configuration webhook:', err);
+  });
   
   console.log('🌐 Bot configuré en mode webhook pour Render');
 } else {
@@ -76,12 +88,14 @@ bot.on('polling_error', (error) => {
   }
 });
 
-// Nettoyer les webhooks au démarrage
-bot.deleteWebHook().then(() => {
-  console.log('✅ Webhook cleared, starting polling...');
-}).catch(err => {
-  console.log('⚠️ Error clearing webhook:', err.message);
-});
+// Nettoyer les webhooks seulement en mode polling
+if (!isRender) {
+  bot.deleteWebHook().then(() => {
+    console.log('✅ Webhook cleared, starting polling...');
+  }).catch(err => {
+    console.log('⚠️ Error clearing webhook:', err.message);
+  });
+}
 
 // État des utilisateurs pour les formulaires
 const userStates = new Map();
