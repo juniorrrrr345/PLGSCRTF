@@ -1381,7 +1381,95 @@ export default function ConfigPage() {
                       </button>
                     </div>
                     
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    {/* Configuration des images de maintenance */}
+                    <div className="space-y-6 mt-6">
+                      <h3 className="text-lg font-semibold mb-4">🖼️ Personnalisation de la page de maintenance</h3>
+                      
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        {/* Logo de maintenance */}
+                        <div>
+                          <label className="block text-sm font-medium text-gray-300 mb-2">
+                            Logo de maintenance
+                          </label>
+                          <div className="space-y-2">
+                            <input
+                              type="text"
+                              value={maintenanceLogo}
+                              onChange={(e) => setMaintenanceLogo(e.target.value)}
+                              placeholder="URL du logo (ex: https://...)"
+                              className="w-full px-4 py-2 bg-gray-800 border border-gray-600 rounded-lg text-white placeholder-gray-400 focus:border-blue-500 focus:outline-none"
+                            />
+                            {maintenanceLogo && (
+                              <div className="mt-2 p-4 bg-gray-800 rounded-lg">
+                                <img 
+                                  src={maintenanceLogo} 
+                                  alt="Logo de maintenance" 
+                                  className="max-h-32 mx-auto rounded"
+                                  onError={(e) => {
+                                    e.currentTarget.src = 'https://via.placeholder.com/150?text=Logo'
+                                  }}
+                                />
+                              </div>
+                            )}
+                          </div>
+                        </div>
+                        
+                        {/* Image de fond */}
+                        <div>
+                          <label className="block text-sm font-medium text-gray-300 mb-2">
+                            Image de fond
+                          </label>
+                          <div className="space-y-2">
+                            <input
+                              type="text"
+                              value={maintenanceBackgroundImage}
+                              onChange={(e) => setMaintenanceBackgroundImage(e.target.value)}
+                              placeholder="URL de l'image de fond (ex: https://...)"
+                              className="w-full px-4 py-2 bg-gray-800 border border-gray-600 rounded-lg text-white placeholder-gray-400 focus:border-blue-500 focus:outline-none"
+                            />
+                            {maintenanceBackgroundImage && (
+                              <div className="mt-2 p-4 bg-gray-800 rounded-lg">
+                                <img 
+                                  src={maintenanceBackgroundImage} 
+                                  alt="Image de fond" 
+                                  className="w-full h-32 object-cover rounded"
+                                  onError={(e) => {
+                                    e.currentTarget.src = 'https://via.placeholder.com/300x150?text=Background'
+                                  }}
+                                />
+                              </div>
+                            )}
+                          </div>
+                        </div>
+                      </div>
+                      
+                      <button
+                        onClick={async () => {
+                          try {
+                            const res = await fetch('/api/settings', {
+                              method: 'POST',
+                              headers: { 'Content-Type': 'application/json' },
+                              body: JSON.stringify({ 
+                                maintenanceBackgroundImage,
+                                maintenanceLogo
+                              })
+                            })
+                            
+                            if (res.ok) {
+                              toast.success('Images de maintenance mises à jour')
+                              mutate('/api/settings')
+                            }
+                          } catch (error) {
+                            toast.error('Erreur lors de la mise à jour')
+                          }
+                        }}
+                        className="px-6 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg transition-all"
+                      >
+                        Sauvegarder les images
+                      </button>
+                    </div>
+                    
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mt-6">
                       <div className="bg-blue-900/20 border border-blue-600/30 rounded-lg p-4">
                         <h4 className="font-semibold text-blue-400 mb-2 flex items-center gap-2">
                           <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">

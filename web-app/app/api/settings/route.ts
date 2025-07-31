@@ -45,6 +45,8 @@ export async function POST(request: NextRequest) {
     if (data.telegramChannelLink !== undefined) settings.telegramChannelLink = data.telegramChannelLink
     if (data.telegramChannelId !== undefined) settings.telegramChannelId = data.telegramChannelId
     if (data.maintenanceMode !== undefined) settings.maintenanceMode = data.maintenanceMode
+    if (data.maintenanceBackgroundImage !== undefined) settings.maintenanceBackgroundImage = data.maintenanceBackgroundImage
+    if (data.maintenanceLogo !== undefined) settings.maintenanceLogo = data.maintenanceLogo
     
     await settings.save()
     

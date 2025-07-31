@@ -12,52 +12,71 @@ interface SocialNetwork {
 
 export default function MaintenancePage() {
   const [socialNetworks, setSocialNetworks] = useState<SocialNetwork[]>([])
-  const [welcomeImage, setWelcomeImage] = useState<string>('')
+  const [maintenanceBackgroundImage, setMaintenanceBackgroundImage] = useState<string>('')
+  const [maintenanceLogo, setMaintenanceLogo] = useState<string>('')
 
   useEffect(() => {
-    // Récupérer les réseaux sociaux depuis l'API
+    // Récupérer les réseaux sociaux et les images depuis l'API
     fetch('/api/settings')
       .then(res => res.json())
       .then(data => {
         if (data.shopSocialNetworks) {
           setSocialNetworks(data.shopSocialNetworks.sort((a: SocialNetwork, b: SocialNetwork) => a.order - b.order))
         }
-        if (data.welcomeImage) {
-          setWelcomeImage(data.welcomeImage)
+        if (data.maintenanceBackgroundImage) {
+          setMaintenanceBackgroundImage(data.maintenanceBackgroundImage)
+        }
+        if (data.maintenanceLogo) {
+          setMaintenanceLogo(data.maintenanceLogo)
         }
       })
       .catch(err => console.error('Erreur chargement réseaux sociaux:', err))
   }, [])
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-gray-900 via-black to-gray-900 flex items-center justify-center px-4">
+    <div 
+      className="min-h-screen bg-gradient-to-br from-gray-900 via-black to-gray-900 flex items-center justify-center px-4"
+      style={{
+        backgroundImage: maintenanceBackgroundImage ? `url(${maintenanceBackgroundImage})` : undefined,
+        backgroundSize: 'cover',
+        backgroundPosition: 'center',
+        backgroundRepeat: 'no-repeat'
+      }}
+    >
+      {/* Overlay sombre si image de fond */}
+      {maintenanceBackgroundImage && (
+        <div className="absolute inset-0 bg-black/70"></div>
+      )}
+      
       <motion.div
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.5 }}
-        className="max-w-2xl w-full text-center"
+        className="max-w-2xl w-full text-center relative z-10"
       >
-        {welcomeImage && (
+        {maintenanceLogo && (
           <motion.img
             initial={{ opacity: 0, scale: 0.8 }}
             animate={{ opacity: 1, scale: 1 }}
             transition={{ duration: 0.5 }}
-            src={welcomeImage}
+            src={maintenanceLogo}
             alt="PLUGS CRTFS"
             className="w-48 h-48 mx-auto mb-8 rounded-2xl object-cover"
           />
         )}
         
-        <motion.div
-          animate={{ rotate: 360 }}
-          transition={{ duration: 20, repeat: Infinity, ease: "linear" }}
-          className="inline-block mb-8"
-        >
-          <svg className="w-24 h-24 text-blue-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" />
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
-          </svg>
-        </motion.div>
+        {!maintenanceLogo && (
+          <motion.div
+            animate={{ rotate: 360 }}
+            transition={{ duration: 20, repeat: Infinity, ease: "linear" }}
+            className="inline-block mb-8"
+          >
+            <svg className="w-24 h-24 text-blue-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" />
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+            </svg>
+          </motion.div>
+        )}
         
         <h1 className="text-4xl md:text-6xl font-bold text-white mb-4">
           🔧 Maintenance en cours
