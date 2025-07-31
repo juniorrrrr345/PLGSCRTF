@@ -2223,70 +2223,226 @@ export default function ConfigPage() {
               className="bg-gray-900 rounded-2xl p-6 max-w-4xl w-full max-h-[90vh] overflow-y-auto"
               onClick={(e) => e.stopPropagation()}
             >
-              <h3 className="text-2xl font-bold mb-6">Modifier la candidature</h3>
+              <h3 className="text-2xl font-bold mb-6">Modifier la candidature de @{editingApplication.username}</h3>
               
               <div className="space-y-6">
-                {/* Nom d'utilisateur */}
-                <div>
+                {/* Photo de la boutique */}
+                {(editingApplication.photo || editingApplication.shopPhoto) && (
+                  <div className="bg-gray-800 p-4 rounded-lg">
+                    <label className="block text-sm font-medium text-gray-300 mb-2">
+                      📸 Photo de la boutique
+                    </label>
+                    <div className="bg-gray-900 p-4 rounded-lg">
+                      <img 
+                        src={`/api/telegram-photo/${editingApplication.photo || editingApplication.shopPhoto}`}
+                        alt="Photo de la boutique"
+                        className="w-full max-w-md h-64 object-cover rounded-lg mb-3"
+                        onError={(e) => {
+                          e.currentTarget.style.display = 'none';
+                          e.currentTarget.nextElementSibling?.classList.remove('hidden');
+                        }}
+                      />
+                      <div className="hidden bg-gray-800 p-3 rounded text-sm text-gray-400">
+                        ⚠️ Impossible de charger la photo. ID: {editingApplication.photo || editingApplication.shopPhoto}
+                      </div>
+                      <div className="flex gap-2 mt-2">
+                        <a
+                          href={`/api/telegram-photo/${editingApplication.photo || editingApplication.shopPhoto}`}
+                          download={`boutique_${editingApplication.username}.jpg`}
+                          className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded text-sm transition-colors"
+                        >
+                          📥 Télécharger la photo
+                        </a>
+                        <button
+                          onClick={() => window.open(`/api/telegram-photo/${editingApplication.photo || editingApplication.shopPhoto}`, '_blank')}
+                          className="px-4 py-2 bg-gray-700 hover:bg-gray-600 text-white rounded text-sm transition-colors"
+                        >
+                          🔗 Ouvrir dans un nouvel onglet
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+                )}
+                
+                {/* Réseaux sociaux avec liens */}
+                <div className="bg-gray-800 p-4 rounded-lg">
                   <label className="block text-sm font-medium text-gray-300 mb-2">
-                    Nom d'utilisateur
+                    📱 Réseaux sociaux et liens
                   </label>
-                  <input
-                    type="text"
-                    value={editingApplication.username || ''}
-                    onChange={(e) => setEditingApplication({...editingApplication, username: e.target.value})}
-                    className="w-full px-4 py-2 bg-gray-800 border border-gray-700 rounded-lg"
-                  />
+                  <div className="space-y-2">
+                    {editingApplication.socialNetworks?.primary?.map((network: string, idx: number) => {
+                      const networkNames: any = {
+                        snap: '👻 Snapchat',
+                        instagram: '📸 Instagram',
+                        whatsapp: '💬 WhatsApp',
+                        signal: '🔐 Signal',
+                        threema: '🔒 Threema',
+                        potato: '🥔 Potato',
+                        telegram: '✈️ Telegram'
+                      };
+                      return (
+                        <div key={idx} className="flex items-center gap-2">
+                          <span className="w-32">{networkNames[network] || network}:</span>
+                          <input
+                            type="text"
+                            value={editingApplication.socialNetworks?.links?.[network] || ''}
+                            onChange={(e) => {
+                              const newApp = {...editingApplication};
+                              if (!newApp.socialNetworks.links) newApp.socialNetworks.links = {};
+                              newApp.socialNetworks.links[network] = e.target.value;
+                              setEditingApplication(newApp);
+                            }}
+                            placeholder="Lien ou @username"
+                            className="flex-1 px-3 py-1 bg-gray-700 border border-gray-600 rounded"
+                          />
+                        </div>
+                      );
+                    })}
+                    
+                    {editingApplication.socialNetworks?.others && (
+                      <div className="mt-3 pt-3 border-t border-gray-700">
+                        <label className="block text-sm text-gray-400 mb-1">Autres réseaux:</label>
+                        <textarea
+                          value={editingApplication.socialNetworks.others}
+                          onChange={(e) => setEditingApplication({
+                            ...editingApplication,
+                            socialNetworks: {...editingApplication.socialNetworks, others: e.target.value}
+                          })}
+                          rows={2}
+                          className="w-full px-3 py-1 bg-gray-700 border border-gray-600 rounded"
+                        />
+                      </div>
+                    )}
+                  </div>
+                </div>
+                
+                {/* Méthodes de vente et zones */}
+                <div className="bg-gray-800 p-4 rounded-lg">
+                  <label className="block text-sm font-medium text-gray-300 mb-2">
+                    📦 Méthodes de vente et zones
+                  </label>
+                  <div className="space-y-3">
+                    {editingApplication.methods?.delivery && (
+                      <div>
+                        <label className="flex items-center gap-2 text-sm text-gray-400 mb-1">
+                          <input
+                            type="checkbox"
+                            checked={editingApplication.methods.delivery}
+                            onChange={(e) => setEditingApplication({
+                              ...editingApplication,
+                              methods: {...editingApplication.methods, delivery: e.target.checked}
+                            })}
+                          />
+                          🚚 Livraison
+                        </label>
+                        <textarea
+                          value={editingApplication.deliveryZones || ''}
+                          onChange={(e) => setEditingApplication({...editingApplication, deliveryZones: e.target.value})}
+                          placeholder="Zones de livraison (départements, codes postaux...)"
+                          rows={2}
+                          className="w-full px-3 py-1 bg-gray-700 border border-gray-600 rounded text-sm"
+                        />
+                      </div>
+                    )}
+                    
+                    {editingApplication.methods?.shipping && (
+                      <div>
+                        <label className="flex items-center gap-2 text-sm text-gray-400 mb-1">
+                          <input
+                            type="checkbox"
+                            checked={editingApplication.methods.shipping}
+                            onChange={(e) => setEditingApplication({
+                              ...editingApplication,
+                              methods: {...editingApplication.methods, shipping: e.target.checked}
+                            })}
+                          />
+                          📮 Envoi
+                        </label>
+                        <textarea
+                          value={editingApplication.shippingZones || ''}
+                          onChange={(e) => setEditingApplication({...editingApplication, shippingZones: e.target.value})}
+                          placeholder="Zones d'envoi (pays, régions...)"
+                          rows={2}
+                          className="w-full px-3 py-1 bg-gray-700 border border-gray-600 rounded text-sm"
+                        />
+                      </div>
+                    )}
+                    
+                    {editingApplication.methods?.meetup && (
+                      <div>
+                        <label className="flex items-center gap-2 text-sm text-gray-400 mb-1">
+                          <input
+                            type="checkbox"
+                            checked={editingApplication.methods.meetup}
+                            onChange={(e) => setEditingApplication({
+                              ...editingApplication,
+                              methods: {...editingApplication.methods, meetup: e.target.checked}
+                            })}
+                          />
+                          🤝 Meetup
+                        </label>
+                        <textarea
+                          value={editingApplication.meetupZones || ''}
+                          onChange={(e) => setEditingApplication({...editingApplication, meetupZones: e.target.value})}
+                          placeholder="Zones de meetup (villes, quartiers...)"
+                          rows={2}
+                          className="w-full px-3 py-1 bg-gray-700 border border-gray-600 rounded text-sm"
+                        />
+                      </div>
+                    )}
+                  </div>
+                </div>
+                
+                {/* Localisation principale */}
+                <div className="bg-gray-800 p-4 rounded-lg">
+                  <label className="block text-sm font-medium text-gray-300 mb-2">
+                    📍 Localisation principale du vendeur
+                  </label>
+                  <div className="grid grid-cols-3 gap-4">
+                    <div>
+                      <label className="block text-xs text-gray-400 mb-1">Pays</label>
+                      <input
+                        type="text"
+                        value={editingApplication.country || ''}
+                        onChange={(e) => setEditingApplication({...editingApplication, country: e.target.value})}
+                        placeholder="Ex: France"
+                        className="w-full px-3 py-1 bg-gray-700 border border-gray-600 rounded text-sm"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-xs text-gray-400 mb-1">Département</label>
+                      <input
+                        type="text"
+                        value={editingApplication.department || ''}
+                        onChange={(e) => setEditingApplication({...editingApplication, department: e.target.value})}
+                        placeholder="Ex: 75"
+                        className="w-full px-3 py-1 bg-gray-700 border border-gray-600 rounded text-sm"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-xs text-gray-400 mb-1">Code postal</label>
+                      <input
+                        type="text"
+                        value={editingApplication.postalCode || ''}
+                        onChange={(e) => setEditingApplication({...editingApplication, postalCode: e.target.value})}
+                        placeholder="Ex: 75001"
+                        className="w-full px-3 py-1 bg-gray-700 border border-gray-600 rounded text-sm"
+                      />
+                    </div>
+                  </div>
                 </div>
                 
                 {/* Description */}
-                <div>
+                <div className="bg-gray-800 p-4 rounded-lg">
                   <label className="block text-sm font-medium text-gray-300 mb-2">
-                    Description
+                    📝 Description
                   </label>
                   <textarea
                     value={editingApplication.description || ''}
                     onChange={(e) => setEditingApplication({...editingApplication, description: e.target.value})}
                     rows={4}
-                    className="w-full px-4 py-2 bg-gray-800 border border-gray-700 rounded-lg"
+                    className="w-full px-3 py-2 bg-gray-700 border border-gray-600 rounded"
                   />
-                </div>
-                
-                {/* Localisation */}
-                <div className="grid grid-cols-3 gap-4">
-                  <div>
-                    <label className="block text-sm font-medium text-gray-300 mb-2">
-                      Pays
-                    </label>
-                    <input
-                      type="text"
-                      value={editingApplication.country || ''}
-                      onChange={(e) => setEditingApplication({...editingApplication, country: e.target.value})}
-                      className="w-full px-4 py-2 bg-gray-800 border border-gray-700 rounded-lg"
-                    />
-                  </div>
-                  <div>
-                    <label className="block text-sm font-medium text-gray-300 mb-2">
-                      Département
-                    </label>
-                    <input
-                      type="text"
-                      value={editingApplication.department || ''}
-                      onChange={(e) => setEditingApplication({...editingApplication, department: e.target.value})}
-                      className="w-full px-4 py-2 bg-gray-800 border border-gray-700 rounded-lg"
-                    />
-                  </div>
-                  <div>
-                    <label className="block text-sm font-medium text-gray-300 mb-2">
-                      Code postal
-                    </label>
-                    <input
-                      type="text"
-                      value={editingApplication.postalCode || ''}
-                      onChange={(e) => setEditingApplication({...editingApplication, postalCode: e.target.value})}
-                      className="w-full px-4 py-2 bg-gray-800 border border-gray-700 rounded-lg"
-                    />
-                  </div>
                 </div>
                 
                 {/* Actions */}
