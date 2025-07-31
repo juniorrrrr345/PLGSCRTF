@@ -457,7 +457,14 @@ async function handlePlugDetails(bot, chatId, plugId, fromMenu = 'plugs') {
       { text: `❤️ Like (${plug.likes || 0})`, callback_data: `like_${plug._id}` }
     ]);
     
-
+    // Lien de parrainage (visible uniquement pour les admins)
+    const settings = await Settings.findOne();
+    if (settings && settings.adminChatIds && settings.adminChatIds.includes(chatId.toString())) {
+      const referralLink = plug.referralLink || `https://t.me/${process.env.TELEGRAM_BOT_USERNAME}?start=plug_${plug._id}`;
+      keyboard.inline_keyboard.push([
+        { text: '🔗 Lien de parrainage (Admin)', url: referralLink }
+      ]);
+    }
     
     // Navigation
     const backButton = fromMenu === 'top_referrals' 
