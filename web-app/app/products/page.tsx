@@ -29,8 +29,8 @@ export default function ProductsPage() {
           </p>
         </motion.div>
 
-        {/* Products Grid */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+        {/* Products Grid - 2 per row on all devices */}
+        <div className="grid grid-cols-2 gap-4 md:gap-6 lg:gap-8 max-w-6xl mx-auto">
           {products.map((product: any, index: number) => (
             <motion.div
               key={product._id}

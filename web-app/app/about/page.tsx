@@ -21,8 +21,8 @@ export default function AboutPage() {
           </p>
         </motion.div>
 
-        {/* Features Grid */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-8 mb-20">
+        {/* Features Grid - 2 per row on all devices */}
+        <div className="grid grid-cols-2 gap-4 md:gap-6 lg:gap-8 max-w-4xl mx-auto mb-20">
           {/* Vendeurs Certifiés */}
           <motion.div
             initial={{ opacity: 0, y: 30 }}
@@ -109,6 +109,38 @@ export default function AboutPage() {
               <div className="flex items-center gap-3 text-gray-400">
                 <span className="text-2xl">🏆</span>
                 <span>Classement des meilleurs</span>
+              </div>
+            </div>
+          </motion.div>
+
+          {/* Support Premium */}
+          <motion.div
+            initial={{ opacity: 0, y: 30 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.4 }}
+            className="bg-gradient-to-br from-amber-900/20 to-orange-900/20 backdrop-blur-sm border-2 border-amber-600/30 rounded-3xl p-8 hover:border-amber-600/50 transition-all group"
+          >
+            <div className="bg-gradient-to-r from-amber-600 to-orange-600 w-20 h-20 rounded-2xl flex items-center justify-center mb-6 group-hover:scale-110 transition-transform">
+              <svg className="w-10 h-10 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" />
+              </svg>
+            </div>
+            <h2 className="text-3xl font-bold text-white mb-4">Support Premium</h2>
+            <p className="text-gray-300 text-lg leading-relaxed">
+              Une équipe dédiée pour vous accompagner dans toutes vos transactions
+            </p>
+            <div className="mt-6 space-y-3">
+              <div className="flex items-center gap-3 text-gray-400">
+                <span className="text-2xl">💬</span>
+                <span>Support 24/7</span>
+              </div>
+              <div className="flex items-center gap-3 text-gray-400">
+                <span className="text-2xl">⚡</span>
+                <span>Réponse rapide</span>
+              </div>
+              <div className="flex items-center gap-3 text-gray-400">
+                <span className="text-2xl">🔒</span>
+                <span>Confidentialité garantie</span>
               </div>
             </div>
           </motion.div>
