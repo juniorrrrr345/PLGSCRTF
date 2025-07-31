@@ -35,10 +35,10 @@ export default function MaintenanceCountdown({ endTime }: MaintenanceCountdownPr
   }, [endTime])
 
   return (
-    <div className="mt-4 p-4 bg-orange-900/20 border border-orange-600/30 rounded-lg">
-      <h4 className="text-sm font-semibold text-orange-400 mb-2">⏱️ Temps restant</h4>
-      <p className="text-2xl font-mono font-bold text-orange-500">{timeLeft}</p>
-      <p className="text-xs text-gray-400 mt-1">
+    <div className="mt-4 p-6 bg-white/5 backdrop-blur-sm border border-white/10 rounded-xl">
+      <h4 className="text-sm font-semibold text-gray-300 mb-3 text-center">⏱️ Temps restant</h4>
+      <p className="text-3xl font-mono font-bold text-white text-center drop-shadow-lg">{timeLeft}</p>
+      <p className="text-xs text-gray-400 mt-3 text-center">
         Fin prévue : {new Date(endTime).toLocaleString('fr-FR')}
       </p>
     </div>

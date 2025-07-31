@@ -124,9 +124,10 @@ export default function MaintenancePage() {
         </p>
         
         {timeLeft && (
-          <div className="mb-8 p-4 bg-red-900/20 border border-red-600/30 rounded-lg">
-            <p className="text-lg font-semibold text-red-500">
-              ⏱️ Temps estimé : <span className="text-xl">{timeLeft}</span>
+          <div className="mb-8 p-6 bg-white/10 backdrop-blur-sm border border-white/20 rounded-2xl shadow-2xl">
+            <p className="text-center">
+              <span className="block text-sm text-gray-300 mb-2">⏱️ Temps estimé</span>
+              <span className="block text-5xl font-bold text-white drop-shadow-lg">{timeLeft}</span>
             </p>
           </div>
         )}
