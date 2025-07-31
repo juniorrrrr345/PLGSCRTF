@@ -2461,6 +2461,7 @@ export default function ConfigPage() {
                           toast.success('Candidature modifiée')
                           mutate('/api/applications')
                           setShowEditApplication(false)
+                          setEditingApplication(null)
                         }
                       } catch (error) {
                         toast.error('Erreur lors de la modification')
