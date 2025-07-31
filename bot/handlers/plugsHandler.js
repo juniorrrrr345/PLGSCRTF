@@ -95,36 +95,51 @@ async function handlePlugDetails(bot, chatId, plugId) {
     message += `━━━━━━━━━━━━━━━━\n\n`;
     
     // Localisation
-    if (plug.country || plug.department || plug.postalCode) {
+    const country = plug.country || plug.location?.country;
+    const department = plug.department || plug.location?.department;
+    const postalCode = plug.postalCode || plug.location?.postalCode;
+    
+    if (country || department || postalCode) {
       message += `📍 <b>Localisation:</b>\n`;
-      if (plug.countryFlag && plug.country) {
-        message += `${plug.countryFlag} ${plug.country}`;
+      if (plug.countryFlag && country) {
+        message += `${plug.countryFlag} ${country}`;
+      } else if (country) {
+        message += country;
       }
-      if (plug.department) {
-        message += ` - ${plug.department}`;
+      if (department) {
+        message += ` - ${department}`;
+      }
+      if (postalCode) {
+        message += ` (${postalCode})`;
       }
       message += '\n\n';
     }
     
     // Méthodes
     message += `📦 <b>Méthodes disponibles:</b>\n`;
-    if (plug.methods.delivery) {
+    if (plug.methods?.delivery) {
       message += '• 🚚 Livraison';
-      if (plug.deliveryDepartments && plug.deliveryDepartments.length > 0) {
+      if (plug.deliveryZones) {
+        message += ` (${plug.deliveryZones})`;
+      } else if (plug.deliveryDepartments?.length > 0) {
         message += ` (${plug.deliveryDepartments.join(', ')})`;
       }
       message += '\n';
     }
-    if (plug.methods.shipping) {
+    if (plug.methods?.shipping) {
       message += '• 📮 Envoi';
-      if (plug.deliveryDepartments && plug.deliveryDepartments.length > 0) {
+      if (plug.shippingZones) {
+        message += ` (${plug.shippingZones})`;
+      } else if (plug.deliveryDepartments?.length > 0) {
         message += ` (${plug.deliveryDepartments.join(', ')})`;
       }
       message += '\n';
     }
-    if (plug.methods.meetup) {
+    if (plug.methods?.meetup) {
       message += '• 🤝 Meetup';
-      if (plug.meetupDepartments && plug.meetupDepartments.length > 0) {
+      if (plug.meetupZones) {
+        message += ` (${plug.meetupZones})`;
+      } else if (plug.meetupDepartments?.length > 0) {
         message += ` (${plug.meetupDepartments.join(', ')})`;
       }
       message += '\n';
@@ -147,22 +162,67 @@ async function handlePlugDetails(bot, chatId, plugId) {
     
     // Réseaux sociaux en boutons
     const socialButtons = [];
+    const networkNames = {
+      snap: '👻 Snapchat',
+      instagram: '📸 Instagram',
+      whatsapp: '💬 WhatsApp',
+      signal: '🔐 Signal',
+      threema: '🔒 Threema',
+      potato: '🥔 Potato',
+      telegram: '✈️ Telegram'
+    };
+    
     if (plug.socialNetworks) {
-      if (plug.socialNetworks.snap) {
-        const snapUrl = plug.socialNetworks.snap.startsWith('http') ? plug.socialNetworks.snap : `https://snapchat.com/add/${plug.socialNetworks.snap}`;
-        socialButtons.push({ text: '👻 Snapchat', url: snapUrl });
+      // Gérer les réseaux primaires avec leurs liens
+      if (plug.socialNetworks.primary && plug.socialNetworks.links) {
+        plug.socialNetworks.primary.forEach(network => {
+          const link = plug.socialNetworks.links[network];
+          if (link) {
+            let url = link;
+            // Ajouter https:// si nécessaire
+            if (!link.startsWith('http') && !link.startsWith('@')) {
+              if (network === 'whatsapp') {
+                url = `https://wa.me/${link.replace(/[^0-9]/g, '')}`;
+              } else if (network === 'instagram') {
+                url = `https://instagram.com/${link.replace('@', '')}`;
+              } else if (network === 'snap') {
+                url = `https://snapchat.com/add/${link}`;
+              } else if (network === 'telegram') {
+                url = `https://t.me/${link.replace('@', '')}`;
+              }
+            } else if (link.startsWith('@')) {
+              if (network === 'instagram') {
+                url = `https://instagram.com/${link.substring(1)}`;
+              } else if (network === 'telegram') {
+                url = `https://t.me/${link.substring(1)}`;
+              }
+            }
+            socialButtons.push({ 
+              text: networkNames[network] || network, 
+              url: url 
+            });
+          }
+        });
       }
-      if (plug.socialNetworks.instagram) {
-        const instaUrl = plug.socialNetworks.instagram.startsWith('http') ? plug.socialNetworks.instagram : `https://instagram.com/${plug.socialNetworks.instagram.replace('@', '')}`;
-        socialButtons.push({ text: '📸 Instagram', url: instaUrl });
-      }
-      if (plug.socialNetworks.whatsapp) {
-        const whatsappUrl = plug.socialNetworks.whatsapp.startsWith('http') ? plug.socialNetworks.whatsapp : `https://wa.me/${plug.socialNetworks.whatsapp.replace(/[^0-9]/g, '')}`;
-        socialButtons.push({ text: '💬 WhatsApp', url: whatsappUrl });
-      }
-      if (plug.socialNetworks.signal) {
-        const signalUrl = plug.socialNetworks.signal.startsWith('http') ? plug.socialNetworks.signal : `https://signal.me/#p/${plug.socialNetworks.signal}`;
-        socialButtons.push({ text: '🔐 Signal', url: signalUrl });
+      
+      // Gérer l'ancienne structure pour la compatibilité
+      else {
+        if (plug.socialNetworks.snap) {
+          const snapUrl = plug.socialNetworks.snap.startsWith('http') ? plug.socialNetworks.snap : `https://snapchat.com/add/${plug.socialNetworks.snap}`;
+          socialButtons.push({ text: '👻 Snapchat', url: snapUrl });
+        }
+        if (plug.socialNetworks.instagram) {
+          const instaUrl = plug.socialNetworks.instagram.startsWith('http') ? plug.socialNetworks.instagram : `https://instagram.com/${plug.socialNetworks.instagram.replace('@', '')}`;
+          socialButtons.push({ text: '📸 Instagram', url: instaUrl });
+        }
+        if (plug.socialNetworks.whatsapp) {
+          const whatsappUrl = plug.socialNetworks.whatsapp.startsWith('http') ? plug.socialNetworks.whatsapp : `https://wa.me/${plug.socialNetworks.whatsapp.replace(/[^0-9]/g, '')}`;
+          socialButtons.push({ text: '💬 WhatsApp', url: whatsappUrl });
+        }
+        if (plug.socialNetworks.signal) {
+          const signalUrl = plug.socialNetworks.signal.startsWith('http') ? plug.socialNetworks.signal : `https://signal.me/#p/${plug.socialNetworks.signal}`;
+          socialButtons.push({ text: '🔐 Signal', url: signalUrl });
+        }
       }
       if (plug.socialNetworks.telegram) {
         const telegramUrl = plug.socialNetworks.telegram.startsWith('http') ? plug.socialNetworks.telegram : `https://t.me/${plug.socialNetworks.telegram.replace('@', '')}`;
@@ -228,7 +288,13 @@ async function handlePlugDetails(bot, chatId, plugId) {
     
   } catch (error) {
     console.error('Erreur dans handlePlugDetails:', error);
-    await bot.sendMessage(chatId, '❌ Une erreur est survenue lors du chargement des détails.');
+    // Ne pas envoyer de message d'erreur à l'utilisateur
+    // Essayer de retourner au menu des plugs
+    try {
+      await handlePlugsMenu(bot, chatId);
+    } catch (e) {
+      // Si même ça échoue, ne rien faire
+    }
   }
 }
 
