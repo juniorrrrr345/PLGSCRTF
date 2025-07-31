@@ -39,6 +39,7 @@ export async function POST(request: NextRequest) {
     if (data.backgroundImage !== undefined) settings.backgroundImage = data.backgroundImage
     if (data.socialNetworks !== undefined) settings.socialNetworks = data.socialNetworks
     if (data.botSocialNetworks !== undefined) settings.botSocialNetworks = data.botSocialNetworks
+    if (data.shopSocialNetworks !== undefined) settings.shopSocialNetworks = data.shopSocialNetworks
     if (data.countries !== undefined) settings.countries = data.countries
     if (data.postalCodes !== undefined) settings.postalCodes = data.postalCodes
     

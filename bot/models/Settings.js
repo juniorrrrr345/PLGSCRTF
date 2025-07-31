@@ -32,6 +32,13 @@ const settingsSchema = new mongoose.Schema({
     emoji: String,
     order: { type: Number, default: 0 }
   }],
+  // Réseaux sociaux affichés sur la page /social de la boutique
+  shopSocialNetworks: [{
+    id: String,
+    name: String,
+    emoji: String,
+    link: String
+  }],
   countries: [{
     code: String,
     name: String,

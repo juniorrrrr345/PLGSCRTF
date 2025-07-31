@@ -426,7 +426,10 @@ export default function ConfigPage() {
       const res = await fetch('/api/settings', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ socialNetworks: socialNetworksObject })
+        body: JSON.stringify({ 
+          socialNetworks: socialNetworksObject,
+          shopSocialNetworks: allNetworks 
+        })
       })
       
       if (res.ok) {
