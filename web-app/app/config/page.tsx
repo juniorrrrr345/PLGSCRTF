@@ -165,6 +165,9 @@ export default function ConfigPage() {
       if (settings.maintenanceLogo !== undefined) {
         setMaintenanceLogo(settings.maintenanceLogo)
       }
+      if (settings.maintenanceEndTime) {
+        setMaintenanceEndTime(new Date(settings.maintenanceEndTime))
+      }
       
       // Charger les réseaux sociaux de la boutique
       console.log('Settings reçus:', settings)
