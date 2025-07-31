@@ -31,10 +31,11 @@ import {
   Bars3Icon,
   ShoppingBagIcon,
   ChevronUpIcon,
-  ChevronDownIcon,
-  CubeIcon,
-  ShareIcon,
-  ChatBubbleLeftIcon
+      ChevronDownIcon,
+    CubeIcon,
+    ShareIcon,
+    ChatBubbleLeftIcon,
+    WrenchIcon
 } from '@heroicons/react/24/outline'
 
 const fetcher = (url: string) => fetch(url).then(res => res.json())
@@ -63,6 +64,7 @@ export default function ConfigPage() {
   const [botSocialNetworks, setBotSocialNetworks] = useState<any[]>([])
   const [telegramChannelLink, setTelegramChannelLink] = useState('')
   const [telegramChannelId, setTelegramChannelId] = useState('')
+  const [maintenanceMode, setMaintenanceMode] = useState(false)
   const [editingApplication, setEditingApplication] = useState<any>(null)
   const [showEditApplication, setShowEditApplication] = useState(false)
   const [newProduct, setNewProduct] = useState({
@@ -628,9 +630,10 @@ export default function ConfigPage() {
     { id: 'plugs', label: 'Plugs', icon: BoltIcon },
     { id: 'products', label: 'Produits', icon: CubeIcon },
     { id: 'applications', label: 'Candidatures', icon: DocumentTextIcon },
-    { id: 'social', label: 'Réseaux Sociaux', icon: ShareIcon },
-    { id: 'telegram', label: 'Telegram', icon: ChatBubbleLeftIcon },
-    { id: 'settings', label: 'Paramètres', icon: CogIcon },
+                { id: 'social', label: 'Réseaux Sociaux', icon: ShareIcon },
+            { id: 'telegram', label: 'Telegram', icon: ChatBubbleLeftIcon },
+            { id: 'maintenance', label: 'Maintenance', icon: WrenchIcon },
+            { id: 'settings', label: 'Paramètres', icon: CogIcon },
   ]
   
   return (

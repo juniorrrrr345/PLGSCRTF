@@ -277,9 +277,14 @@ bot.on('callback_query', async (callbackQuery) => {
         await showMainMenu(bot, chatId);
       } else {
         await bot.answerCallbackQuery(callbackQuery.id, {
-          text: '❌ Vous n\'avez pas encore rejoint le canal. Veuillez le rejoindre puis réessayer.',
+          text: '‼️ IMPORTANT DE REJOINDRE POUR VOIR LES MENUS ‼️\n\nCORDIALEMENT PLUGS CRTFS',
           show_alert: true
         });
+        
+        // Supprimer l'ancien message et renvoyer le message de vérification
+        await bot.deleteMessage(chatId, messageId);
+        const { requireChannelMembership } = require('./middleware/channelCheck');
+        await requireChannelMembership(bot, chatId, userId);
       }
     }
     // Menu principal

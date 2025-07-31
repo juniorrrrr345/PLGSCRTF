@@ -1,5 +1,16 @@
 const Plug = require('../models/Plug');
 const User = require('../models/User');
+
+// Fonction pour obtenir le drapeau d'un pays
+function getCountryFlag(countryCode) {
+  const flags = {
+    'FR': '🇫🇷', 'ES': '🇪🇸', 'IT': '🇮🇹', 'DE': '🇩🇪', 'GB': '🇬🇧',
+    'PT': '🇵🇹', 'NL': '🇳🇱', 'BE': '🇧🇪', 'CH': '🇨🇭', 'AT': '🇦🇹',
+    'US': '🇺🇸', 'CA': '🇨🇦', 'MX': '🇲🇽', 'BR': '🇧🇷', 'AR': '🇦🇷',
+    'JP': '🇯🇵', 'CN': '🇨🇳', 'KR': '🇰🇷', 'IN': '🇮🇳', 'AU': '🇦🇺'
+  };
+  return flags[countryCode] || '🌍';
+}
 const Settings = require('../models/Settings');
 
 async function handlePlugsMenu(bot, chatId) {
@@ -99,23 +110,25 @@ async function handlePlugDetails(bot, chatId, plugId) {
     let message = `🔌 <b>${plug.name}</b>\n`;
     message += `━━━━━━━━━━━━━━━━\n\n`;
     
-    // Localisation
-    const country = plug.country || plug.location?.country;
-    const department = plug.department || plug.location?.department;
-    const postalCode = plug.postalCode || plug.location?.postalCode;
-    
-    if (country || department || postalCode) {
+    // Localisation - Afficher tous les pays sélectionnés
+    if (plug.countries && plug.countries.length > 0) {
+      message += `📍 <b>Localisation:</b>\n`;
+      plug.countries.forEach((countryCode, index) => {
+        const flag = getCountryFlag(countryCode);
+        message += `${flag} ${countryCode}`;
+        if (index < plug.countries.length - 1) {
+          message += ' • ';
+        }
+      });
+      message += '\n\n';
+    } else if (plug.country || plug.location?.country) {
+      // Fallback sur l'ancien format
+      const country = plug.country || plug.location?.country;
       message += `📍 <b>Localisation:</b>\n`;
       if (plug.countryFlag && country) {
         message += `${plug.countryFlag} ${country}`;
       } else if (country) {
         message += country;
-      }
-      if (department) {
-        message += ` - ${department}`;
-      }
-      if (postalCode) {
-        message += ` (${postalCode})`;
       }
       message += '\n\n';
     }
