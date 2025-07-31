@@ -67,6 +67,8 @@ export default function ConfigPage() {
   const [maintenanceMode, setMaintenanceMode] = useState(false)
   const [maintenanceBackgroundImage, setMaintenanceBackgroundImage] = useState('')
   const [maintenanceLogo, setMaintenanceLogo] = useState('')
+  const [maintenanceEndTime, setMaintenanceEndTime] = useState<Date | null>(null)
+  const [maintenanceDuration, setMaintenanceDuration] = useState({ hours: 1, minutes: 0 })
   const [editingApplication, setEditingApplication] = useState<any>(null)
   const [showEditApplication, setShowEditApplication] = useState(false)
   const [newProduct, setNewProduct] = useState({

@@ -25,6 +25,8 @@ async function checkMaintenanceMode(bot, chatId) {
 
 Nous sommes bientôt de retour !
 
+📱 <b>Consultez la Mini App pour plus d'informations</b>
+
 Pour toutes informations, rejoignez nos réseaux sociaux 👇
 
 Cordialement,

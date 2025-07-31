@@ -67,6 +67,11 @@ const settingsSchema = new mongoose.Schema({
     type: Boolean,
     default: false
   },
+  // Heure de fin de maintenance
+  maintenanceEndTime: {
+    type: Date,
+    default: null
+  },
   // Image de fond pour la page de maintenance
   maintenanceBackgroundImage: {
     type: String,
