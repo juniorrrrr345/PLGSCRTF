@@ -102,6 +102,7 @@ async function handlePlugsMenu(bot, chatId, filters = {}) {
       inline_keyboard: []
     };
     
+    // Toujours afficher les pays en premier, même s'il n'y a pas de plugs
     // Ligne 1: Drapeaux des pays (max 4 par ligne)
     const countryButtons = countries.map(country => {
       const isSelected = filters.country === country;
@@ -119,6 +120,14 @@ async function handlePlugsMenu(bot, chatId, filters = {}) {
           : `plugs_filter_country_${country}${filters.method ? '_method_' + filters.method : ''}`
       };
     });
+    
+    // Ajouter un bouton "Tous les pays" au début si un filtre pays est actif
+    if (filters.country) {
+      countryButtons.unshift({
+        text: '🌐 Tous les pays',
+        callback_data: filters.method ? `plugs_filter_method_${filters.method}` : 'plugs'
+      });
+    }
     
     // Diviser les pays en lignes de 4 maximum
     for (let i = 0; i < countryButtons.length; i += 4) {
