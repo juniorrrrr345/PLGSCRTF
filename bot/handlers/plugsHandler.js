@@ -249,7 +249,7 @@ async function handlePlugDetails(bot, chatId, plugId) {
     console.log(`📱 Chargement des détails du plug: ${plugId}`);
     console.log(`📱 ChatId: ${chatId}`);
     
-    const plug = await Plug.findById(plugId).populate('userId', 'username');
+    const plug = await Plug.findById(plugId);
     
     if (!plug) {
       console.error('❌ Plug introuvable:', plugId);
