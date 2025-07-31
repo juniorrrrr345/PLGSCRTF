@@ -140,7 +140,30 @@ export default function ConfigPage() {
           emoji: typeof value === 'object' ? value.emoji : getDefaultEmoji(key),
           link: typeof value === 'object' ? value.link : value
         }))
-        setShopSocialNetworks(networksArray)
+        
+        // Ajouter Mini App en première position
+        const miniApp = {
+          id: 'miniapp',
+          name: 'Mini App',
+          emoji: '🔌',
+          link: 'https://t.me/PLGSCRTF_BOT/miniapp'
+        }
+        
+        // Vérifier si Mini App n'existe pas déjà
+        const hasMiniApp = networksArray.some(n => n.id === 'miniapp' || n.name === 'Mini App')
+        if (!hasMiniApp) {
+          setShopSocialNetworks([miniApp, ...networksArray])
+        } else {
+          setShopSocialNetworks(networksArray)
+        }
+      } else {
+        // Si pas de réseaux sociaux, ajouter juste Mini App
+        setShopSocialNetworks([{
+          id: 'miniapp',
+          name: 'Mini App',
+          emoji: '🔌',
+          link: 'https://t.me/PLGSCRTF_BOT/miniapp'
+        }])
       }
     }
   }, [settings])
@@ -371,8 +394,20 @@ export default function ConfigPage() {
 
   const handleSaveShopSocialNetworks = async () => {
     try {
+      // S'assurer que Mini App est toujours présent
+      const miniApp = {
+        id: 'miniapp',
+        name: 'Mini App',
+        emoji: '🔌',
+        link: 'https://t.me/PLGSCRTF_BOT/miniapp'
+      }
+      
+      // Filtrer Mini App existant et le remettre en première position
+      const filteredNetworks = shopSocialNetworks.filter(n => n.id !== 'miniapp' && n.name !== 'Mini App')
+      const allNetworks = [miniApp, ...filteredNetworks]
+      
       // Convertir en format objet pour la compatibilité
-      const socialNetworksObject = shopSocialNetworks.reduce((acc, network) => {
+      const socialNetworksObject = allNetworks.reduce((acc, network) => {
         if (network.name && network.link) {
           const key = network.name.toLowerCase().replace(/\s+/g, '')
           acc[key] = {
@@ -1166,15 +1201,21 @@ export default function ConfigPage() {
                           </button>
                           
                           {/* Delete */}
-                          <button
-                            onClick={() => {
-                              const updated = shopSocialNetworks.filter((_, i) => i !== index)
-                              setShopSocialNetworks(updated)
-                            }}
-                            className="p-2 bg-red-600/20 text-red-400 rounded-lg hover:bg-red-600/30 transition-colors"
-                          >
-                            <TrashIcon className="w-5 h-5" />
-                          </button>
+                          {network.id !== 'miniapp' && network.name !== 'Mini App' ? (
+                            <button
+                              onClick={() => {
+                                const updated = shopSocialNetworks.filter((_, i) => i !== index)
+                                setShopSocialNetworks(updated)
+                              }}
+                              className="p-2 bg-red-600/20 text-red-400 rounded-lg hover:bg-red-600/30 transition-colors"
+                            >
+                              <TrashIcon className="w-5 h-5" />
+                            </button>
+                          ) : (
+                            <div className="p-2 text-gray-500" title="Mini App ne peut pas être supprimé">
+                              <span className="text-xs">Fixe</span>
+                            </div>
+                          )}
                         </div>
                       ))}
                       
