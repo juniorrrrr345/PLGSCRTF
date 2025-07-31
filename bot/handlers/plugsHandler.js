@@ -148,12 +148,8 @@ async function handlePlugDetails(bot, chatId, plugId) {
     
     // Description
     if (plug.description) {
-      message += `📝 <b>Description:</b>\n${plug.description}\n\n`;
+      message += `📝 <b>Description:</b>\n${plug.description}\n`;
     }
-    
-    // Stats
-    message += `❤️ <b>Likes:</b> ${plug.likes || 0}\n`;
-    message += `🔗 <b>Parrainages:</b> ${plug.referralCount || 0}\n`;
     
     // Créer le clavier avec les réseaux sociaux
     const keyboard = {
@@ -250,22 +246,6 @@ async function handlePlugDetails(bot, chatId, plugId) {
       }
       keyboard.inline_keyboard.push(row);
     }
-    
-    // Si des réseaux sociaux ont été ajoutés, ajouter un séparateur visuel
-    if (socialButtons.length > 0) {
-      keyboard.inline_keyboard.push([{ text: '━━━━━━━━━━━━━━━━', callback_data: 'separator' }]);
-    }
-    
-    // Boutons d'action
-    keyboard.inline_keyboard.push([
-      { text: `❤️ Like (${plug.likes || 0})`, callback_data: `like_${plug._id}` }
-    ]);
-    
-    // Lien de parrainage du plug
-    const referralLink = plug.referralLink || `https://t.me/${process.env.TELEGRAM_BOT_USERNAME}?start=plug_${plug._id}`;
-    keyboard.inline_keyboard.push([
-      { text: '🔗 Lien de parrainage', url: referralLink }
-    ]);
     
     // Navigation
     keyboard.inline_keyboard.push([
