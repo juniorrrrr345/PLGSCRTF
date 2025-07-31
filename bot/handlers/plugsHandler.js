@@ -462,13 +462,13 @@ async function handlePlugDetails(bot, chatId, plugId, fromMenu = 'plugs', userId
     
     console.log(`🔍 Vérification cooldown pour user ${userIdToSearch}:`, {
       userFound: !!user,
-      lastLikeTime: user?.lastLikeTime,
+      lastLikeAt: user?.lastLikeAt,
       telegramId: user?.telegramId
     });
     
-    if (user && user.lastLikeTime) {
+    if (user && user.lastLikeAt) {
       const now = new Date();
-      const lastLikeTime = new Date(user.lastLikeTime);
+      const lastLikeTime = new Date(user.lastLikeAt);
       const timeSinceLastLike = (now - lastLikeTime) / 1000 / 60; // en minutes
       const remainingTime = Math.ceil(30 - timeSinceLastLike);
       
@@ -585,7 +585,7 @@ async function handleLike(bot, callbackQuery, plugId) {
     
     // Vérifier le cooldown
     const now = new Date();
-    const lastLike = user.lastLikeTime ? new Date(user.lastLikeTime) : new Date(0);
+    const lastLike = user.lastLikeAt ? new Date(user.lastLikeAt) : new Date(0);
     const cooldownMinutes = 30;
     const timeSinceLastLike = (now - lastLike) / 1000 / 60; // en minutes
     
@@ -649,14 +649,14 @@ async function handleLike(bot, callbackQuery, plugId) {
     }
     
     // Mettre à jour l'utilisateur
-    user.lastLikeTime = new Date();
+    user.lastLikeAt = new Date();
     if (!user.likedPlugs) user.likedPlugs = [];
     if (!user.likedPlugs.includes(plugId)) {
       user.likedPlugs.push(plugId);
     }
     await user.save();
     
-    console.log(`✅ User ${userId} mis à jour avec lastLikeTime:`, user.lastLikeTime);
+    console.log(`✅ User ${userId} mis à jour avec lastLikeTime:`, user.lastLikeAt);
     
     // Mettre à jour les stats de parrainage si l'utilisateur est venu via un lien
     const ReferralClick = require('../models/ReferralClick');

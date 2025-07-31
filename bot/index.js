@@ -403,9 +403,9 @@ bot.on('callback_query', async (callbackQuery) => {
       const User = require('./models/User');
       const user = await User.findOne({ telegramId: userId });
       
-      if (user && user.lastLikeTime) {
+      if (user && user.lastLikeAt) {
         const now = new Date();
-        const lastLikeTime = new Date(user.lastLikeTime);
+        const lastLikeTime = new Date(user.lastLikeAt);
         const timeSinceLastLike = (now - lastLikeTime) / 1000 / 60; // en minutes
         const remainingTime = Math.ceil(30 - timeSinceLastLike);
         
