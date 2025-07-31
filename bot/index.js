@@ -244,7 +244,7 @@ bot.onText(/\/start(.*)/, async (msg, match) => {
     await handleStart(bot, msg, param);
   } catch (error) {
     console.error('❌ Erreur dans /start:', error);
-    await bot.sendMessage(chatId, '❌ Une erreur est survenue. Veuillez réessayer.');
+    // Pas de message d'erreur visible pour l'utilisateur
   }
 });
 
@@ -475,7 +475,7 @@ bot.on('callback_query', async (callbackQuery) => {
     }
   } catch (error) {
     console.error('Error handling callback query:', error);
-    await bot.sendMessage(chatId, '❌ Une erreur est survenue. Veuillez réessayer.');
+    // Pas de message d'erreur visible pour l'utilisateur
   }
 });
 
@@ -597,7 +597,7 @@ async function processVendorTextResponse(bot, chatId, text, userState) {
     await handleVendorApplication(bot, chatId, userStates);
   } catch (error) {
     console.error('Erreur dans processVendorTextResponse:', error);
-    await bot.sendMessage(chatId, '❌ Une erreur est survenue. Veuillez réessayer.');
+    // Pas de message d'erreur visible pour l'utilisateur
   }
 }
 
@@ -648,7 +648,8 @@ async function submitVendorApplication(bot, chatId, userState) {
     await showMainMenu(bot, chatId);
   } catch (error) {
     console.error('Error submitting vendor application:', error);
-    await bot.sendMessage(chatId, '❌ Erreur lors de l\'envoi de la candidature.');
+    // Pas de message d'erreur visible pour l'utilisateur
+    await showMainMenu(bot, chatId);
   }
 }
 

@@ -29,6 +29,7 @@ async function handleAdminPanel(bot, msg) {
         await showAdminMenu(bot, chatId);
       } else {
         adminStates.delete(chatId);
+        // On garde ce message car il est nécessaire pour la sécurité
         await bot.sendMessage(chatId, '❌ Mot de passe incorrect.');
       }
     });

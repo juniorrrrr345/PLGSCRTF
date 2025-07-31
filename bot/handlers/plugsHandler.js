@@ -105,8 +105,15 @@ async function handlePlugsMenu(bot, chatId, filters = {}) {
     // Ligne 1: Drapeaux des pays (max 4 par ligne)
     const countryButtons = countries.map(country => {
       const isSelected = filters.country === country;
+      // Compter le nombre de plugs pour ce pays
+      const countryPlugsCount = allPlugs.filter(plug => 
+        plug.location?.countries?.includes(country)
+      ).length;
+      
       return {
-        text: isSelected ? `✅ ${getCountryFlag(country)}` : getCountryFlag(country),
+        text: isSelected 
+          ? `✅ ${getCountryFlag(country)} (${countryPlugsCount})`
+          : `${getCountryFlag(country)} (${countryPlugsCount})`,
         callback_data: isSelected 
           ? (filters.method ? `plugs_filter_method_${filters.method}` : 'plugs')
           : `plugs_filter_country_${country}${filters.method ? '_method_' + filters.method : ''}`
@@ -234,18 +241,18 @@ async function handlePlugsMenu(bot, chatId, filters = {}) {
     
   } catch (error) {
     console.error('Erreur dans handlePlugsMenu:', error);
-    await bot.sendMessage(chatId, '❌ Une erreur est survenue lors du chargement des plugs.');
+    // Pas de message d'erreur visible pour l'utilisateur
   }
 }
 
 async function handlePlugDetails(bot, chatId, plugId) {
   try {
     console.log(`📱 Chargement des détails du plug: ${plugId}`);
-    const plug = await Plug.findById(plugId);
+    const plug = await Plug.findById(plugId).populate('userId', 'username');
     
     if (!plug) {
-      console.error(`❌ Plug introuvable: ${plugId}`);
-      await bot.sendMessage(chatId, '❌ Plug introuvable.');
+      console.error('Plug introuvable:', plugId);
+      // Retourner au menu principal sans message d'erreur
       await handlePlugsMenu(bot, chatId);
       return;
     }
@@ -649,8 +656,8 @@ async function handleLike(bot, callbackQuery, plugId) {
   } catch (error) {
     console.error('Erreur dans handleLike:', error);
     await bot.answerCallbackQuery(callbackQuery.id, {
-      text: '❌ Une erreur est survenue',
-      show_alert: true
+      text: 'Veuillez réessayer',
+      show_alert: false
     });
   }
 }

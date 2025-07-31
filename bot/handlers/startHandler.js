@@ -73,7 +73,7 @@ async function handleStart(bot, msg, param) {
     
   } catch (error) {
     console.error('Error in handleStart:', error);
-    await bot.sendMessage(chatId, '❌ Une erreur est survenue. Veuillez réessayer.');
+    // Pas de message d'erreur visible pour l'utilisateur
   }
 }
 

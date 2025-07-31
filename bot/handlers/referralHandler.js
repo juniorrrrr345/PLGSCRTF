@@ -86,8 +86,9 @@ async function handleReferralMenu(bot, chatId) {
     }
     
   } catch (error) {
-    console.error('Erreur dans handleReferralMenu:', error);
-    await bot.sendMessage(chatId, '❌ Une erreur est survenue lors du chargement du classement.');
+    console.error('Error in handleReferralMenu:', error);
+    // Pas de message d'erreur visible pour l'utilisateur
+    await showMainMenu(bot, chatId);
   }
 }
 

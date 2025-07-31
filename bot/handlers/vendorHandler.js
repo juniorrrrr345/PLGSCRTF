@@ -81,7 +81,6 @@ async function handleVendorApplication(bot, chatId, userStates, action = null, m
     }
   } else if (action === 'vendor_cancel') {
     userStates.delete(chatId);
-    await bot.sendMessage(chatId, '❌ Candidature annulée.');
     const { showMainMenu } = require('./startHandler');
     await showMainMenu(bot, chatId);
     return;
