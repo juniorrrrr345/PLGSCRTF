@@ -342,6 +342,7 @@ bot.on('callback_query', async (callbackQuery) => {
     // Détails d'un plug
     else if (data.startsWith('plug_')) {
       const plugId = data.replace('plug_', '');
+      console.log(`🔌 Callback reçu pour afficher le plug: ${plugId}`);
       await bot.deleteMessage(chatId, messageId);
       await handlePlugDetails(bot, chatId, plugId);
     }

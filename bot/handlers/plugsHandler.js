@@ -84,12 +84,17 @@ async function handlePlugsMenu(bot, chatId) {
 
 async function handlePlugDetails(bot, chatId, plugId) {
   try {
+    console.log(`📱 Chargement des détails du plug: ${plugId}`);
     const plug = await Plug.findById(plugId);
     
     if (!plug) {
+      console.error(`❌ Plug introuvable: ${plugId}`);
       await bot.sendMessage(chatId, '❌ Plug introuvable.');
+      await handlePlugsMenu(bot, chatId);
       return;
     }
+    
+    console.log(`✅ Plug trouvé: ${plug.name}, Photo: ${plug.photo ? 'OUI' : 'NON'}`);
     
     let message = `🔌 <b>${plug.name}</b>\n`;
     message += `━━━━━━━━━━━━━━━━\n\n`;
@@ -274,6 +279,7 @@ async function handlePlugDetails(bot, chatId, plugId) {
     ]);
     
     if (plug.photo) {
+      console.log(`📸 Tentative d'envoi avec photo: ${plug.photo.substring(0, 50)}...`);
       try {
         // Essayer d'envoyer avec la photo
         await bot.sendPhoto(chatId, plug.photo, {
@@ -281,8 +287,10 @@ async function handlePlugDetails(bot, chatId, plugId) {
           reply_markup: keyboard,
           parse_mode: 'HTML'
         });
+        console.log('✅ Photo envoyée avec succès');
       } catch (photoError) {
-        console.error('Erreur envoi photo:', photoError.message);
+        console.error('❌ Erreur envoi photo:', photoError.message);
+        console.error('Details:', photoError);
         // Si l'envoi de la photo échoue, envoyer sans photo
         await bot.sendMessage(chatId, message, {
           reply_markup: keyboard,
@@ -290,6 +298,7 @@ async function handlePlugDetails(bot, chatId, plugId) {
         });
       }
     } else {
+      console.log('⚠️ Pas de photo pour ce plug');
       await bot.sendMessage(chatId, message, {
         reply_markup: keyboard,
         parse_mode: 'HTML'
