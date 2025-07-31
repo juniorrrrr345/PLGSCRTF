@@ -1,5 +1,5 @@
 const REQUIRED_CHANNEL = '-1002736254394'; // ID du canal privé
-const CHANNEL_LINK = 'https://t.me/+Gc1zjodbEgdmNzBk';
+const CHANNEL_LINK = 'https://t.me/+RoI-Xzh-ma9iYmY0';
 
 async function checkChannelMembership(bot, userId) {
   try {
