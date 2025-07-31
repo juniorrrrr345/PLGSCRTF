@@ -31,7 +31,10 @@ import {
   Bars3Icon,
   ShoppingBagIcon,
   ChevronUpIcon,
-  ChevronDownIcon
+  ChevronDownIcon,
+  CubeIcon,
+  ShareIcon,
+  ChatBubbleLeftIcon
 } from '@heroicons/react/24/outline'
 
 const fetcher = (url: string) => fetch(url).then(res => res.json())
@@ -58,6 +61,8 @@ export default function ConfigPage() {
   const [shopSocialNetworks, setShopSocialNetworks] = useState<any[]>([])
 
   const [botSocialNetworks, setBotSocialNetworks] = useState<any[]>([])
+  const [telegramChannelLink, setTelegramChannelLink] = useState('')
+  const [telegramChannelId, setTelegramChannelId] = useState('')
   const [editingApplication, setEditingApplication] = useState<any>(null)
   const [showEditApplication, setShowEditApplication] = useState(false)
   const [newProduct, setNewProduct] = useState({
@@ -134,6 +139,14 @@ export default function ConfigPage() {
       // Charger les réseaux sociaux du bot
       if (settings.botSocialNetworks) {
         setBotSocialNetworks(settings.botSocialNetworks)
+      }
+      
+      // Charger la configuration Telegram
+      if (settings.telegramChannelLink) {
+        setTelegramChannelLink(settings.telegramChannelLink)
+      }
+      if (settings.telegramChannelId) {
+        setTelegramChannelId(settings.telegramChannelId)
       }
       
       // Charger les réseaux sociaux
@@ -620,12 +633,12 @@ export default function ConfigPage() {
   }
   
   const tabs = [
-    { id: 'social', label: 'Réseaux Sociaux', icon: LinkIcon },
-    { id: 'dashboard', label: 'Tableau de bord', icon: ChartBarIcon },
     { id: 'plugs', label: 'Plugs', icon: BoltIcon },
-    { id: 'products', label: 'Produits', icon: ShoppingBagIcon },
+    { id: 'products', label: 'Produits', icon: CubeIcon },
     { id: 'applications', label: 'Candidatures', icon: DocumentTextIcon },
-    { id: 'settings', label: 'Paramètres', icon: CogIcon }
+    { id: 'social', label: 'Réseaux Sociaux', icon: ShareIcon },
+    { id: 'telegram', label: 'Telegram', icon: ChatBubbleLeftIcon },
+    { id: 'settings', label: 'Paramètres', icon: CogIcon },
   ]
   
   return (
