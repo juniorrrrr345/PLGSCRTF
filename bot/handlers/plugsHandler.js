@@ -272,63 +272,15 @@ async function handlePlugDetails(bot, chatId, plugId) {
     let message = `🔌 <b>${plug.name}</b>\n`;
     message += `━━━━━━━━━━━━━━━━\n\n`;
     
-    // Localisation - Afficher les pays et villes organisés
-    message += `📍 <b>Localisation:</b>\n`;
+    // Localisation simplifiée
+    message += `📍 <b>Localisation:</b> `;
     
-    // Organiser les zones par pays
-    const zonesByCountry = {};
-    
-    // Si on a une liste de pays
-    if (plug.countries && plug.countries.length > 0) {
-      plug.countries.forEach(countryCode => {
-        zonesByCountry[countryCode] = [];
-      });
-    } else if (plug.country || plug.location?.country) {
-      // Fallback sur l'ancien format
-      const country = plug.country || plug.location?.country;
-      zonesByCountry[country] = [];
+    if (plug.country) {
+      message += `${getCountryFlag(plug.country)} ${getCountryName(plug.country)}`;
+    } else {
+      message += 'Non spécifiée';
     }
-    
-    // Créer un objet pour stocker les zones par type
-    const deliveryZones = plug.deliveryZones ? plug.deliveryZones.split(',').map(z => z.trim()) : [];
-    const shippingZones = plug.shippingZones ? plug.shippingZones.split(',').map(z => z.trim()) : [];
-    const meetupZones = plug.meetupZones ? plug.meetupZones.split(',').map(z => z.trim()) : [];
-    
-    // Pour chaque pays, ajouter ses zones spécifiques
-    Object.keys(zonesByCountry).forEach(country => {
-      const countryZones = [];
-      
-      // Ajouter les zones de livraison
-      if (deliveryZones.length > 0 && plug.methods?.delivery) {
-        countryZones.push(`  🚚 Livraison: ${deliveryZones.join(', ')}`);
-      }
-      
-      // Ajouter les zones d'envoi
-      if (shippingZones.length > 0 && plug.methods?.shipping) {
-        countryZones.push(`  📮 Envoi: ${shippingZones.join(', ')}`);
-      }
-      
-      // Ajouter les zones de meetup
-      if (meetupZones.length > 0 && plug.methods?.meetup) {
-        countryZones.push(`  🤝 Meetup: ${meetupZones.join(', ')}`);
-      }
-      
-      zonesByCountry[country] = countryZones;
-    });
-    
-    // Afficher les pays avec leurs zones
-    Object.entries(zonesByCountry).forEach(([countryCode, zones]) => {
-      const flag = getCountryFlag(countryCode);
-      const countryName = getCountryName(countryCode);
-      message += `\n${flag} <b>${countryName}</b>`;
-      
-      if (zones.length > 0) {
-        message += '\n' + zones.join('\n');
-      }
-      message += '\n';
-    });
-    
-    message += '\n';
+    message += '\n\n';
     
     // Méthodes disponibles (sans les zones car déjà affichées dans la localisation)
     message += `📦 <b>Méthodes disponibles:</b>\n`;
@@ -530,6 +482,9 @@ async function handlePlugDetails(bot, chatId, plugId) {
       { text: '🏠 Menu principal', callback_data: 'main_menu' }
     ]);
     
+    console.log('📨 Préparation envoi du message, longueur:', message.length);
+    console.log('⌨️ Nombre de boutons:', keyboard.inline_keyboard.length);
+    
     if (plug.photo) {
       console.log(`📸 Tentative d'envoi avec photo: ${plug.photo.substring(0, 50)}...`);
       try {
@@ -542,6 +497,7 @@ async function handlePlugDetails(bot, chatId, plugId) {
         console.log('✅ Photo envoyée avec succès');
       } catch (photoError) {
         console.error('❌ Erreur envoi photo:', photoError.message);
+        console.error('📝 Message complet:', message);
         
         // Ajouter une note sur l'erreur de photo dans le message
         const messageWithPhotoError = message + '\n\n⚠️ <i>Photo non disponible</i>';
