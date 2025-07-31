@@ -3,12 +3,9 @@
 import { motion } from 'framer-motion'
 import { ShieldCheckIcon, BoltIcon, SparklesIcon, ArrowRightIcon } from '@heroicons/react/24/outline'
 import Link from 'next/link'
-import BackgroundTheme from '@/components/BackgroundTheme'
-
 export default function AboutPage() {
   return (
-    <div className="min-h-screen pt-20 relative">
-      <BackgroundTheme />
+    <div className="min-h-screen pt-20">
       <div className="max-w-7xl mx-auto px-4 py-12">
         {/* Header */}
         <motion.div
@@ -117,43 +114,7 @@ export default function AboutPage() {
           </motion.div>
         </div>
 
-        {/* Additional Features */}
-        <motion.div
-          initial={{ opacity: 0, y: 30 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.4 }}
-          className="bg-gradient-to-r from-gray-900 to-gray-800 rounded-3xl p-12 mb-20"
-        >
-          <h2 className="text-4xl font-bold text-center text-white mb-12">
-            Bien plus qu'une simple marketplace
-          </h2>
-          
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-            <div className="text-center">
-              <div className="text-5xl mb-4">🔒</div>
-              <h3 className="text-xl font-bold text-white mb-2">Sécurisé</h3>
-              <p className="text-gray-400">Transactions protégées et données sécurisées</p>
-            </div>
-            
-            <div className="text-center">
-              <div className="text-5xl mb-4">⚡</div>
-              <h3 className="text-xl font-bold text-white mb-2">Rapide</h3>
-              <p className="text-gray-400">Interface fluide et temps de réponse optimisés</p>
-            </div>
-            
-            <div className="text-center">
-              <div className="text-5xl mb-4">🌍</div>
-              <h3 className="text-xl font-bold text-white mb-2">International</h3>
-              <p className="text-gray-400">Disponible dans plusieurs pays francophones</p>
-            </div>
-            
-            <div className="text-center">
-              <div className="text-5xl mb-4">💬</div>
-              <h3 className="text-xl font-bold text-white mb-2">Support 24/7</h3>
-              <p className="text-gray-400">Une équipe à votre écoute en permanence</p>
-            </div>
-          </div>
-        </motion.div>
+
 
         {/* CTA Section */}
         <motion.div
