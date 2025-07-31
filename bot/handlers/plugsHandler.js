@@ -452,9 +452,22 @@ async function handlePlugDetails(bot, chatId, plugId, fromMenu = 'plugs') {
       keyboard.inline_keyboard.push([{ text: '━━━━━━━━━━━━━━━━', callback_data: 'separator' }]);
     }
     
-    // Boutons d'action
+    // Boutons d'action - Vérifier le temps restant pour le like
+    const User = require('../models/User');
+    const user = await User.findOne({ telegramId: chatId });
+    let likeButtonText = `❤️ Like (${plug.likes || 0})`;
+    
+    if (user && user.lastLikeTime) {
+      const timeSinceLastLike = (new Date() - user.lastLikeTime) / 1000 / 60;
+      const remainingTime = Math.ceil(30 - timeSinceLastLike);
+      
+      if (remainingTime > 0) {
+        likeButtonText = `⏱️ Restant ${remainingTime}min (${plug.likes || 0})`;
+      }
+    }
+    
     keyboard.inline_keyboard.push([
-      { text: `❤️ Like (${plug.likes || 0})`, callback_data: `like_${plug._id}` }
+      { text: likeButtonText, callback_data: `like_${plug._id}` }
     ]);
     
     // Lien de parrainage (visible uniquement pour les admins)
@@ -555,9 +568,40 @@ async function handleLike(bot, callbackQuery, plugId) {
     if (timeSinceLastLike < cooldownMinutes) {
       const remainingTime = Math.ceil(cooldownMinutes - timeSinceLastLike);
       await bot.answerCallbackQuery(callbackQuery.id, {
-        text: `⏱ Vous devez attendre ${remainingTime} minutes avant de liker à nouveau`,
+        text: `⏱️ Veuillez patienter ${remainingTime} minute${remainingTime > 1 ? 's' : ''} avant de liker à nouveau`,
         show_alert: true
       });
+      
+      // Mettre à jour le bouton pour afficher le temps restant
+      try {
+        const keyboard = callbackQuery.message.reply_markup;
+        if (keyboard && keyboard.inline_keyboard) {
+          for (let row of keyboard.inline_keyboard) {
+            for (let button of row) {
+              if (button.callback_data && button.callback_data.startsWith('like_')) {
+                button.text = `⏱️ Restant ${remainingTime}min (${plug.likes || 0})`;
+                break;
+              }
+            }
+          }
+          
+          // Éditer le message pour mettre à jour le bouton
+          if (callbackQuery.message.photo) {
+            await bot.editMessageReplyMarkup(keyboard, {
+              chat_id: chatId,
+              message_id: callbackQuery.message.message_id
+            });
+          } else {
+            await bot.editMessageReplyMarkup(keyboard, {
+              chat_id: chatId,
+              message_id: callbackQuery.message.message_id
+            });
+          }
+        }
+      } catch (error) {
+        console.error('Erreur mise à jour bouton:', error);
+      }
+      
       return;
     }
     
@@ -584,18 +628,49 @@ async function handleLike(bot, callbackQuery, plugId) {
     }
     await user.save();
     
+    // Mettre à jour les stats de parrainage si l'utilisateur est venu via un lien
+    const ReferralClick = require('../models/ReferralClick');
+    const referralClick = await ReferralClick.findOne({
+      plugId: plugId,
+      visitorId: user._id,
+      hasVoted: false
+    });
+    
+    if (referralClick) {
+      // Marquer comme voté
+      referralClick.hasVoted = true;
+      await referralClick.save();
+      
+      // Mettre à jour les stats du plug
+      const statIndex = plug.referralStats.findIndex(stat => 
+        stat.userId.toString() === referralClick.referrerId.toString()
+      );
+      
+      if (statIndex >= 0) {
+        plug.referralStats[statIndex].votes += 1;
+        await plug.save();
+      }
+    }
+    
     // Répondre avec succès SANS supprimer le message
     await bot.answerCallbackQuery(callbackQuery.id, {
       text: `❤️ Vous avez liké ${plug.name} ! Total: ${plug.likes} likes`,
       show_alert: false
     });
     
-          // Mettre à jour le bouton like dans le message existant
-      try {
-        const keyboard = callbackQuery.message.reply_markup;
-        if (keyboard && keyboard.inline_keyboard) {
-          // Mettre à jour le texte du bouton like
-          keyboard.inline_keyboard[0][0].text = `❤️ Like (${plug.likes})`;
+    // Mettre à jour le bouton like dans le message existant
+    try {
+      const keyboard = callbackQuery.message.reply_markup;
+      if (keyboard && keyboard.inline_keyboard) {
+        // Trouver le bouton like et mettre à jour son texte avec le temps restant
+        for (let row of keyboard.inline_keyboard) {
+          for (let button of row) {
+            if (button.callback_data && button.callback_data.startsWith('like_')) {
+              button.text = `⏱️ Restant 30min (${plug.likes})`;
+              break;
+            }
+          }
+        }
           
           // Éditer le message pour mettre à jour le nombre de likes
           if (callbackQuery.message.photo) {
