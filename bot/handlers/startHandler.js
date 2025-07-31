@@ -68,6 +68,19 @@ async function handleStart(bot, msg, param) {
     user.lastSeen = new Date();
     await user.save();
     
+    // Gérer les deep links pour les plugs
+    if (param && param.startsWith('plug_')) {
+      const plugId = param.replace('plug_', '');
+      console.log(`🔗 Deep link vers le plug: ${plugId}`);
+      
+      // Importer handlePlugDetails
+      const { handlePlugDetails } = require('./plugsHandler');
+      
+      // Afficher directement les détails du plug
+      await handlePlugDetails(bot, chatId, plugId);
+      return; // Ne pas afficher le menu principal
+    }
+    
     // Afficher le menu principal avec vérification du canal
     await showMainMenu(bot, chatId, userId);
     

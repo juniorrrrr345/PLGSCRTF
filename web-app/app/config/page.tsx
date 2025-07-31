@@ -891,7 +891,7 @@ export default function ConfigPage() {
                         <div className="flex flex-col sm:flex-row gap-2">
                           <button
                             onClick={() => {
-                              const link = plug.referralLink || `https://t.me/${process.env.NEXT_PUBLIC_BOT_USERNAME || 'votrebot'}?start=plug_${plug._id}`
+                              const link = plug.referralLink || `https://t.me/${process.env.NEXT_PUBLIC_BOT_USERNAME || 'PLGSCRTF_BOT'}?start=plug_${plug._id}`
                               navigator.clipboard.writeText(link)
                               toast.success('Lien de parrainage copié !')
                             }}
@@ -2152,13 +2152,13 @@ export default function ConfigPage() {
                             <input
                               type="text"
                               readOnly
-                              value={`https://t.me/${process.env.NEXT_PUBLIC_BOT_USERNAME || 'votrebot'}?start=plug_${editingPlug._id}`}
+                              value={`https://t.me/${process.env.NEXT_PUBLIC_BOT_USERNAME || 'PLGSCRTF_BOT'}?start=plug_${editingPlug._id}`}
                               className="flex-1 px-4 py-3 bg-gray-900 border-2 border-gray-600 rounded-xl text-white"
                             />
                             <button
                               type="button"
                               onClick={() => {
-                                navigator.clipboard.writeText(`https://t.me/${process.env.NEXT_PUBLIC_BOT_USERNAME || 'votrebot'}?start=plug_${editingPlug._id}`)
+                                navigator.clipboard.writeText(`https://t.me/${process.env.NEXT_PUBLIC_BOT_USERNAME || 'PLGSCRTF_BOT'}?start=plug_${editingPlug._id}`)
                                 toast.success('Lien copié !')
                               }}
                               className="px-4 py-3 bg-blue-600 hover:bg-blue-700 rounded-xl text-white transition-all"
