@@ -1427,6 +1427,10 @@ export default function ConfigPage() {
                               } else {
                                 setMaintenanceEndTime(null)
                               }
+                              
+                              // Mettre à jour le cookie
+                              document.cookie = `maintenanceMode=${!maintenanceMode}; path=/; max-age=3600; samesite=lax`
+                              
                               toast.success(maintenanceMode ? 'Mode maintenance désactivé' : 'Mode maintenance activé')
                               mutate('/api/settings')
                             }
