@@ -14,6 +14,8 @@ export default function MaintenancePage() {
   const [socialNetworks, setSocialNetworks] = useState<SocialNetwork[]>([])
   const [maintenanceBackgroundImage, setMaintenanceBackgroundImage] = useState<string>('')
   const [maintenanceLogo, setMaintenanceLogo] = useState<string>('')
+  const [maintenanceEndTime, setMaintenanceEndTime] = useState<Date | null>(null)
+  const [timeLeft, setTimeLeft] = useState<string>('')
 
   useEffect(() => {
     // Récupérer les réseaux sociaux et les images depuis l'API
@@ -29,9 +31,41 @@ export default function MaintenancePage() {
         if (data.maintenanceLogo) {
           setMaintenanceLogo(data.maintenanceLogo)
         }
+        if (data.maintenanceEndTime) {
+          setMaintenanceEndTime(new Date(data.maintenanceEndTime))
+        }
       })
       .catch(err => console.error('Erreur chargement réseaux sociaux:', err))
   }, [])
+
+  useEffect(() => {
+    if (!maintenanceEndTime) return
+
+    const updateCountdown = () => {
+      const now = new Date().getTime()
+      const end = new Date(maintenanceEndTime).getTime()
+      const distance = end - now
+
+      if (distance < 0) {
+        setTimeLeft('')
+        return
+      }
+
+      const hours = Math.floor(distance / (1000 * 60 * 60))
+      const minutes = Math.floor((distance % (1000 * 60 * 60)) / (1000 * 60))
+      
+      if (hours > 0) {
+        setTimeLeft(`${hours}h ${minutes}min`)
+      } else {
+        setTimeLeft(`${minutes}min`)
+      }
+    }
+
+    updateCountdown()
+    const interval = setInterval(updateCountdown, 60000) // Update every minute
+
+    return () => clearInterval(interval)
+  }, [maintenanceEndTime])
 
   return (
     <div 
@@ -82,9 +116,15 @@ export default function MaintenancePage() {
           🔧 Maintenance en cours
         </h1>
         
-        <p className="text-xl text-gray-300 mb-8">
+        <p className="text-xl text-gray-300 mb-4">
           Nous sommes bientôt de retour !
         </p>
+        
+        {timeLeft && (
+          <p className="text-sm text-gray-400 mb-8">
+            Temps estimé : {timeLeft}
+          </p>
+        )}
         
         <div className="bg-gray-800/50 backdrop-blur-sm rounded-2xl p-8 mb-8">
           <p className="text-gray-300 mb-4">

@@ -532,9 +532,12 @@ async function handlePlugDetails(bot, chatId, plugId) {
         console.log('✅ Photo envoyée avec succès');
       } catch (photoError) {
         console.error('❌ Erreur envoi photo:', photoError.message);
-        console.error('Details:', photoError);
+        
+        // Ajouter une note sur l'erreur de photo dans le message
+        const messageWithPhotoError = message + '\n\n⚠️ <i>Photo non disponible</i>';
+        
         // Si l'envoi de la photo échoue, envoyer sans photo
-        await bot.sendMessage(chatId, message, {
+        await bot.sendMessage(chatId, messageWithPhotoError, {
           reply_markup: keyboard,
           parse_mode: 'HTML'
         });

@@ -10,6 +10,7 @@ import SocialNetworkManager from '@/components/SocialNetworkManager'
 import CountryDepartmentSelector from '@/components/CountryDepartmentSelector'
 import PostalCodeManager from '@/components/PostalCodeManager'
 import CustomDepartmentManager from '@/components/CustomDepartmentManager'
+import MaintenanceCountdown from '@/components/MaintenanceCountdown'
 import { countriesData, getCountryDepartments } from '@/lib/countries-data'
 import { 
   ChartBarIcon, 
@@ -1344,19 +1345,72 @@ export default function ConfigPage() {
                         </div>
                       </div>
                       
+                      {/* Durée de maintenance */}
+                      {!maintenanceMode && (
+                        <div className="mt-4 p-4 bg-gray-800 rounded-lg">
+                          <h4 className="text-sm font-semibold text-gray-300 mb-3">Durée de la maintenance</h4>
+                          <div className="flex gap-4 items-center">
+                            <div>
+                              <label className="block text-xs text-gray-400 mb-1">Heures</label>
+                              <input
+                                type="number"
+                                min="0"
+                                max="24"
+                                value={maintenanceDuration.hours}
+                                onChange={(e) => setMaintenanceDuration({
+                                  ...maintenanceDuration,
+                                  hours: Math.max(0, Math.min(24, parseInt(e.target.value) || 0))
+                                })}
+                                className="w-20 px-3 py-2 bg-gray-700 border border-gray-600 rounded text-white text-center"
+                              />
+                            </div>
+                            <div className="pt-5">:</div>
+                            <div>
+                              <label className="block text-xs text-gray-400 mb-1">Minutes</label>
+                              <input
+                                type="number"
+                                min="0"
+                                max="59"
+                                value={maintenanceDuration.minutes}
+                                onChange={(e) => setMaintenanceDuration({
+                                  ...maintenanceDuration,
+                                  minutes: Math.max(0, Math.min(59, parseInt(e.target.value) || 0))
+                                })}
+                                className="w-20 px-3 py-2 bg-gray-700 border border-gray-600 rounded text-white text-center"
+                              />
+                            </div>
+                          </div>
+                        </div>
+                      )}
+                      
+                      {/* Temps restant */}
+                      {maintenanceMode && maintenanceEndTime && (
+                        <MaintenanceCountdown endTime={maintenanceEndTime} />
+                      )}
+                      
                       <button
                         onClick={async () => {
                           try {
+                            const endTime = !maintenanceMode 
+                              ? new Date(Date.now() + (maintenanceDuration.hours * 60 + maintenanceDuration.minutes) * 60 * 1000)
+                              : null;
+                            
                             const res = await fetch('/api/settings', {
                               method: 'POST',
                               headers: { 'Content-Type': 'application/json' },
                               body: JSON.stringify({ 
-                                maintenanceMode: !maintenanceMode
+                                maintenanceMode: !maintenanceMode,
+                                maintenanceEndTime: endTime
                               })
                             })
                             
                             if (res.ok) {
                               setMaintenanceMode(!maintenanceMode)
+                              if (!maintenanceMode) {
+                                setMaintenanceEndTime(endTime)
+                              } else {
+                                setMaintenanceEndTime(null)
+                              }
                               toast.success(maintenanceMode ? 'Mode maintenance désactivé' : 'Mode maintenance activé')
                               mutate('/api/settings')
                             }

@@ -47,6 +47,7 @@ export async function POST(request: NextRequest) {
     if (data.maintenanceMode !== undefined) settings.maintenanceMode = data.maintenanceMode
     if (data.maintenanceBackgroundImage !== undefined) settings.maintenanceBackgroundImage = data.maintenanceBackgroundImage
     if (data.maintenanceLogo !== undefined) settings.maintenanceLogo = data.maintenanceLogo
+    if (data.maintenanceEndTime !== undefined) settings.maintenanceEndTime = data.maintenanceEndTime
     
     await settings.save()
     
