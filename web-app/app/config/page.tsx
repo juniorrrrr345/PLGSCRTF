@@ -1076,8 +1076,14 @@ export default function ConfigPage() {
                     </p>
                     
                     <div className="space-y-4">
+                      <div className="bg-blue-900/20 border border-blue-600/30 rounded-lg p-4 mb-4">
+                        <p className="text-sm text-blue-400">
+                          💡 Conseil : Ajoutez vos réseaux sociaux, configurez-les et cliquez sur "Sauvegarder" pour les afficher sur la page publique.
+                        </p>
+                      </div>
+                      
                       {shopSocialNetworks.map((network, index) => (
-                        <div key={network.id || index} className="flex items-center gap-4 p-4 bg-gray-800 rounded-lg">
+                        <div key={network.id || index} className="flex items-center gap-4 p-4 bg-gray-800 rounded-lg hover:bg-gray-700 transition-colors">
                           {/* Emoji */}
                           <input
                             type="text"
@@ -1135,7 +1141,7 @@ export default function ConfigPage() {
                                 : 'bg-blue-600/20 text-blue-400 hover:bg-blue-600/30'
                             }`}
                           >
-                            <ChevronUpIcon className="w-5 h-5" />
+                            ↑
                           </button>
                           
                           {/* Move Down */}
@@ -1156,7 +1162,7 @@ export default function ConfigPage() {
                                 : 'bg-blue-600/20 text-blue-400 hover:bg-blue-600/30'
                             }`}
                           >
-                            <ChevronDownIcon className="w-5 h-5" />
+                            ↓
                           </button>
                           
                           {/* Delete */}
