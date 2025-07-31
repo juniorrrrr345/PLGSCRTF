@@ -29,7 +29,9 @@ import {
   PhotoIcon,
   PaperAirplaneIcon,
   Bars3Icon,
-  ShoppingBagIcon
+  ShoppingBagIcon,
+  ChevronUpIcon,
+  ChevronDownIcon
 } from '@heroicons/react/24/outline'
 
 const fetcher = (url: string) => fetch(url).then(res => res.json())
@@ -1115,6 +1117,48 @@ export default function ConfigPage() {
                             className="flex-1 px-4 py-2 bg-white/10 border border-white/20 rounded-lg"
                           />
                           
+                          {/* Move Up */}
+                          <button
+                            onClick={() => {
+                              if (index > 0) {
+                                const updated = [...shopSocialNetworks]
+                                const temp = updated[index]
+                                updated[index] = updated[index - 1]
+                                updated[index - 1] = temp
+                                setShopSocialNetworks(updated)
+                              }
+                            }}
+                            disabled={index === 0}
+                            className={`p-2 rounded-lg transition-colors ${
+                              index === 0 
+                                ? 'bg-gray-800 text-gray-600 cursor-not-allowed' 
+                                : 'bg-blue-600/20 text-blue-400 hover:bg-blue-600/30'
+                            }`}
+                          >
+                            <ChevronUpIcon className="w-5 h-5" />
+                          </button>
+                          
+                          {/* Move Down */}
+                          <button
+                            onClick={() => {
+                              if (index < shopSocialNetworks.length - 1) {
+                                const updated = [...shopSocialNetworks]
+                                const temp = updated[index]
+                                updated[index] = updated[index + 1]
+                                updated[index + 1] = temp
+                                setShopSocialNetworks(updated)
+                              }
+                            }}
+                            disabled={index === shopSocialNetworks.length - 1}
+                            className={`p-2 rounded-lg transition-colors ${
+                              index === shopSocialNetworks.length - 1
+                                ? 'bg-gray-800 text-gray-600 cursor-not-allowed' 
+                                : 'bg-blue-600/20 text-blue-400 hover:bg-blue-600/30'
+                            }`}
+                          >
+                            <ChevronDownIcon className="w-5 h-5" />
+                          </button>
+                          
                           {/* Delete */}
                           <button
                             onClick={() => {
@@ -1922,13 +1966,63 @@ export default function ConfigPage() {
               <h3 className="text-xl font-bold mb-4">Ajouter un réseau social</h3>
               
               <div className="space-y-4">
+                {/* Custom emoji input */}
+                <div>
+                  <label className="block text-sm font-medium text-gray-300 mb-2">
+                    Emoji personnalisé
+                  </label>
+                  <div className="flex gap-2">
+                    <input
+                      type="text"
+                      placeholder="🔗"
+                      maxLength={2}
+                      className="w-20 px-3 py-2 bg-gray-800 border border-gray-700 rounded-lg text-center text-2xl"
+                      onKeyDown={(e) => {
+                        if (e.key === 'Enter' && e.currentTarget.value) {
+                          const newNetwork = {
+                            id: Date.now().toString(),
+                            emoji: e.currentTarget.value,
+                            name: '',
+                            link: ''
+                          }
+                          setShopSocialNetworks([...shopSocialNetworks, newNetwork])
+                          setShowAddSocialNetwork(false)
+                        }
+                      }}
+                    />
+                    <button
+                      onClick={(e) => {
+                        const input = e.currentTarget.previousElementSibling as HTMLInputElement
+                        if (input.value) {
+                          const newNetwork = {
+                            id: Date.now().toString(),
+                            emoji: input.value,
+                            name: '',
+                            link: ''
+                          }
+                          setShopSocialNetworks([...shopSocialNetworks, newNetwork])
+                          setShowAddSocialNetwork(false)
+                        }
+                      }}
+                      className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg transition-colors"
+                    >
+                      Ajouter
+                    </button>
+                  </div>
+                </div>
+                
                 {/* Emoji suggestions */}
                 <div>
                   <label className="block text-sm font-medium text-gray-300 mb-2">
-                    Choisir un emoji
+                    Ou choisir parmi les suggestions
                   </label>
                   <div className="flex flex-wrap gap-2">
-                    {['📷', '👻', '✈️', '💬', '🎵', '🔗', '📱', '💼', '🛍️', '🎮', '📧', '🌐'].map(emoji => (
+                    {[
+                      '📷', '👻', '✈️', '💬', '🎵', '🔗', '📱', '💼', 
+                      '🛍️', '🎮', '📧', '🌐', '📲', '💻', '🎬', '📺',
+                      '🎨', '📸', '🎤', '🎧', '📹', '🎭', '🎪', '🎯',
+                      '🏪', '🛒', '💳', '📦', '🚀', '💎', '🔥', '⚡'
+                    ].map(emoji => (
                       <button
                         key={emoji}
                         type="button"
