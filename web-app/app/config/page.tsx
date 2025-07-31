@@ -845,11 +845,11 @@ export default function ConfigPage() {
               {/* Plugs Management */}
               {activeTab === 'plugs' && (
                 <div className="space-y-6">
-                  <div className="flex justify-between items-center">
-                    <h1 className="text-3xl font-bold">Gestion des Plugs</h1>
+                  <div className="flex flex-col sm:flex-row gap-4 sm:justify-between sm:items-center">
+                    <h1 className="text-2xl sm:text-3xl font-bold">Gestion des Plugs</h1>
                     <button
                       onClick={() => setShowAddPlug(true)}
-                      className="btn-primary flex items-center gap-2"
+                      className="w-full sm:w-auto btn-primary flex items-center justify-center gap-2 py-3"
                     >
                       <PlusIcon className="w-5 h-5" />
                       Ajouter un plug
@@ -1142,11 +1142,11 @@ export default function ConfigPage() {
               {/* Products */}
               {activeTab === 'products' && (
                 <div className="space-y-6">
-                  <div className="flex justify-between items-center">
-                    <h1 className="text-3xl font-bold">Produits</h1>
+                  <div className="flex flex-col sm:flex-row gap-4 sm:justify-between sm:items-center">
+                    <h1 className="text-2xl sm:text-3xl font-bold">Produits</h1>
                     <button
                       onClick={() => setShowAddProduct(true)}
-                      className="btn-primary flex items-center gap-2"
+                      className="w-full sm:w-auto btn-primary flex items-center justify-center gap-2 py-3"
                     >
                       <PlusIcon className="w-5 h-5" />
                       Ajouter un produit
