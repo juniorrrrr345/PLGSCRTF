@@ -35,6 +35,13 @@ PLUGS CRTFS`;
         inline_keyboard: []
       };
       
+      // Ajouter le bouton Mini App en premier
+      const miniAppButtonText = settings?.miniAppButtonText || '🔌 MINI APP PLGS CRTFS';
+      keyboard.inline_keyboard.push([{
+        text: miniAppButtonText,
+        url: 'https://t.me/PLGSCRTF_BOT/miniapp'
+      }]);
+      
       // Ajouter les réseaux sociaux du bot s'ils existent
       if (settings?.botSocialNetworks && settings.botSocialNetworks.length > 0) {
         // Trier par ordre
