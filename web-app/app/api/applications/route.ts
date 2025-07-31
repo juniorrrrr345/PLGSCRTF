@@ -6,10 +6,13 @@ export async function GET() {
   try {
     await connectToDatabase()
     
+    console.log('Fetching vendor applications...')
     const applications = await VendorApplication.find()
       .sort({ createdAt: -1 })
       .limit(100)
       .lean()
+    
+    console.log(`Found ${applications.length} applications`)
     
     // Normaliser les données pour gérer les anciennes et nouvelles structures
     const normalizedApplications = applications.map((app: any) => ({

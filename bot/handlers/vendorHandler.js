@@ -323,7 +323,12 @@ async function displayVendorStep(bot, chatId, userState, userStates) {
       message += '📱 <b>Réseaux sociaux:</b>\n';
       if (userState.data.socialNetworks.primary.length > 0) {
         userState.data.socialNetworks.primary.forEach(network => {
-          message += `• ${network}\n`;
+          const link = userState.data.socialNetworks.links[network];
+          if (link) {
+            message += `• ${network}: ${link}\n`;
+          } else {
+            message += `• ${network}\n`;
+          }
         });
       } else {
         message += '• <i>Aucun réseau principal sélectionné</i>\n';
