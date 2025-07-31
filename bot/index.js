@@ -346,17 +346,22 @@ bot.on('callback_query', async (callbackQuery) => {
       }
     }
     
-    // Plugs par pays
-    else if (data.startsWith('plugs_country_')) {
-      const country = data.replace('plugs_country_', '');
+    // Filtres par pays (avec ou sans méthode)
+    else if (data.startsWith('plugs_filter_country_')) {
+      const parts = data.replace('plugs_filter_country_', '').split('_method_');
+      const country = parts[0];
+      const method = parts[1] || null;
       await bot.deleteMessage(chatId, messageId);
-      await handlePlugsMenu(bot, chatId, country);
+      await handlePlugsMenu(bot, chatId, { country, method });
     }
     
-    // Tous les plugs
-    else if (data === 'plugs_all') {
+    // Filtres par méthode (avec ou sans pays)
+    else if (data.startsWith('plugs_filter_method_')) {
+      const parts = data.replace('plugs_filter_method_', '').split('_country_');
+      const method = parts[0];
+      const country = parts[1] || null;
       await bot.deleteMessage(chatId, messageId);
-      await handlePlugsMenu(bot, chatId, 'ALL');
+      await handlePlugsMenu(bot, chatId, { country, method });
     }
     
     // Top Parrains

@@ -24,170 +24,212 @@ function getCountryName(countryCode) {
 }
 const Settings = require('../models/Settings');
 
-async function handlePlugsMenu(bot, chatId, selectedCountry = null) {
+async function handlePlugsMenu(bot, chatId, filters = {}) {
   try {
     // Récupérer les paramètres pour l'image d'accueil
     const settings = await Settings.findOne();
     
-    // Récupérer tous les plugs actifs
+    // Construire la requête avec les filtres
     const query = { isActive: true };
-    if (selectedCountry && selectedCountry !== 'ALL') {
-      query['location.countries'] = selectedCountry;
+    
+    if (filters.country) {
+      query['location.countries'] = filters.country;
     }
     
+    if (filters.method) {
+      query[`methods.${filters.method}`] = true;
+    }
+    
+    // Récupérer tous les plugs avec les filtres appliqués
     const plugs = await Plug.find(query)
       .sort({ likes: -1 })
       .limit(50);
     
+    // Récupérer tous les plugs pour les statistiques
+    const allPlugs = await Plug.find({ isActive: true });
+    
+    // Collecter les pays et méthodes disponibles
+    const countriesSet = new Set();
+    const methodsAvailable = {
+      delivery: false,
+      shipping: false,
+      meetup: false
+    };
+    
+    allPlugs.forEach(plug => {
+      if (plug.location && plug.location.countries) {
+        plug.location.countries.forEach(country => {
+          countriesSet.add(country);
+        });
+      }
+      if (plug.methods) {
+        if (plug.methods.delivery) methodsAvailable.delivery = true;
+        if (plug.methods.shipping) methodsAvailable.shipping = true;
+        if (plug.methods.meetup) methodsAvailable.meetup = true;
+      }
+    });
+    
+    const countries = Array.from(countriesSet).sort();
+    
+    // Construire le message
+    let message = '🔌 <b>PLUGS CRTFS</b>\n';
+    message += '━━━━━━━━━━━━━━━━\n\n';
+    
+    // Afficher les filtres actifs
+    if (filters.country || filters.method) {
+      message += '🔍 <b>Filtres actifs:</b> ';
+      if (filters.country) {
+        message += `${getCountryFlag(filters.country)} ${getCountryName(filters.country)} `;
+      }
+      if (filters.method) {
+        const methodEmojis = {
+          delivery: '🚚 Livraison',
+          shipping: '📮 Envoi',
+          meetup: '🤝 Meetup'
+        };
+        message += methodEmojis[filters.method] || '';
+      }
+      message += '\n\n';
+    }
+    
     if (plugs.length === 0) {
-      const noPlugsMessage = selectedCountry && selectedCountry !== 'ALL'
-        ? `❌ Aucun plug disponible pour ${getCountryFlag(selectedCountry)} ${getCountryName(selectedCountry)}.`
-        : '❌ Aucun plug disponible pour le moment.';
-        
-      await bot.sendMessage(chatId, noPlugsMessage, {
-        reply_markup: {
-          inline_keyboard: [
-            [{ text: '⬅️ Retour', callback_data: selectedCountry ? 'plugs' : 'main_menu' }]
-          ]
-        },
-        parse_mode: 'HTML'
-      });
-      return;
+      message += '❌ Aucun plug trouvé avec ces critères.';
+    } else {
+      message += `📊 <b>${plugs.length} plug${plugs.length > 1 ? 's' : ''} trouvé${plugs.length > 1 ? 's' : ''}</b>\n\n`;
     }
     
     const keyboard = {
       inline_keyboard: []
     };
     
-    if (!selectedCountry) {
-      // Mode sélection de pays
-      let message = '🔌 <b>PLUGS CRTFS</b>\n';
-      message += '━━━━━━━━━━━━━━━━\n\n';
-      message += '🌍 <b>Sélectionnez un pays :</b>\n\n';
-      
-      // Récupérer tous les pays uniques des plugs
-      const allPlugs = await Plug.find({ isActive: true });
-      const countriesSet = new Set();
-      
-      allPlugs.forEach(plug => {
-        if (plug.location && plug.location.countries) {
-          plug.location.countries.forEach(country => {
-            countriesSet.add(country);
-          });
-        }
+    // Ligne 1: Drapeaux des pays (max 4 par ligne)
+    const countryButtons = countries.map(country => {
+      const isSelected = filters.country === country;
+      return {
+        text: isSelected ? `✅ ${getCountryFlag(country)}` : getCountryFlag(country),
+        callback_data: isSelected 
+          ? (filters.method ? `plugs_filter_method_${filters.method}` : 'plugs')
+          : `plugs_filter_country_${country}${filters.method ? '_method_' + filters.method : ''}`
+      };
+    });
+    
+    // Diviser les pays en lignes de 4 maximum
+    for (let i = 0; i < countryButtons.length; i += 4) {
+      keyboard.inline_keyboard.push(countryButtons.slice(i, i + 4));
+    }
+    
+    // Ligne des méthodes de vente
+    const methodButtons = [];
+    if (methodsAvailable.delivery) {
+      const isSelected = filters.method === 'delivery';
+      methodButtons.push({
+        text: isSelected ? '✅ 🚚 Livraison' : '🚚 Livraison',
+        callback_data: isSelected
+          ? (filters.country ? `plugs_filter_country_${filters.country}` : 'plugs')
+          : `plugs_filter_method_delivery${filters.country ? '_country_' + filters.country : ''}`
       });
-      
-      // Convertir en array et trier
-      const countries = Array.from(countriesSet).sort();
-      
-      // Créer les boutons par pays
-      countries.forEach(country => {
-        const countryPlugs = allPlugs.filter(plug => 
-          plug.location && plug.location.countries && plug.location.countries.includes(country)
-        );
-        
-        keyboard.inline_keyboard.push([{
-          text: `${getCountryFlag(country)} ${getCountryName(country)} (${countryPlugs.length} plugs)`,
-          callback_data: `plugs_country_${country}`
-        }]);
+    }
+    if (methodsAvailable.shipping) {
+      const isSelected = filters.method === 'shipping';
+      methodButtons.push({
+        text: isSelected ? '✅ 📮 Envoi' : '📮 Envoi',
+        callback_data: isSelected
+          ? (filters.country ? `plugs_filter_country_${filters.country}` : 'plugs')
+          : `plugs_filter_method_shipping${filters.country ? '_country_' + filters.country : ''}`
       });
-      
-      // Ajouter bouton pour voir tous les plugs
+    }
+    if (methodsAvailable.meetup) {
+      const isSelected = filters.method === 'meetup';
+      methodButtons.push({
+        text: isSelected ? '✅ 🤝 Meetup' : '🤝 Meetup',
+        callback_data: isSelected
+          ? (filters.country ? `plugs_filter_country_${filters.country}` : 'plugs')
+          : `plugs_filter_method_meetup${filters.country ? '_country_' + filters.country : ''}`
+      });
+    }
+    
+    if (methodButtons.length > 0) {
+      keyboard.inline_keyboard.push(methodButtons);
+    }
+    
+    // Bouton pour réinitialiser les filtres (si des filtres sont actifs)
+    if (filters.country || filters.method) {
       keyboard.inline_keyboard.push([{
-        text: '🌐 Voir tous les plugs',
-        callback_data: 'plugs_all'
+        text: '🔄 Réinitialiser les filtres',
+        callback_data: 'plugs'
       }]);
+    }
+    
+    // Séparateur
+    keyboard.inline_keyboard.push([{
+      text: '━━━━━━━━━━━━━━━━',
+      callback_data: 'separator'
+    }]);
+    
+    // Liste des plugs
+    plugs.forEach((plug, index) => {
+      // Construire le texte du bouton avec les infos appropriées
+      let buttonText = '';
       
-      // Ajouter le bouton retour
+      // Emoji de classement pour le top 3
+      if (!filters.country && !filters.method) {
+        if (index === 0) buttonText += '🥇 ';
+        else if (index === 1) buttonText += '🥈 ';
+        else if (index === 2) buttonText += '🥉 ';
+      }
+      
+      buttonText += plug.name;
+      
+      // Ajouter les drapeaux si on n'a pas filtré par pays
+      if (!filters.country && plug.location?.countries) {
+        const flags = plug.location.countries.map(c => getCountryFlag(c)).join('');
+        if (flags) buttonText += ` ${flags}`;
+      }
+      
+      // Ajouter les emojis de méthodes si on n'a pas filtré par méthode
+      if (!filters.method) {
+        const methods = [];
+        if (plug.methods?.delivery) methods.push('🚚');
+        if (plug.methods?.shipping) methods.push('📮');
+        if (plug.methods?.meetup) methods.push('🤝');
+        if (methods.length > 0) buttonText += ` ${methods.join('')}`;
+      }
+      
+      // Ajouter le nombre de likes
+      buttonText += ` (❤️ ${plug.likes || 0})`;
+      
       keyboard.inline_keyboard.push([{
-        text: '⬅️ Retour au menu',
-        callback_data: 'main_menu'
+        text: buttonText,
+        callback_data: `plug_${plug._id}`
       }]);
-      
-      // Envoyer avec l'image d'accueil si elle existe
-      if (settings?.welcomeImage) {
-        try {
-          await bot.sendPhoto(chatId, settings.welcomeImage, {
-            caption: message,
-            reply_markup: keyboard,
-            parse_mode: 'HTML'
-          });
-        } catch (error) {
-          console.error('Erreur envoi image:', error);
-          await bot.sendMessage(chatId, message, {
-            reply_markup: keyboard,
-            parse_mode: 'HTML'
-          });
-        }
-      } else {
+    });
+    
+    // Bouton retour au menu principal
+    keyboard.inline_keyboard.push([{
+      text: '⬅️ Retour au menu',
+      callback_data: 'main_menu'
+    }]);
+    
+    // Envoyer le message
+    if (settings?.welcomeImage) {
+      try {
+        await bot.sendPhoto(chatId, settings.welcomeImage, {
+          caption: message,
+          reply_markup: keyboard,
+          parse_mode: 'HTML'
+        });
+      } catch (error) {
+        console.error('Erreur envoi image:', error);
         await bot.sendMessage(chatId, message, {
           reply_markup: keyboard,
           parse_mode: 'HTML'
         });
       }
     } else {
-      // Mode affichage des plugs (d'un pays spécifique ou tous)
-      let message;
-      if (selectedCountry === 'ALL') {
-        message = '🔌 <b>TOUS LES PLUGS CRTFS</b>\n';
-      } else {
-        message = `🔌 <b>PLUGS CRTFS - ${getCountryFlag(selectedCountry)} ${getCountryName(selectedCountry)}</b>\n`;
-      }
-      message += '━━━━━━━━━━━━━━━━\n\n';
-      
-      // Créer les boutons pour chaque plug
-      plugs.forEach((plug, index) => {
-        // Afficher le pays principal du plug
-        const plugCountries = plug.location?.countries || [];
-        const countryFlags = plugCountries.map(c => getCountryFlag(c)).join(' ');
-        
-        // Ajouter un emoji spécial pour le top 3
-        let emoji = '';
-        if (index === 0) emoji = '🥇 ';
-        else if (index === 1) emoji = '🥈 ';
-        else if (index === 2) emoji = '🥉 ';
-        
-        const buttonText = `${emoji}${plug.name} ${countryFlags} (❤️ ${plug.likes})`;
-        keyboard.inline_keyboard.push([{
-          text: buttonText,
-          callback_data: `plug_${plug._id}`
-        }]);
+      await bot.sendMessage(chatId, message, {
+        reply_markup: keyboard,
+        parse_mode: 'HTML'
       });
-      
-      // Ajouter les boutons de navigation
-      keyboard.inline_keyboard.push([{
-        text: '⬅️ Retour aux pays',
-        callback_data: 'plugs'
-      }]);
-      
-      keyboard.inline_keyboard.push([{
-        text: '🏠 Menu principal',
-        callback_data: 'main_menu'
-      }]);
-      
-      message += '👆 Cliquez sur un plug pour voir les détails';
-      
-      // Envoyer avec l'image d'accueil si elle existe
-      if (settings?.welcomeImage) {
-        try {
-          await bot.sendPhoto(chatId, settings.welcomeImage, {
-            caption: message,
-            reply_markup: keyboard,
-            parse_mode: 'HTML'
-          });
-        } catch (error) {
-          console.error('Erreur envoi image:', error);
-          await bot.sendMessage(chatId, message, {
-            reply_markup: keyboard,
-            parse_mode: 'HTML'
-          });
-        }
-      } else {
-        await bot.sendMessage(chatId, message, {
-          reply_markup: keyboard,
-          parse_mode: 'HTML'
-        });
-      }
     }
     
   } catch (error) {
