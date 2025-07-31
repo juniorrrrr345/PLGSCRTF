@@ -1,6 +1,7 @@
 const User = require('../models/User');
 const Settings = require('../models/Settings');
 const { requireChannelMembership } = require('../middleware/channelCheck');
+const { checkMaintenanceMode } = require('../middleware/maintenanceCheck');
 
 async function handleStart(bot, msg, param) {
   console.log('📱 handleStart appelé pour:', msg.from.username || msg.from.first_name);
@@ -54,6 +55,12 @@ async function handleStart(bot, msg, param) {
 }
 
 async function showMainMenu(bot, chatId, userId = null) {
+  // Vérifier d'abord si le bot est en maintenance
+  const inMaintenance = await checkMaintenanceMode(bot, chatId);
+  if (inMaintenance) {
+    return; // Le message de maintenance a été envoyé
+  }
+  
   // Si userId est fourni, vérifier l'appartenance au canal
   if (userId) {
     const hasAccess = await requireChannelMembership(bot, chatId, userId);

@@ -61,6 +61,11 @@ const settingsSchema = new mongoose.Schema({
   telegramChannelId: {
     type: String,
     default: '-1002736254394'
+  },
+  // Mode maintenance
+  maintenanceMode: {
+    type: Boolean,
+    default: false
   }
 });
 

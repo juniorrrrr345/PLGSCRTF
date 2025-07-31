@@ -44,6 +44,7 @@ export async function POST(request: NextRequest) {
     if (data.postalCodes !== undefined) settings.postalCodes = data.postalCodes
     if (data.telegramChannelLink !== undefined) settings.telegramChannelLink = data.telegramChannelLink
     if (data.telegramChannelId !== undefined) settings.telegramChannelId = data.telegramChannelId
+    if (data.maintenanceMode !== undefined) settings.maintenanceMode = data.maintenanceMode
     
     await settings.save()
     

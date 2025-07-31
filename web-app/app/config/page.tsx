@@ -151,6 +151,11 @@ export default function ConfigPage() {
         setTelegramChannelId(settings.telegramChannelId)
       }
       
+      // Charger le mode maintenance
+      if (settings.maintenanceMode !== undefined) {
+        setMaintenanceMode(settings.maintenanceMode)
+      }
+      
       // Charger les réseaux sociaux de la boutique
       if (settings.shopSocialNetworks && settings.shopSocialNetworks.length > 0) {
         // Utiliser directement shopSocialNetworks sans ajouter Mini App
@@ -408,6 +413,26 @@ export default function ConfigPage() {
       
       if (res.ok) {
         toast.success('Configuration Telegram mise à jour !')
+        mutate('/api/settings')
+      }
+    } catch (error) {
+      toast.error('Erreur lors de la mise à jour')
+    }
+  }
+  
+  const handleToggleMaintenance = async () => {
+    try {
+      const res = await fetch('/api/settings', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ 
+          maintenanceMode: !maintenanceMode
+        })
+      })
+      
+      if (res.ok) {
+        setMaintenanceMode(!maintenanceMode)
+        toast.success(maintenanceMode ? 'Mode maintenance désactivé' : 'Mode maintenance activé')
         mutate('/api/settings')
       }
     } catch (error) {
