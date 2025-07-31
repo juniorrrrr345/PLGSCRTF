@@ -245,11 +245,12 @@ async function handlePlugDetails(bot, chatId, plugId, fromMenu = 'plugs') {
     console.log(`📱 Chargement des détails du plug: ${plugId}`);
     console.log(`📱 ChatId: ${chatId}`);
     
+    // Récupérer le plug
     const plug = await Plug.findById(plugId);
     
     if (!plug) {
-      console.error('❌ Plug introuvable:', plugId);
-      // Retourner au menu principal sans message d'erreur
+      console.log(`❌ Plug non trouvé: ${plugId}`);
+      // Au lieu d'afficher une erreur, retourner au menu des plugs
       await handlePlugsMenu(bot, chatId);
       return;
     }
@@ -458,11 +459,24 @@ async function handlePlugDetails(bot, chatId, plugId, fromMenu = 'plugs') {
     let likeButtonText = `❤️ Like (${plug.likes || 0})`;
     let isInCooldown = false;
     
+    console.log(`🔍 Vérification cooldown pour user ${chatId}:`, {
+      userFound: !!user,
+      lastLikeTime: user?.lastLikeTime,
+      telegramId: user?.telegramId
+    });
+    
     if (user && user.lastLikeTime) {
       const now = new Date();
       const lastLikeTime = new Date(user.lastLikeTime);
       const timeSinceLastLike = (now - lastLikeTime) / 1000 / 60; // en minutes
       const remainingTime = Math.ceil(30 - timeSinceLastLike);
+      
+      console.log(`⏱️ Calcul cooldown:`, {
+        now: now.toISOString(),
+        lastLikeTime: lastLikeTime.toISOString(),
+        timeSinceLastLike: timeSinceLastLike.toFixed(2),
+        remainingTime
+      });
       
       if (remainingTime > 0 && remainingTime <= 30) {
         likeButtonText = `⏱️ Restant ${remainingTime}min (${plug.likes || 0})`;
@@ -640,6 +654,8 @@ async function handleLike(bot, callbackQuery, plugId) {
       user.likedPlugs.push(plugId);
     }
     await user.save();
+    
+    console.log(`✅ User ${userId} mis à jour avec lastLikeTime:`, user.lastLikeTime);
     
     // Mettre à jour les stats de parrainage si l'utilisateur est venu via un lien
     const ReferralClick = require('../models/ReferralClick');
