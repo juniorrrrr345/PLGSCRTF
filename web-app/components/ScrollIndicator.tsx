@@ -3,12 +3,17 @@
 import { useEffect, useState } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import { ChevronDownIcon } from '@heroicons/react/24/outline'
+import { useTelegram } from './TelegramProvider'
 
 export default function ScrollIndicator() {
   const [showIndicator, setShowIndicator] = useState(false)
   const [scrollProgress, setScrollProgress] = useState(0)
+  const { isTelegram } = useTelegram()
 
   useEffect(() => {
+    // Ne pas afficher dans Telegram
+    if (isTelegram) return
+
     const handleScroll = () => {
       const scrollHeight = document.documentElement.scrollHeight - window.innerHeight
       const scrollPosition = window.scrollY
@@ -29,7 +34,7 @@ export default function ScrollIndicator() {
     
     window.addEventListener('scroll', handleScroll)
     return () => window.removeEventListener('scroll', handleScroll)
-  }, [])
+  }, [isTelegram])
 
   const scrollToBottom = () => {
     window.scrollTo({
@@ -37,6 +42,9 @@ export default function ScrollIndicator() {
       behavior: 'smooth'
     })
   }
+
+  // Ne rien rendre dans Telegram
+  if (isTelegram) return null
 
   return (
     <AnimatePresence>

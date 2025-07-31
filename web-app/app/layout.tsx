@@ -5,13 +5,14 @@ import { Toaster } from 'react-hot-toast'
 import Navbar from '@/components/Navbar'
 import ScrollIndicator from '@/components/ScrollIndicator'
 import BackgroundProvider from '@/components/BackgroundProvider'
+import TelegramProvider from '@/components/TelegramProvider'
 
 const inter = Inter({ subsets: ['latin'] })
 
 export const metadata: Metadata = {
   title: 'PLUGS CRTFS - Marketplace des vendeurs certifiés',
   description: 'La plateforme exclusive pour trouver des vendeurs certifiés et de confiance',
-  viewport: 'width=device-width, initial-scale=1, maximum-scale=1',
+  viewport: 'width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no',
 }
 
 export default function RootLayout({
@@ -42,23 +43,25 @@ export default function RootLayout({
         />
       </head>
       <body className={`${inter.className} bg-dark text-white min-h-screen`}>
-        <BackgroundProvider>
-          <Navbar />
-          <main className="relative min-h-screen">
-            {children}
-          </main>
-          <ScrollIndicator />
-          <Toaster 
-            position="top-center"
-            toastOptions={{
-              style: {
-                background: '#1a1a1a',
-                color: '#fff',
-                border: '1px solid rgba(255, 255, 255, 0.1)',
-              },
-            }}
-          />
-        </BackgroundProvider>
+        <TelegramProvider>
+          <BackgroundProvider>
+            <Navbar />
+            <main className="relative min-h-screen">
+              {children}
+            </main>
+            <ScrollIndicator />
+            <Toaster 
+              position="top-center"
+              toastOptions={{
+                style: {
+                  background: '#1a1a1a',
+                  color: '#fff',
+                  border: '1px solid rgba(255, 255, 255, 0.1)',
+                },
+              }}
+            />
+          </BackgroundProvider>
+        </TelegramProvider>
       </body>
     </html>
   )

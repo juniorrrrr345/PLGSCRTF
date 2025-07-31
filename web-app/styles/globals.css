@@ -83,3 +83,6 @@ html[data-maintenance="true"] {
     @apply text-blue-400 hover:text-blue-300;
   }
 }
+
+/* Import des styles Telegram */
+@import './telegram.css';
