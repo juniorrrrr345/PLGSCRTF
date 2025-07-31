@@ -55,6 +55,21 @@ const plugSchema = new mongoose.Schema({
     default: 0
   },
   referralLink: String,
+  // Traçage des parrainages
+  referralStats: [{
+    userId: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: 'User'
+    },
+    clicks: {
+      type: Number,
+      default: 0
+    },
+    votes: {
+      type: Number,
+      default: 0
+    }
+  }],
   isActive: {
     type: Boolean,
     default: true
