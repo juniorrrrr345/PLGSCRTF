@@ -69,7 +69,7 @@ export default function ConfigPage() {
   const [maintenanceBackgroundImage, setMaintenanceBackgroundImage] = useState('')
   const [maintenanceLogo, setMaintenanceLogo] = useState('')
   const [maintenanceEndTime, setMaintenanceEndTime] = useState<Date | null>(null)
-  const [maintenanceDuration, setMaintenanceDuration] = useState({ hours: 1, minutes: 0 })
+  const [maintenanceDuration, setMaintenanceDuration] = useState({ days: 0, hours: 1, minutes: 0 })
   const [editingApplication, setEditingApplication] = useState<any>(null)
   const [showEditApplication, setShowEditApplication] = useState(false)
   const [newProduct, setNewProduct] = useState({
@@ -1351,20 +1351,35 @@ export default function ConfigPage() {
                           <h4 className="text-sm font-semibold text-gray-300 mb-3">Durée de la maintenance</h4>
                           <div className="flex gap-4 items-center">
                             <div>
-                              <label className="block text-xs text-gray-400 mb-1">Heures</label>
+                              <label className="block text-xs text-gray-400 mb-1">Jours</label>
                               <input
                                 type="number"
                                 min="0"
-                                max="24"
-                                value={maintenanceDuration.hours}
+                                max="999"
+                                value={maintenanceDuration.days}
                                 onChange={(e) => setMaintenanceDuration({
                                   ...maintenanceDuration,
-                                  hours: Math.max(0, Math.min(24, parseInt(e.target.value) || 0))
+                                  days: Math.max(0, parseInt(e.target.value) || 0)
                                 })}
                                 className="w-20 px-3 py-2 bg-gray-700 border border-gray-600 rounded text-white text-center"
                               />
                             </div>
-                            <div className="pt-5">:</div>
+                            <div className="pt-5">j</div>
+                            <div>
+                              <label className="block text-xs text-gray-400 mb-1">Heures</label>
+                              <input
+                                type="number"
+                                min="0"
+                                max="999"
+                                value={maintenanceDuration.hours}
+                                onChange={(e) => setMaintenanceDuration({
+                                  ...maintenanceDuration,
+                                  hours: Math.max(0, parseInt(e.target.value) || 0)
+                                })}
+                                className="w-20 px-3 py-2 bg-gray-700 border border-gray-600 rounded text-white text-center"
+                              />
+                            </div>
+                            <div className="pt-5">h</div>
                             <div>
                               <label className="block text-xs text-gray-400 mb-1">Minutes</label>
                               <input
@@ -1379,6 +1394,7 @@ export default function ConfigPage() {
                                 className="w-20 px-3 py-2 bg-gray-700 border border-gray-600 rounded text-white text-center"
                               />
                             </div>
+                            <div className="pt-5">min</div>
                           </div>
                         </div>
                       )}
@@ -1392,7 +1408,7 @@ export default function ConfigPage() {
                         onClick={async () => {
                           try {
                             const endTime = !maintenanceMode 
-                              ? new Date(Date.now() + (maintenanceDuration.hours * 60 + maintenanceDuration.minutes) * 60 * 1000)
+                              ? new Date(Date.now() + (maintenanceDuration.days * 24 * 60 + maintenanceDuration.hours * 60 + maintenanceDuration.minutes) * 60 * 1000)
                               : null;
                             
                             const res = await fetch('/api/settings', {

@@ -51,10 +51,13 @@ export default function MaintenancePage() {
         return
       }
 
-      const hours = Math.floor(distance / (1000 * 60 * 60))
+      const days = Math.floor(distance / (1000 * 60 * 60 * 24))
+      const hours = Math.floor((distance % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60))
       const minutes = Math.floor((distance % (1000 * 60 * 60)) / (1000 * 60))
       
-      if (hours > 0) {
+      if (days > 0) {
+        setTimeLeft(`${days}j ${hours}h ${minutes}min`)
+      } else if (hours > 0) {
         setTimeLeft(`${hours}h ${minutes}min`)
       } else {
         setTimeLeft(`${minutes}min`)
@@ -121,9 +124,11 @@ export default function MaintenancePage() {
         </p>
         
         {timeLeft && (
-          <p className="text-sm text-gray-400 mb-8">
-            Temps estimé : {timeLeft}
-          </p>
+          <div className="mb-8 p-4 bg-red-900/20 border border-red-600/30 rounded-lg">
+            <p className="text-lg font-semibold text-red-500">
+              ⏱️ Temps estimé : <span className="text-xl">{timeLeft}</span>
+            </p>
+          </div>
         )}
         
         <div className="bg-gray-800/50 backdrop-blur-sm rounded-2xl p-8 mb-8">
