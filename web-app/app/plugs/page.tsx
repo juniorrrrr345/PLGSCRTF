@@ -155,19 +155,22 @@ export default function PlugsPage() {
             >
               🌐 Tous les pays
             </button>
-            {availableCountries.map(country => (
-              <button
-                key={country}
-                onClick={() => setSelectedCountry(country)}
-                className={`px-4 py-2 rounded-lg transition-all ${
-                  selectedCountry === country
-                    ? 'bg-primary text-white'
-                    : 'bg-gray-800/50 text-gray-400 hover:bg-gray-700'
-                }`}
-              >
-                {getCountryFlag(country)} {getCountryName(country)}
-              </button>
-            ))}
+            {availableCountries.map(country => {
+              const plugCount = plugs?.filter((plug: any) => plug.country === country).length || 0
+              return (
+                <button
+                  key={country}
+                  onClick={() => setSelectedCountry(country)}
+                  className={`px-4 py-2 rounded-lg transition-all ${
+                    selectedCountry === country
+                      ? 'bg-primary text-white'
+                      : 'bg-gray-800/50 text-gray-400 hover:bg-gray-700'
+                  }`}
+                >
+                  {getCountryFlag(country)} {getCountryName(country)} ({plugCount})
+                </button>
+              )
+            })}
           </div>
         </motion.div>
 

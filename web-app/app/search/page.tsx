@@ -26,9 +26,30 @@ export default function SearchPage() {
   const [isModalOpen, setIsModalOpen] = useState(false)
   const [filteredPlugs, setFilteredPlugs] = useState<any[]>([])
   const [showFilters, setShowFilters] = useState(false)
+  const [availableCountries, setAvailableCountries] = useState<any[]>([])
 
   useEffect(() => {
     if (plugs) {
+      // Calculer les pays disponibles
+      const countriesSet = new Set<string>()
+      plugs.forEach((plug: any) => {
+        if (plug.country) {
+          countriesSet.add(plug.country)
+        }
+      })
+      
+      // Créer la liste des pays avec leurs drapeaux
+      const countries = Array.from(countriesSet).map(countryCode => {
+        const countryData = settings?.countries?.find((c: any) => c.code === countryCode)
+        return {
+          code: countryCode,
+          name: countryData?.name || countryCode,
+          flag: countryData?.flag || ''
+        }
+      }).sort((a, b) => a.name.localeCompare(b.name))
+      
+      setAvailableCountries(countries)
+      
       let filtered = plugs
 
       // Filtre par recherche (nom, description, ville, département)
@@ -176,8 +197,8 @@ export default function SearchPage() {
                 className="w-full p-3 bg-white/10 border border-white/20 rounded-lg text-white focus:outline-none focus:border-primary"
               >
                 <option value="">Tous les pays</option>
-                {settings?.countries?.map((country: any) => (
-                  <option key={country.code} value={country.name}>
+                {availableCountries.map((country: any) => (
+                  <option key={country.code} value={country.code}>
                     {country.flag} {country.name}
                   </option>
                 ))}
