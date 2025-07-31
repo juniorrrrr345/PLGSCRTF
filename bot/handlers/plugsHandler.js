@@ -171,7 +171,8 @@ async function handlePlugDetails(bot, chatId, plugId) {
     if (plug.socialNetworks) {
       // Gérer les réseaux primaires avec leurs liens
       if (plug.socialNetworks.primary && plug.socialNetworks.links) {
-        plug.socialNetworks.primary.forEach(network => {
+        const networkCounts = {};
+        plug.socialNetworks.primary.forEach((network, index) => {
           const link = plug.socialNetworks.links[network];
           if (link) {
             let url = link;
@@ -181,20 +182,39 @@ async function handlePlugDetails(bot, chatId, plugId) {
                 url = `https://wa.me/${link.replace(/[^0-9]/g, '')}`;
               } else if (network === 'instagram') {
                 url = `https://instagram.com/${link.replace('@', '')}`;
-              } else if (network === 'snap') {
+              } else if (network === 'snap' || network === 'snapchat') {
                 url = `https://snapchat.com/add/${link}`;
               } else if (network === 'telegram') {
                 url = `https://t.me/${link.replace('@', '')}`;
+              } else {
+                // Pour les autres réseaux, essayer de deviner l'URL
+                url = `https://${link}`;
               }
             } else if (link.startsWith('@')) {
               if (network === 'instagram') {
                 url = `https://instagram.com/${link.substring(1)}`;
               } else if (network === 'telegram') {
                 url = `https://t.me/${link.substring(1)}`;
+              } else {
+                // Pour les autres réseaux avec @, supprimer le @
+                url = `https://${network}.com/${link.substring(1)}`;
               }
+            } else if (!link.startsWith('http')) {
+              // Si ce n'est toujours pas une URL valide
+              url = `https://${link}`;
             }
+            
+            // Gérer les multiples comptes du même réseau
+            networkCounts[network] = (networkCounts[network] || 0) + 1;
+            const displayName = networkCounts[network] > 1 
+              ? `${networkNames[network] || network} ${networkCounts[network]}`
+              : networkNames[network] || network;
+            
+            // Log pour débugger
+            console.log(`Réseau: ${network}, Lien original: ${link}, URL générée: ${url}`);
+            
             socialButtons.push({ 
-              text: networkNames[network] || network, 
+              text: displayName, 
               url: url 
             });
           }
@@ -254,11 +274,21 @@ async function handlePlugDetails(bot, chatId, plugId) {
     ]);
     
     if (plug.photo) {
-      await bot.sendPhoto(chatId, plug.photo, {
-        caption: message,
-        reply_markup: keyboard,
-        parse_mode: 'HTML'
-      });
+      try {
+        // Essayer d'envoyer avec la photo
+        await bot.sendPhoto(chatId, plug.photo, {
+          caption: message,
+          reply_markup: keyboard,
+          parse_mode: 'HTML'
+        });
+      } catch (photoError) {
+        console.error('Erreur envoi photo:', photoError.message);
+        // Si l'envoi de la photo échoue, envoyer sans photo
+        await bot.sendMessage(chatId, message, {
+          reply_markup: keyboard,
+          parse_mode: 'HTML'
+        });
+      }
     } else {
       await bot.sendMessage(chatId, message, {
         reply_markup: keyboard,
