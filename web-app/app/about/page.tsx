@@ -3,10 +3,12 @@
 import { motion } from 'framer-motion'
 import { ShieldCheckIcon, BoltIcon, SparklesIcon, ArrowRightIcon } from '@heroicons/react/24/outline'
 import Link from 'next/link'
+import BackgroundTheme from '@/components/BackgroundTheme'
 
 export default function AboutPage() {
   return (
-    <div className="min-h-screen pt-20">
+    <div className="min-h-screen pt-20 relative">
+      <BackgroundTheme />
       <div className="max-w-7xl mx-auto px-4 py-12">
         {/* Header */}
         <motion.div
