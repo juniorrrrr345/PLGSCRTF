@@ -56,9 +56,12 @@ async function showMainMenu(bot, chatId) {
   const welcomeMessage = settings?.welcomeMessage || 
     '🔌 <b>Bienvenue sur PLUGS CRTFS !</b>\n\nLa marketplace exclusive des vendeurs certifiés.';
   
+  // Utiliser le texte personnalisé pour le bouton Mini App
+  const miniAppButtonText = settings?.miniAppButtonText || '🔌 MINI APP PLGS CRTFS';
+  
   const keyboard = {
     inline_keyboard: [
-      [{ text: '🔌 MINI APP PLGS CRTFS', url: 'https://t.me/PLGSCRTF_BOT/miniapp' }],
+      [{ text: miniAppButtonText, url: 'https://t.me/PLGSCRTF_BOT/miniapp' }],
       [{ text: 'ℹ️ Informations', callback_data: 'info' }],
       [{ text: '📝 Devenir Vendeur', callback_data: 'apply' }],
       [{ text: '🔌 PLUGS CRTFS', callback_data: 'plugs' }],

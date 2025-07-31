@@ -10,6 +10,10 @@ const settingsSchema = new mongoose.Schema({
     type: String,
     default: 'Informations sur notre service'
   },
+  miniAppButtonText: {
+    type: String,
+    default: '🔌 MINI APP PLGS CRTFS'
+  },
   backgroundImage: String, // URL pour le fond de la web app
   socialNetworks: {
     snap: String,

@@ -1328,7 +1328,7 @@ export default function ConfigPage() {
                   <div className="glass-card p-6">
                     <h2 className="text-xl font-bold mb-4">🔌 Texte du bouton Mini App</h2>
                     <p className="text-gray-400 mb-4">
-                      Personnalisez le texte affiché sur le bouton Mini App en haut de la boutique.
+                      Personnalisez le texte affiché sur le bouton Mini App en haut du bot Telegram.
                     </p>
                     <input
                       type="text"
