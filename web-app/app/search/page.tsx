@@ -31,26 +31,66 @@ export default function SearchPage() {
     if (plugs) {
       let filtered = plugs
 
-      // Filtre par recherche
+      // Filtre par recherche (nom, description, ville, département)
       if (searchTerm) {
-        filtered = filtered.filter((plug: any) =>
-          plug.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-          plug.description?.toLowerCase().includes(searchTerm.toLowerCase())
-        )
+        const searchLower = searchTerm.toLowerCase()
+        filtered = filtered.filter((plug: any) => {
+          // Recherche dans le nom
+          if (plug.name?.toLowerCase().includes(searchLower)) return true
+          
+          // Recherche dans la description
+          if (plug.description?.toLowerCase().includes(searchLower)) return true
+          
+          // Recherche dans les départements de livraison
+          if (plug.deliveryDepartments?.some((dept: string) => 
+            dept.toLowerCase().includes(searchLower)
+          )) return true
+          
+          // Recherche dans les départements de meetup
+          if (plug.meetupDepartments?.some((dept: string) => 
+            dept.toLowerCase().includes(searchLower)
+          )) return true
+          
+          // Recherche dans les codes postaux
+          if (plug.deliveryPostalCodes?.some((code: string) => 
+            code.includes(searchTerm)
+          )) return true
+          
+          if (plug.meetupPostalCodes?.some((code: string) => 
+            code.includes(searchTerm)
+          )) return true
+          
+          // Recherche dans le département principal
+          if (plug.department?.toLowerCase().includes(searchLower)) return true
+          
+          // Recherche dans le code postal principal
+          if (plug.postalCode?.includes(searchTerm)) return true
+          
+          return false
+        })
       }
 
       // Filtre par pays
       if (selectedCountry) {
         filtered = filtered.filter((plug: any) => 
-          plug.location?.countries?.includes(selectedCountry)
+          plug.country === selectedCountry
         )
       }
 
       // Filtre par département
       if (selectedDepartment) {
-        filtered = filtered.filter((plug: any) => 
-          plug.location?.department === selectedDepartment
-        )
+        filtered = filtered.filter((plug: any) => {
+          // Vérifier le département principal
+          if (plug.department === selectedDepartment) return true
+          
+          // Vérifier dans les départements de livraison
+          if (plug.deliveryDepartments?.includes(selectedDepartment)) return true
+          
+          // Vérifier dans les départements de meetup
+          if (plug.meetupDepartments?.includes(selectedDepartment)) return true
+          
+          return false
+        })
       }
 
       // Filtre par méthodes
@@ -101,7 +141,7 @@ export default function SearchPage() {
             <MagnifyingGlassIcon className="absolute left-4 top-1/2 transform -translate-y-1/2 w-6 h-6 text-gray-400" />
             <input
               type="text"
-              placeholder="Rechercher un plug..."
+              placeholder="Rechercher par nom, ville, département ou code postal..."
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
               className="w-full pl-12 pr-20 py-4 bg-white/10 backdrop-blur-lg border border-white/20 rounded-full text-white placeholder-gray-400 focus:outline-none focus:border-primary transition-all"
@@ -244,7 +284,33 @@ export default function SearchPage() {
             animate={{ opacity: 1 }}
             className="text-center py-20"
           >
-            <p className="text-gray-400 text-lg">Aucun plug ne correspond à vos critères</p>
+            <div className="max-w-md mx-auto">
+              <div className="text-6xl mb-4">🔍</div>
+              <h3 className="text-xl font-semibold mb-2 text-gray-300">
+                Aucun résultat trouvé
+              </h3>
+              <p className="text-gray-400 mb-4">
+                Aucun plug ne correspond à vos critères de recherche.
+              </p>
+              {searchTerm && (
+                <p className="text-sm text-gray-500">
+                  Essayez avec d'autres mots-clés, une ville différente ou un autre département.
+                </p>
+              )}
+              {(selectedCountry || selectedDepartment || Object.values(selectedMethods).some(v => v)) && (
+                <button
+                  onClick={() => {
+                    setSearchTerm('')
+                    setSelectedCountry('')
+                    setSelectedDepartment('')
+                    setSelectedMethods({ delivery: false, shipping: false, meetup: false })
+                  }}
+                  className="mt-4 px-6 py-2 bg-primary/20 hover:bg-primary/30 text-primary rounded-full transition-all"
+                >
+                  Réinitialiser tous les filtres
+                </button>
+              )}
+            </div>
           </motion.div>
         )}
       </div>
