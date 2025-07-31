@@ -264,7 +264,7 @@ bot.on('callback_query', async (callbackQuery) => {
     
     // Vérification de l'appartenance au canal
     if (data === 'check_membership') {
-      const { checkChannelMembership, CHANNEL_LINK } = require('./middleware/channelCheck');
+      const { checkChannelMembership } = require('./middleware/channelCheck');
       const userId = callbackQuery.from.id;
       const isMember = await checkChannelMembership(bot, userId);
       

@@ -52,7 +52,16 @@ const settingsSchema = new mongoose.Schema({
     code: String,
     city: String,
     department: String
-  }]
+  }],
+  // Configuration du canal Telegram pour la vérification
+  telegramChannelLink: {
+    type: String,
+    default: 'https://t.me/+RoI-Xzh-ma9iYmY0'
+  },
+  telegramChannelId: {
+    type: String,
+    default: '-1002736254394'
+  }
 });
 
 module.exports = mongoose.model('Settings', settingsSchema);

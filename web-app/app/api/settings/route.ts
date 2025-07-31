@@ -42,6 +42,8 @@ export async function POST(request: NextRequest) {
     if (data.shopSocialNetworks !== undefined) settings.shopSocialNetworks = data.shopSocialNetworks
     if (data.countries !== undefined) settings.countries = data.countries
     if (data.postalCodes !== undefined) settings.postalCodes = data.postalCodes
+    if (data.telegramChannelLink !== undefined) settings.telegramChannelLink = data.telegramChannelLink
+    if (data.telegramChannelId !== undefined) settings.telegramChannelId = data.telegramChannelId
     
     await settings.save()
     

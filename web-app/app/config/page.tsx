@@ -149,38 +149,22 @@ export default function ConfigPage() {
         setTelegramChannelId(settings.telegramChannelId)
       }
       
-      // Charger les réseaux sociaux
-      if (settings.socialNetworks) {
+      // Charger les réseaux sociaux de la boutique
+      if (settings.shopSocialNetworks && settings.shopSocialNetworks.length > 0) {
+        // Utiliser directement shopSocialNetworks sans ajouter Mini App
+        setShopSocialNetworks(settings.shopSocialNetworks)
+      } else if (settings.socialNetworks) {
+        // Fallback sur l'ancien format si shopSocialNetworks n'existe pas
         const networksArray = Object.entries(settings.socialNetworks).map(([key, value]: [string, any]) => ({
           id: key,
           name: typeof value === 'object' ? value.name : key.charAt(0).toUpperCase() + key.slice(1),
           emoji: typeof value === 'object' ? value.emoji : getDefaultEmoji(key),
           link: typeof value === 'object' ? value.link : value
         }))
-        
-        // Ajouter Mini App en première position
-        const miniApp = {
-          id: 'miniapp',
-          name: 'Mini App',
-          emoji: '🔌',
-          link: 'https://t.me/PLGSCRTF_BOT/miniapp'
-        }
-        
-        // Vérifier si Mini App n'existe pas déjà
-        const hasMiniApp = networksArray.some(n => n.id === 'miniapp' || n.name === 'Mini App')
-        if (!hasMiniApp) {
-          setShopSocialNetworks([miniApp, ...networksArray])
-        } else {
-          setShopSocialNetworks(networksArray)
-        }
+        setShopSocialNetworks(networksArray)
       } else {
-        // Si pas de réseaux sociaux, ajouter juste Mini App
-        setShopSocialNetworks([{
-          id: 'miniapp',
-          name: 'Mini App',
-          emoji: '🔌',
-          link: 'https://t.me/PLGSCRTF_BOT/miniapp'
-        }])
+        // Si aucun réseau social, tableau vide
+        setShopSocialNetworks([])
       }
     }
   }, [settings])
@@ -409,26 +393,34 @@ export default function ConfigPage() {
     }
   }
 
+  const handleSaveTelegramConfig = async () => {
+    try {
+      const res = await fetch('/api/settings', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ 
+          telegramChannelLink,
+          telegramChannelId 
+        })
+      })
+      
+      if (res.ok) {
+        toast.success('Configuration Telegram mise à jour !')
+        mutate('/api/settings')
+      }
+    } catch (error) {
+      toast.error('Erreur lors de la mise à jour')
+    }
+  }
+
   const handleSaveShopSocialNetworks = async () => {
     try {
       console.log('Sauvegarde des réseaux sociaux:', shopSocialNetworks)
       
-      // S'assurer que Mini App est toujours présent
-      const miniApp = {
-        id: 'miniapp',
-        name: 'Mini App',
-        emoji: '🔌',
-        link: 'https://t.me/PLGSCRTF_BOT/miniapp'
-      }
-      
-      // Filtrer Mini App existant et le remettre en première position
-      const filteredNetworks = shopSocialNetworks.filter(n => n.id !== 'miniapp' && n.name !== 'Mini App')
-      const allNetworks = [miniApp, ...filteredNetworks]
-      
-      console.log('Réseaux à sauvegarder:', allNetworks)
+      console.log('Réseaux à sauvegarder:', shopSocialNetworks)
       
       // Convertir en format objet pour la compatibilité
-      const socialNetworksObject = allNetworks.reduce((acc, network) => {
+      const socialNetworksObject = shopSocialNetworks.reduce((acc, network) => {
         if (network.name && network.link) {
           const key = network.name.toLowerCase().replace(/\s+/g, '')
           acc[key] = {
@@ -445,7 +437,7 @@ export default function ConfigPage() {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ 
           socialNetworks: socialNetworksObject,
-          shopSocialNetworks: allNetworks 
+          shopSocialNetworks: shopSocialNetworks 
         })
       })
       
@@ -1206,15 +1198,9 @@ export default function ConfigPage() {
                     </p>
                     
                     <SocialNetworkManager 
-                      networks={shopSocialNetworks.filter(n => n.id !== 'miniapp' && n.name !== 'Mini App')}
+                      networks={shopSocialNetworks}
                       onChange={(networks) => {
-                        // Garder le Mini App en premier s'il existe
-                        const miniApp = shopSocialNetworks.find(n => n.id === 'miniapp' || n.name === 'Mini App')
-                        if (miniApp) {
-                          setShopSocialNetworks([miniApp, ...networks])
-                        } else {
-                          setShopSocialNetworks(networks)
-                        }
+                        setShopSocialNetworks(networks)
                       }}
                     />
                     
@@ -1225,6 +1211,72 @@ export default function ConfigPage() {
                       <CheckIcon className="w-5 h-5" />
                       Sauvegarder les réseaux sociaux
                     </button>
+                  </div>
+                </div>
+              )}
+              
+              {/* Telegram Configuration */}
+              {activeTab === 'telegram' && (
+                <div className="space-y-6 max-w-4xl">
+                  <h1 className="text-3xl font-bold">Configuration Telegram</h1>
+                  
+                  <div className="glass-card p-6">
+                    <h2 className="text-xl font-bold mb-6">Canal de vérification</h2>
+                    <p className="text-gray-400 mb-6">
+                      Configurez le canal Telegram que les utilisateurs doivent rejoindre pour accéder au bot.
+                    </p>
+                    
+                    <div className="space-y-4">
+                      <div>
+                        <label className="block text-sm font-medium text-gray-300 mb-2">
+                          Lien d'invitation du canal
+                        </label>
+                        <input
+                          type="text"
+                          value={telegramChannelLink}
+                          onChange={(e) => setTelegramChannelLink(e.target.value)}
+                          placeholder="https://t.me/+RoI-Xzh-ma9iYmY0"
+                          className="w-full px-4 py-3 bg-gray-800 border border-gray-700 rounded-lg text-white"
+                        />
+                        <p className="text-xs text-gray-500 mt-1">
+                          Le lien d'invitation que les utilisateurs utiliseront pour rejoindre le canal
+                        </p>
+                      </div>
+                      
+                      <div>
+                        <label className="block text-sm font-medium text-gray-300 mb-2">
+                          ID du canal
+                        </label>
+                        <input
+                          type="text"
+                          value={telegramChannelId}
+                          onChange={(e) => setTelegramChannelId(e.target.value)}
+                          placeholder="-1002736254394"
+                          className="w-full px-4 py-3 bg-gray-800 border border-gray-700 rounded-lg text-white"
+                        />
+                        <p className="text-xs text-gray-500 mt-1">
+                          L'ID numérique du canal (format: -100xxxxxxxxxx)
+                        </p>
+                      </div>
+                      
+                      <button
+                        onClick={handleSaveTelegramConfig}
+                        className="w-full mt-6 px-6 py-3 bg-gradient-to-r from-blue-600 to-purple-600 text-white rounded-lg font-medium hover:from-blue-700 hover:to-purple-700 transition-all flex items-center justify-center gap-2"
+                      >
+                        <CheckIcon className="w-5 h-5" />
+                        Sauvegarder la configuration
+                      </button>
+                    </div>
+                  </div>
+                  
+                  <div className="glass-card p-6">
+                    <h2 className="text-xl font-bold mb-4">Comment obtenir l'ID du canal ?</h2>
+                    <ol className="list-decimal list-inside space-y-2 text-gray-400">
+                      <li>Ajoutez votre bot comme administrateur du canal</li>
+                      <li>Envoyez un message dans le canal</li>
+                      <li>Allez sur : https://api.telegram.org/bot{'{'}votre_token{'}'}/getUpdates</li>
+                      <li>Cherchez "chat":{"{"}"id":-100xxxxxxxxxx{"}"} dans la réponse</li>
+                    </ol>
                   </div>
                 </div>
               )}

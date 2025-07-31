@@ -1,9 +1,17 @@
-const REQUIRED_CHANNEL = '-1002736254394'; // ID du canal privé
-const CHANNEL_LINK = 'https://t.me/+RoI-Xzh-ma9iYmY0';
+const Settings = require('../models/Settings');
+
+async function getChannelConfig() {
+  const settings = await Settings.findOne();
+  return {
+    channelId: settings?.telegramChannelId || '-1002736254394',
+    channelLink: settings?.telegramChannelLink || 'https://t.me/+RoI-Xzh-ma9iYmY0'
+  };
+}
 
 async function checkChannelMembership(bot, userId) {
   try {
-    const member = await bot.getChatMember(REQUIRED_CHANNEL, userId);
+    const { channelId } = await getChannelConfig();
+    const member = await bot.getChatMember(channelId, userId);
     const allowedStatuses = ['member', 'administrator', 'creator'];
     return allowedStatuses.includes(member.status);
   } catch (error) {
@@ -16,9 +24,10 @@ async function requireChannelMembership(bot, chatId, userId) {
   const isMember = await checkChannelMembership(bot, userId);
   
   if (!isMember) {
+    const { channelLink } = await getChannelConfig();
     const keyboard = {
       inline_keyboard: [
-        [{ text: '📢 Rejoindre le canal', url: CHANNEL_LINK }],
+        [{ text: '📢 Rejoindre le canal', url: channelLink }],
         [{ text: '✅ J\'ai rejoint', callback_data: 'check_membership' }]
       ]
     };
@@ -42,6 +51,5 @@ async function requireChannelMembership(bot, chatId, userId) {
 module.exports = {
   checkChannelMembership,
   requireChannelMembership,
-  REQUIRED_CHANNEL,
-  CHANNEL_LINK
+  getChannelConfig
 };
