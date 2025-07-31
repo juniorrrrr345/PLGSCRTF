@@ -68,13 +68,54 @@ async function handleStart(bot, msg, param) {
     user.lastSeen = new Date();
     await user.save();
     
-    // Gérer les deep links pour les plugs
+    // Gérer les deep links pour les plugs avec traçage
     if (param && param.startsWith('plug_')) {
-      const plugId = param.replace('plug_', '');
-      console.log(`🔗 Deep link vers le plug: ${plugId}`);
+      // Format: plug_PLUGID_REFERRERID
+      const parts = param.split('_');
+      const plugId = parts[1];
+      const referrerId = parts[2]; // ID de l'admin qui a partagé
       
-      // Importer handlePlugDetails
+      console.log(`🔗 Deep link vers le plug: ${plugId} partagé par: ${referrerId}`);
+      
+      // Importer les modèles nécessaires
       const { handlePlugDetails } = require('./plugsHandler');
+      const ReferralClick = require('../models/ReferralClick');
+      const Plug = require('../models/Plug');
+      
+      if (referrerId) {
+        try {
+          // Enregistrer le clic
+          await ReferralClick.create({
+            plugId: plugId,
+            referrerId: referrerId,
+            visitorId: user._id
+          });
+          
+          // Mettre à jour les stats du plug
+          const plug = await Plug.findById(plugId);
+          if (plug) {
+            const statIndex = plug.referralStats.findIndex(stat => 
+              stat.userId.toString() === referrerId
+            );
+            
+            if (statIndex >= 0) {
+              plug.referralStats[statIndex].clicks += 1;
+            } else {
+              plug.referralStats.push({
+                userId: referrerId,
+                clicks: 1,
+                votes: 0
+              });
+            }
+            
+            await plug.save();
+          }
+          
+          console.log('✅ Clic de parrainage enregistré');
+        } catch (error) {
+          console.log('⚠️ Erreur enregistrement clic:', error.message);
+        }
+      }
       
       // Afficher directement les détails du plug
       await handlePlugDetails(bot, chatId, plugId);

@@ -2152,13 +2152,13 @@ export default function ConfigPage() {
                             <input
                               type="text"
                               readOnly
-                              value={`https://t.me/${process.env.NEXT_PUBLIC_BOT_USERNAME || 'PLGSCRTF_BOT'}?start=plug_${editingPlug._id}`}
+                              value={`https://t.me/${process.env.NEXT_PUBLIC_BOT_USERNAME || 'PLGSCRTF_BOT'}?start=plug_${editingPlug._id}_${settings?.adminChatIds?.[0] || 'admin'}`}
                               className="flex-1 px-4 py-3 bg-gray-900 border-2 border-gray-600 rounded-xl text-white"
                             />
                             <button
                               type="button"
                               onClick={() => {
-                                navigator.clipboard.writeText(`https://t.me/${process.env.NEXT_PUBLIC_BOT_USERNAME || 'PLGSCRTF_BOT'}?start=plug_${editingPlug._id}`)
+                                navigator.clipboard.writeText(`https://t.me/${process.env.NEXT_PUBLIC_BOT_USERNAME || 'PLGSCRTF_BOT'}?start=plug_${editingPlug._id}_${settings?.adminChatIds?.[0] || 'admin'}`)
                                 toast.success('Lien copié !')
                               }}
                               className="px-4 py-3 bg-blue-600 hover:bg-blue-700 rounded-xl text-white transition-all"
