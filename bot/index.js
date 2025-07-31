@@ -403,14 +403,83 @@ bot.on('callback_query', async (callbackQuery) => {
       const user = await User.findOne({ telegramId: userId });
       
       if (user && user.lastLikeTime) {
-        const timeSinceLastLike = (new Date() - user.lastLikeTime) / 1000 / 60;
+        const now = new Date();
+        const lastLikeTime = new Date(user.lastLikeTime);
+        const timeSinceLastLike = (now - lastLikeTime) / 1000 / 60; // en minutes
         const remainingTime = Math.ceil(30 - timeSinceLastLike);
         
-        if (remainingTime > 0) {
+        if (remainingTime > 0 && remainingTime <= 30) {
           await bot.answerCallbackQuery(callbackQuery.id, {
             text: `⏱️ Veuillez patienter ${remainingTime} minute${remainingTime > 1 ? 's' : ''} avant de liker à nouveau.\n\n💡 Vous pourrez voter à nouveau dans ${remainingTime} minute${remainingTime > 1 ? 's' : ''}.\n\n❤️ Merci pour votre soutien !`,
             show_alert: true
           });
+          
+          // Mettre à jour le bouton avec le temps actuel
+          try {
+            const keyboard = callbackQuery.message.reply_markup;
+            if (keyboard && keyboard.inline_keyboard) {
+              for (let row of keyboard.inline_keyboard) {
+                for (let button of row) {
+                  if (button.callback_data && button.callback_data === data) {
+                    button.text = `⏱️ Restant ${remainingTime}min (${button.text.match(/\((\d+)\)/)?.[1] || '0'})`;
+                    break;
+                  }
+                }
+              }
+              
+              // Éditer le message pour mettre à jour le bouton
+              if (callbackQuery.message.photo) {
+                await bot.editMessageReplyMarkup(keyboard, {
+                  chat_id: chatId,
+                  message_id: callbackQuery.message.message_id
+                });
+              } else {
+                await bot.editMessageReplyMarkup(keyboard, {
+                  chat_id: chatId,
+                  message_id: callbackQuery.message.message_id
+                });
+              }
+            }
+          } catch (error) {
+            console.error('Erreur mise à jour bouton cooldown:', error);
+          }
+        } else {
+          // Le cooldown est terminé, réactiver le bouton
+          await bot.answerCallbackQuery(callbackQuery.id, {
+            text: '✅ Vous pouvez maintenant liker à nouveau !',
+            show_alert: false
+          });
+          
+          // Changer le bouton pour le réactiver
+          try {
+            const keyboard = callbackQuery.message.reply_markup;
+            if (keyboard && keyboard.inline_keyboard) {
+              for (let row of keyboard.inline_keyboard) {
+                for (let button of row) {
+                  if (button.callback_data && button.callback_data === data) {
+                    button.text = `❤️ Like (${button.text.match(/\((\d+)\)/)?.[1] || '0'})`;
+                    button.callback_data = `like_${plugId}`;
+                    break;
+                  }
+                }
+              }
+              
+              // Éditer le message pour mettre à jour le bouton
+              if (callbackQuery.message.photo) {
+                await bot.editMessageReplyMarkup(keyboard, {
+                  chat_id: chatId,
+                  message_id: callbackQuery.message.message_id
+                });
+              } else {
+                await bot.editMessageReplyMarkup(keyboard, {
+                  chat_id: chatId,
+                  message_id: callbackQuery.message.message_id
+                });
+              }
+            }
+          } catch (error) {
+            console.error('Erreur réactivation bouton:', error);
+          }
         }
       }
       return;

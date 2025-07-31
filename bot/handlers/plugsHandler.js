@@ -456,19 +456,21 @@ async function handlePlugDetails(bot, chatId, plugId, fromMenu = 'plugs') {
     const User = require('../models/User');
     const user = await User.findOne({ telegramId: chatId });
     let likeButtonText = `❤️ Like (${plug.likes || 0})`;
+    let isInCooldown = false;
     
     if (user && user.lastLikeTime) {
-      const timeSinceLastLike = (new Date() - user.lastLikeTime) / 1000 / 60;
+      const now = new Date();
+      const lastLikeTime = new Date(user.lastLikeTime);
+      const timeSinceLastLike = (now - lastLikeTime) / 1000 / 60; // en minutes
       const remainingTime = Math.ceil(30 - timeSinceLastLike);
       
-      if (remainingTime > 0) {
+      if (remainingTime > 0 && remainingTime <= 30) {
         likeButtonText = `⏱️ Restant ${remainingTime}min (${plug.likes || 0})`;
+        isInCooldown = true;
       }
     }
     
     // Créer le bouton avec callback_data différent si en cooldown
-    const isInCooldown = user && user.lastLikeTime && ((new Date() - user.lastLikeTime) / 1000 / 60) < 30;
-    
     keyboard.inline_keyboard.push([
       { 
         text: likeButtonText, 
@@ -567,9 +569,10 @@ async function handleLike(bot, callbackQuery, plugId) {
     }
     
     // Vérifier le cooldown
-    const lastLike = user.lastLikeTime || new Date(0);
+    const now = new Date();
+    const lastLike = user.lastLikeTime ? new Date(user.lastLikeTime) : new Date(0);
     const cooldownMinutes = 30;
-    const timeSinceLastLike = (new Date() - lastLike) / 1000 / 60;
+    const timeSinceLastLike = (now - lastLike) / 1000 / 60; // en minutes
     
     if (timeSinceLastLike < cooldownMinutes) {
       const remainingTime = Math.ceil(cooldownMinutes - timeSinceLastLike);
