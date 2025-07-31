@@ -265,9 +265,22 @@ async function handlePlugDetails(bot, chatId, plugId) {
     if (plug.customNetworks && plug.customNetworks.length > 0) {
       plug.customNetworks.forEach(network => {
         if (network.link) {
+          let url = network.link;
+          
+          // Valider et corriger l'URL
+          if (!url.startsWith('http://') && !url.startsWith('https://')) {
+            // Si c'est un username avec @
+            if (url.startsWith('@')) {
+              url = `https://t.me/${url.substring(1)}`;
+            } else {
+              // Sinon, ajouter https://
+              url = `https://${url}`;
+            }
+          }
+          
           socialButtons.push({ 
             text: `${network.emoji || '🔗'} ${network.name}`, 
-            url: network.link 
+            url: url 
           });
         }
       });
