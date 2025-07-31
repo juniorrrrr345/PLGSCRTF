@@ -56,7 +56,7 @@ export default function ConfigPage() {
   const [miniAppButtonText, setMiniAppButtonText] = useState('MINI APP PLGS CRTFS 🔌')
   const [socialNetworks, setSocialNetworks] = useState<any>({})
   const [shopSocialNetworks, setShopSocialNetworks] = useState<any[]>([])
-  const [showAddSocialNetwork, setShowAddSocialNetwork] = useState(false)
+
   const [botSocialNetworks, setBotSocialNetworks] = useState<any[]>([])
   const [editingApplication, setEditingApplication] = useState<any>(null)
   const [showEditApplication, setShowEditApplication] = useState(false)
@@ -398,6 +398,8 @@ export default function ConfigPage() {
 
   const handleSaveShopSocialNetworks = async () => {
     try {
+      console.log('Sauvegarde des réseaux sociaux:', shopSocialNetworks)
+      
       // S'assurer que Mini App est toujours présent
       const miniApp = {
         id: 'miniapp',
@@ -409,6 +411,8 @@ export default function ConfigPage() {
       // Filtrer Mini App existant et le remettre en première position
       const filteredNetworks = shopSocialNetworks.filter(n => n.id !== 'miniapp' && n.name !== 'Mini App')
       const allNetworks = [miniApp, ...filteredNetworks]
+      
+      console.log('Réseaux à sauvegarder:', allNetworks)
       
       // Convertir en format objet pour la compatibilité
       const socialNetworksObject = allNetworks.reduce((acc, network) => {
@@ -1989,115 +1993,7 @@ export default function ConfigPage() {
         )}
       </AnimatePresence>
 
-      {/* Add Social Network Modal */}
-      <AnimatePresence>
-        {showAddSocialNetwork && (
-          <motion.div
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-            className="fixed inset-0 bg-black/80 backdrop-blur-sm z-50 flex items-center justify-center p-4"
-            onClick={() => setShowAddSocialNetwork(false)}
-          >
-            <motion.div
-              initial={{ scale: 0.95, opacity: 0 }}
-              animate={{ scale: 1, opacity: 1 }}
-              exit={{ scale: 0.95, opacity: 0 }}
-              className="bg-gray-900 rounded-2xl p-6 max-w-md w-full"
-              onClick={(e) => e.stopPropagation()}
-            >
-              <h3 className="text-xl font-bold mb-4">Ajouter un réseau social</h3>
-              
-              <div className="space-y-4">
-                {/* Custom emoji input */}
-                <div>
-                  <label className="block text-sm font-medium text-gray-300 mb-2">
-                    Emoji personnalisé
-                  </label>
-                  <div className="flex gap-2">
-                    <input
-                      type="text"
-                      placeholder="🔗"
-                      maxLength={2}
-                      className="w-20 px-3 py-2 bg-gray-800 border border-gray-700 rounded-lg text-center text-2xl"
-                      onKeyDown={(e) => {
-                        if (e.key === 'Enter' && e.currentTarget.value) {
-                          const newNetwork = {
-                            id: Date.now().toString(),
-                            emoji: e.currentTarget.value,
-                            name: '',
-                            link: ''
-                          }
-                          setShopSocialNetworks([...shopSocialNetworks, newNetwork])
-                          setShowAddSocialNetwork(false)
-                        }
-                      }}
-                    />
-                    <button
-                      onClick={(e) => {
-                        const input = e.currentTarget.previousElementSibling as HTMLInputElement
-                        if (input.value) {
-                          const newNetwork = {
-                            id: Date.now().toString(),
-                            emoji: input.value,
-                            name: '',
-                            link: ''
-                          }
-                          setShopSocialNetworks([...shopSocialNetworks, newNetwork])
-                          setShowAddSocialNetwork(false)
-                        }
-                      }}
-                      className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg transition-colors"
-                    >
-                      Ajouter
-                    </button>
-                  </div>
-                </div>
-                
-                {/* Emoji suggestions */}
-                <div>
-                  <label className="block text-sm font-medium text-gray-300 mb-2">
-                    Ou choisir parmi les suggestions
-                  </label>
-                  <div className="flex flex-wrap gap-2">
-                    {[
-                      '📷', '👻', '✈️', '💬', '🎵', '🔗', '📱', '💼', 
-                      '🛍️', '🎮', '📧', '🌐', '📲', '💻', '🎬', '📺',
-                      '🎨', '📸', '🎤', '🎧', '📹', '🎭', '🎪', '🎯',
-                      '🏪', '🛒', '💳', '📦', '🚀', '💎', '🔥', '⚡'
-                    ].map(emoji => (
-                      <button
-                        key={emoji}
-                        type="button"
-                        onClick={() => {
-                          const newNetwork = {
-                            id: Date.now().toString(),
-                            emoji,
-                            name: '',
-                            link: ''
-                          }
-                          setShopSocialNetworks([...shopSocialNetworks, newNetwork])
-                          setShowAddSocialNetwork(false)
-                        }}
-                        className="p-3 bg-gray-800 hover:bg-gray-700 rounded-lg transition-colors text-2xl"
-                      >
-                        {emoji}
-                      </button>
-                    ))}
-                  </div>
-                </div>
-                
-                <button
-                  onClick={() => setShowAddSocialNetwork(false)}
-                  className="w-full px-4 py-2 bg-gray-700 text-white rounded-lg hover:bg-gray-600 transition-colors"
-                >
-                  Annuler
-                </button>
-              </div>
-            </motion.div>
-          </motion.div>
-        )}
-      </AnimatePresence>
+
       
       {/* Edit Application Modal */}
       <AnimatePresence>
