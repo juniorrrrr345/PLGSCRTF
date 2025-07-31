@@ -41,12 +41,16 @@ export default function SearchPage() {
 
       // Filtre par pays
       if (selectedCountry) {
-        filtered = filtered.filter((plug: any) => plug.country === selectedCountry)
+        filtered = filtered.filter((plug: any) => 
+          plug.location?.countries?.includes(selectedCountry)
+        )
       }
 
       // Filtre par département
       if (selectedDepartment) {
-        filtered = filtered.filter((plug: any) => plug.department === selectedDepartment)
+        filtered = filtered.filter((plug: any) => 
+          plug.location?.department === selectedDepartment
+        )
       }
 
       // Filtre par méthodes

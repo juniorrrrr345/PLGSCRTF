@@ -346,6 +346,19 @@ bot.on('callback_query', async (callbackQuery) => {
       }
     }
     
+    // Plugs par pays
+    else if (data.startsWith('plugs_country_')) {
+      const country = data.replace('plugs_country_', '');
+      await bot.deleteMessage(chatId, messageId);
+      await handlePlugsMenu(bot, chatId, country);
+    }
+    
+    // Tous les plugs
+    else if (data === 'plugs_all') {
+      await bot.deleteMessage(chatId, messageId);
+      await handlePlugsMenu(bot, chatId, 'ALL');
+    }
+    
     // Top Parrains
     else if (data === 'referrals') {
       await bot.deleteMessage(chatId, messageId);
@@ -511,44 +524,58 @@ async function processVendorTextResponse(bot, chatId, text, userState) {
     'description', 'confirm'
   ];
   
-  switch (userState.step) {
-    case 'social_other':
-      userState.data.socialNetworks.others = text;
-      userState.stepIndex++;
-      userState.step = vendorSteps[userState.stepIndex];
-      break;
-    case 'delivery_zones':
-      userState.data.deliveryZones = text;
-      userState.stepIndex++;
-      userState.step = vendorSteps[userState.stepIndex];
-      break;
-    case 'shipping_zones':
-      userState.data.shippingZones = text;
-      userState.stepIndex++;
-      userState.step = vendorSteps[userState.stepIndex];
-      break;
-    case 'meetup_zones':
-      userState.data.meetupZones = text;
-      userState.stepIndex++;
-      userState.step = vendorSteps[userState.stepIndex];
-      break;
-    case 'base_location':
-      // Parser la localisation (pays, département, code postal)
-      const parts = text.split(',').map(p => p.trim());
-      if (parts[0]) userState.data.country = parts[0];
-      if (parts[1]) userState.data.department = parts[1];
-      if (parts[2]) userState.data.postalCode = parts[2];
-      userState.stepIndex++;
-      userState.step = vendorSteps[userState.stepIndex];
-      break;
-    case 'description':
-      userState.data.description = text;
-      userState.stepIndex++;
-      userState.step = vendorSteps[userState.stepIndex];
-      break;
+  try {
+    switch (userState.step) {
+      case 'social_other':
+        userState.data.socialNetworks.others = text;
+        userState.stepIndex++;
+        userState.step = vendorSteps[userState.stepIndex];
+        break;
+      case 'delivery_zones':
+        userState.data.deliveryZones = text;
+        userState.stepIndex++;
+        userState.step = vendorSteps[userState.stepIndex];
+        break;
+      case 'shipping_zones':
+        userState.data.shippingZones = text;
+        userState.stepIndex++;
+        userState.step = vendorSteps[userState.stepIndex];
+        break;
+      case 'meetup_zones':
+        userState.data.meetupZones = text;
+        userState.stepIndex++;
+        userState.step = vendorSteps[userState.stepIndex];
+        break;
+      case 'base_location':
+        // Parser la localisation (pays, département, code postal)
+        const parts = text.split(',').map(p => p.trim());
+        if (parts[0]) userState.data.country = parts[0];
+        if (parts[1]) userState.data.department = parts[1];
+        if (parts[2]) userState.data.postalCode = parts[2];
+        userState.stepIndex++;
+        userState.step = vendorSteps[userState.stepIndex];
+        break;
+      case 'description':
+        userState.data.description = text;
+        userState.stepIndex++;
+        userState.step = vendorSteps[userState.stepIndex];
+        break;
+    }
+    
+    // Envoyer un message de confirmation temporaire
+    const confirmMsg = await bot.sendMessage(chatId, '✅ Réponse enregistrée');
+    
+    // Supprimer le message de confirmation après 2 secondes
+    setTimeout(() => {
+      bot.deleteMessage(chatId, confirmMsg.message_id).catch(() => {});
+    }, 2000);
+    
+    // Continuer avec la prochaine étape
+    await handleVendorApplication(bot, chatId, userStates);
+  } catch (error) {
+    console.error('Erreur dans processVendorTextResponse:', error);
+    await bot.sendMessage(chatId, '❌ Une erreur est survenue. Veuillez réessayer.');
   }
-  
-  await handleVendorApplication(bot, chatId, userStates);
 }
 
 // Fonction pour soumettre la candidature vendeur

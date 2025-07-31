@@ -24,78 +24,170 @@ function getCountryName(countryCode) {
 }
 const Settings = require('../models/Settings');
 
-async function handlePlugsMenu(bot, chatId) {
+async function handlePlugsMenu(bot, chatId, selectedCountry = null) {
   try {
     // Récupérer les paramètres pour l'image d'accueil
     const settings = await Settings.findOne();
     
-    // Récupérer tous les plugs actifs, triés par likes (décroissant)
-    const plugs = await Plug.find({ isActive: true })
+    // Récupérer tous les plugs actifs
+    const query = { isActive: true };
+    if (selectedCountry && selectedCountry !== 'ALL') {
+      query['location.countries'] = selectedCountry;
+    }
+    
+    const plugs = await Plug.find(query)
       .sort({ likes: -1 })
-      .limit(50); // Limiter à 50 pour éviter des messages trop longs
+      .limit(50);
     
     if (plugs.length === 0) {
-      await bot.sendMessage(chatId, '❌ Aucun plug disponible pour le moment.', {
+      const noPlugsMessage = selectedCountry && selectedCountry !== 'ALL'
+        ? `❌ Aucun plug disponible pour ${getCountryFlag(selectedCountry)} ${getCountryName(selectedCountry)}.`
+        : '❌ Aucun plug disponible pour le moment.';
+        
+      await bot.sendMessage(chatId, noPlugsMessage, {
         reply_markup: {
           inline_keyboard: [
-            [{ text: '⬅️ Retour', callback_data: 'main_menu' }]
+            [{ text: '⬅️ Retour', callback_data: selectedCountry ? 'plugs' : 'main_menu' }]
           ]
-        }
+        },
+        parse_mode: 'HTML'
       });
       return;
     }
-    
-    let message = '🔌 <b>PLUGS CRTFS</b>\n';
-    message += '━━━━━━━━━━━━━━━━\n\n';
     
     const keyboard = {
       inline_keyboard: []
     };
     
-    // Créer les boutons pour chaque plug
-    plugs.forEach((plug, index) => {
-      // Ajouter un emoji spécial pour le top 3
-      let emoji = '';
-      if (index === 0) emoji = '🥇 ';
-      else if (index === 1) emoji = '🥈 ';
-      else if (index === 2) emoji = '🥉 ';
+    if (!selectedCountry) {
+      // Mode sélection de pays
+      let message = '🔌 <b>PLUGS CRTFS</b>\n';
+      message += '━━━━━━━━━━━━━━━━\n\n';
+      message += '🌍 <b>Sélectionnez un pays :</b>\n\n';
       
-      const buttonText = `${emoji}${plug.name} (❤️ ${plug.likes})`;
+      // Récupérer tous les pays uniques des plugs
+      const allPlugs = await Plug.find({ isActive: true });
+      const countriesSet = new Set();
+      
+      allPlugs.forEach(plug => {
+        if (plug.location && plug.location.countries) {
+          plug.location.countries.forEach(country => {
+            countriesSet.add(country);
+          });
+        }
+      });
+      
+      // Convertir en array et trier
+      const countries = Array.from(countriesSet).sort();
+      
+      // Créer les boutons par pays
+      countries.forEach(country => {
+        const countryPlugs = allPlugs.filter(plug => 
+          plug.location && plug.location.countries && plug.location.countries.includes(country)
+        );
+        
+        keyboard.inline_keyboard.push([{
+          text: `${getCountryFlag(country)} ${getCountryName(country)} (${countryPlugs.length} plugs)`,
+          callback_data: `plugs_country_${country}`
+        }]);
+      });
+      
+      // Ajouter bouton pour voir tous les plugs
       keyboard.inline_keyboard.push([{
-        text: buttonText,
-        callback_data: `plug_${plug._id}`
+        text: '🌐 Voir tous les plugs',
+        callback_data: 'plugs_all'
       }]);
-    });
-    
-    // Ajouter le bouton retour
-    keyboard.inline_keyboard.push([{
-      text: '⬅️ Retour au menu',
-      callback_data: 'main_menu'
-    }]);
-    
-    message += '👆 Cliquez sur un plug pour voir les détails';
-    
-    // Envoyer avec l'image d'accueil si elle existe
-    if (settings?.welcomeImage) {
-      try {
-        await bot.sendPhoto(chatId, settings.welcomeImage, {
-          caption: message,
-          reply_markup: keyboard,
-          parse_mode: 'HTML'
-        });
-      } catch (error) {
-        console.error('Erreur envoi image:', error);
-        // Si l'image échoue, envoyer juste le message
+      
+      // Ajouter le bouton retour
+      keyboard.inline_keyboard.push([{
+        text: '⬅️ Retour au menu',
+        callback_data: 'main_menu'
+      }]);
+      
+      // Envoyer avec l'image d'accueil si elle existe
+      if (settings?.welcomeImage) {
+        try {
+          await bot.sendPhoto(chatId, settings.welcomeImage, {
+            caption: message,
+            reply_markup: keyboard,
+            parse_mode: 'HTML'
+          });
+        } catch (error) {
+          console.error('Erreur envoi image:', error);
+          await bot.sendMessage(chatId, message, {
+            reply_markup: keyboard,
+            parse_mode: 'HTML'
+          });
+        }
+      } else {
         await bot.sendMessage(chatId, message, {
           reply_markup: keyboard,
           parse_mode: 'HTML'
         });
       }
     } else {
-      await bot.sendMessage(chatId, message, {
-        reply_markup: keyboard,
-        parse_mode: 'HTML'
+      // Mode affichage des plugs (d'un pays spécifique ou tous)
+      let message;
+      if (selectedCountry === 'ALL') {
+        message = '🔌 <b>TOUS LES PLUGS CRTFS</b>\n';
+      } else {
+        message = `🔌 <b>PLUGS CRTFS - ${getCountryFlag(selectedCountry)} ${getCountryName(selectedCountry)}</b>\n`;
+      }
+      message += '━━━━━━━━━━━━━━━━\n\n';
+      
+      // Créer les boutons pour chaque plug
+      plugs.forEach((plug, index) => {
+        // Afficher le pays principal du plug
+        const plugCountries = plug.location?.countries || [];
+        const countryFlags = plugCountries.map(c => getCountryFlag(c)).join(' ');
+        
+        // Ajouter un emoji spécial pour le top 3
+        let emoji = '';
+        if (index === 0) emoji = '🥇 ';
+        else if (index === 1) emoji = '🥈 ';
+        else if (index === 2) emoji = '🥉 ';
+        
+        const buttonText = `${emoji}${plug.name} ${countryFlags} (❤️ ${plug.likes})`;
+        keyboard.inline_keyboard.push([{
+          text: buttonText,
+          callback_data: `plug_${plug._id}`
+        }]);
       });
+      
+      // Ajouter les boutons de navigation
+      keyboard.inline_keyboard.push([{
+        text: '⬅️ Retour aux pays',
+        callback_data: 'plugs'
+      }]);
+      
+      keyboard.inline_keyboard.push([{
+        text: '🏠 Menu principal',
+        callback_data: 'main_menu'
+      }]);
+      
+      message += '👆 Cliquez sur un plug pour voir les détails';
+      
+      // Envoyer avec l'image d'accueil si elle existe
+      if (settings?.welcomeImage) {
+        try {
+          await bot.sendPhoto(chatId, settings.welcomeImage, {
+            caption: message,
+            reply_markup: keyboard,
+            parse_mode: 'HTML'
+          });
+        } catch (error) {
+          console.error('Erreur envoi image:', error);
+          await bot.sendMessage(chatId, message, {
+            reply_markup: keyboard,
+            parse_mode: 'HTML'
+          });
+        }
+      } else {
+        await bot.sendMessage(chatId, message, {
+          reply_markup: keyboard,
+          parse_mode: 'HTML'
+        });
+      }
     }
     
   } catch (error) {

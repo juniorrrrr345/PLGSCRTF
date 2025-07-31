@@ -1,8 +1,34 @@
 'use client'
 
 import { motion } from 'framer-motion'
+import { useEffect, useState } from 'react'
+
+interface SocialNetwork {
+  id: string
+  name: string
+  url: string
+  order: number
+}
 
 export default function MaintenancePage() {
+  const [socialNetworks, setSocialNetworks] = useState<SocialNetwork[]>([])
+  const [welcomeImage, setWelcomeImage] = useState<string>('')
+
+  useEffect(() => {
+    // Récupérer les réseaux sociaux depuis l'API
+    fetch('/api/settings')
+      .then(res => res.json())
+      .then(data => {
+        if (data.shopSocialNetworks) {
+          setSocialNetworks(data.shopSocialNetworks.sort((a: SocialNetwork, b: SocialNetwork) => a.order - b.order))
+        }
+        if (data.welcomeImage) {
+          setWelcomeImage(data.welcomeImage)
+        }
+      })
+      .catch(err => console.error('Erreur chargement réseaux sociaux:', err))
+  }, [])
+
   return (
     <div className="min-h-screen bg-gradient-to-br from-gray-900 via-black to-gray-900 flex items-center justify-center px-4">
       <motion.div
@@ -11,6 +37,17 @@ export default function MaintenancePage() {
         transition={{ duration: 0.5 }}
         className="max-w-2xl w-full text-center"
       >
+        {welcomeImage && (
+          <motion.img
+            initial={{ opacity: 0, scale: 0.8 }}
+            animate={{ opacity: 1, scale: 1 }}
+            transition={{ duration: 0.5 }}
+            src={welcomeImage}
+            alt="PLUGS CRTFS"
+            className="w-48 h-48 mx-auto mb-8 rounded-2xl object-cover"
+          />
+        )}
+        
         <motion.div
           animate={{ rotate: 360 }}
           transition={{ duration: 20, repeat: Infinity, ease: "linear" }}
@@ -23,25 +60,36 @@ export default function MaintenancePage() {
         </motion.div>
         
         <h1 className="text-4xl md:text-6xl font-bold text-white mb-4">
-          Maintenance en cours
+          🔧 Maintenance en cours
         </h1>
         
         <p className="text-xl text-gray-300 mb-8">
-          Nous travaillons à améliorer votre expérience.<br />
-          Nous serons bientôt de retour !
+          Nous sommes bientôt de retour !
         </p>
         
         <div className="bg-gray-800/50 backdrop-blur-sm rounded-2xl p-8 mb-8">
-          <h2 className="text-2xl font-semibold text-white mb-4">
-            🔧 Que se passe-t-il ?
-          </h2>
-          <p className="text-gray-300">
-            Notre équipe effectue des mises à jour importantes pour vous offrir une meilleure expérience.
-            Cela ne devrait pas prendre longtemps.
+          <p className="text-gray-300 mb-4">
+            Pour toutes informations, rejoignez nos réseaux sociaux 👇
           </p>
+          
+          {socialNetworks.length > 0 && (
+            <div className="flex flex-wrap gap-3 justify-center">
+              {socialNetworks.map((network) => (
+                <a
+                  key={network.id}
+                  href={network.url}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="inline-flex items-center gap-2 px-4 py-2 bg-gray-700 hover:bg-gray-600 text-white rounded-lg transition-all text-sm"
+                >
+                  {network.name}
+                </a>
+              ))}
+            </div>
+          )}
         </div>
         
-        <div className="flex flex-col sm:flex-row gap-4 justify-center">
+        <div className="flex flex-col sm:flex-row gap-4 justify-center mb-8">
           <a
             href="https://t.me/PLGSCRTF_BOT"
             className="inline-flex items-center gap-2 px-6 py-3 bg-blue-600 hover:bg-blue-700 text-white rounded-lg transition-all"
@@ -63,7 +111,7 @@ export default function MaintenancePage() {
           </button>
         </div>
         
-        <p className="text-sm text-gray-500 mt-8">
+        <p className="text-sm text-gray-500">
           Cordialement,<br />
           <span className="font-semibold">PLUGS CRTFS</span>
         </p>

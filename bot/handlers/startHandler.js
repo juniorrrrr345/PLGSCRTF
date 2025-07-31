@@ -10,6 +10,13 @@ async function handleStart(bot, msg, param) {
   const username = msg.from.username || msg.from.first_name;
   
   try {
+    // Essayer de supprimer le message de commande /start
+    try {
+      await bot.deleteMessage(chatId, msg.message_id);
+    } catch (deleteError) {
+      console.log('Impossible de supprimer le message /start:', deleteError.message);
+    }
+    
     // Créer ou mettre à jour l'utilisateur
     let user = await User.findOne({ telegramId: userId });
     
