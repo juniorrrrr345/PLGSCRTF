@@ -17,22 +17,62 @@ const { handleReferralMenu } = require('./handlers/referralHandler');
 const { handleVendorApplication } = require('./handlers/vendorHandler');
 const { handleAdminCommand, handleAdminCallbacks } = require('./handlers/adminHandler');
 
-// Configuration du bot
-const bot = new TelegramBot(process.env.TELEGRAM_BOT_TOKEN, { 
-  polling: {
-    interval: 300,
-    autoStart: true,
-    params: {
-      timeout: 10
-    }
+// Configuration du bot avec gestion des conflits
+let bot;
+let pollingError = false;
+
+// Vérifier si on est sur Render (webhook) ou local (polling)
+const isRender = process.env.RENDER === 'true';
+const PORT = process.env.PORT || 3000;
+
+if (isRender) {
+  // Mode webhook pour Render
+  bot = new TelegramBot(process.env.TELEGRAM_BOT_TOKEN, { webHook: true });
+  
+  // Configurer le webhook
+  const url = process.env.RENDER_EXTERNAL_URL || `https://${process.env.RENDER_SERVICE_NAME}.onrender.com`;
+  bot.setWebHook(`${url}/bot${process.env.TELEGRAM_BOT_TOKEN}`);
+  
+  console.log('🌐 Bot configuré en mode webhook pour Render');
+} else {
+  // Mode polling pour développement local
+  try {
+    bot = new TelegramBot(process.env.TELEGRAM_BOT_TOKEN, { 
+      polling: {
+        interval: 300,
+        autoStart: true,
+        params: {
+          timeout: 10
+        }
+      }
+    });
+    console.log('🔄 Bot configuré en mode polling pour développement local');
+  } catch (error) {
+    console.error('Erreur lors de l\'initialisation du bot:', error);
+    process.exit(1);
   }
-});
+}
 
 // Gestion des erreurs de polling
 bot.on('polling_error', (error) => {
-  console.error('Polling error:', error.code);
-  if (error.code === 'ETELEGRAM' && error.response.body.error_code === 409) {
-    console.log('⚠️ Another instance is running. Waiting...');
+  if (error.code === 'ETELEGRAM' && error.response && error.response.body && error.response.body.error_code === 409) {
+    if (!pollingError) {
+      console.log('⚠️ Conflit détecté: Une autre instance du bot est en cours d\'exécution.');
+      console.log('⏳ Arrêt du polling pour éviter les conflits...');
+      pollingError = true;
+      
+      // Arrêter le polling
+      bot.stopPolling();
+      
+      // Attendre 30 secondes avant de réessayer
+      setTimeout(() => {
+        console.log('🔄 Tentative de redémarrage du polling...');
+        pollingError = false;
+        bot.startPolling();
+      }, 30000);
+    }
+  } else {
+    console.error('Polling error:', error.code || error.message);
   }
 });
 
