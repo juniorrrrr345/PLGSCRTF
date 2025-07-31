@@ -175,11 +175,7 @@ async function handlePlugsMenu(bot, chatId, filters = {}) {
       }]);
     }
     
-    // Séparateur
-    keyboard.inline_keyboard.push([{
-      text: '━━━━━━━━━━━━━━━━',
-      callback_data: 'separator'
-    }]);
+
     
     // Liste des plugs
     plugs.forEach((plug, index) => {
@@ -244,7 +240,7 @@ async function handlePlugsMenu(bot, chatId, filters = {}) {
   }
 }
 
-async function handlePlugDetails(bot, chatId, plugId) {
+async function handlePlugDetails(bot, chatId, plugId, fromMenu = 'plugs') {
   try {
     console.log(`📱 Chargement des détails du plug: ${plugId}`);
     console.log(`📱 ChatId: ${chatId}`);
@@ -461,15 +457,15 @@ async function handlePlugDetails(bot, chatId, plugId) {
       { text: `❤️ Like (${plug.likes || 0})`, callback_data: `like_${plug._id}` }
     ]);
     
-    // Lien de parrainage du plug
-    const referralLink = plug.referralLink || `https://t.me/${process.env.TELEGRAM_BOT_USERNAME}?start=plug_${plug._id}`;
-    keyboard.inline_keyboard.push([
-      { text: '🔗 Lien de parrainage', url: referralLink }
-    ]);
+
     
     // Navigation
+    const backButton = fromMenu === 'top_referrals' 
+      ? { text: '⬅️ Retour au top parrains', callback_data: 'top_referrals' }
+      : { text: '⬅️ Retour aux plugs', callback_data: 'plugs' };
+    
     keyboard.inline_keyboard.push([
-      { text: '⬅️ Retour aux plugs', callback_data: 'plugs' },
+      backButton,
       { text: '🏠 Menu principal', callback_data: 'main_menu' }
     ]);
     

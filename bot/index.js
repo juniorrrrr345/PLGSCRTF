@@ -365,7 +365,7 @@ bot.on('callback_query', async (callbackQuery) => {
     }
     
     // Top Parrains
-    else if (data === 'referrals') {
+    else if (data === 'referrals' || data === 'top_referrals') {
       await bot.deleteMessage(chatId, messageId);
       await handleReferralMenu(bot, chatId);
     }
@@ -392,6 +392,22 @@ bot.on('callback_query', async (callbackQuery) => {
     else if (data === 'separator') {
       // Ne rien faire, juste répondre à la callback
       return;
+    }
+    
+    // Détails d'un plug depuis le top parrains
+    else if (data.startsWith('plug_from_referral_')) {
+      const plugId = data.replace('plug_from_referral_', '');
+      console.log(`🔌 Callback reçu pour afficher le plug depuis top parrains: ${plugId}`);
+      try {
+        await bot.deleteMessage(chatId, messageId);
+        await handlePlugDetails(bot, chatId, plugId, 'top_referrals');
+      } catch (error) {
+        console.error('❌ Erreur lors de l\'affichage du plug:', error);
+        await bot.answerCallbackQuery(callbackQuery.id, {
+          text: 'Erreur lors du chargement du plug',
+          show_alert: true
+        });
+      }
     }
     
     // Détails d'un plug

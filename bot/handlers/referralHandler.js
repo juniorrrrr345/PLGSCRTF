@@ -43,7 +43,7 @@ async function handleReferralMenu(bot, chatId) {
       const buttonText = `${emoji} ${plug.name} (${plug.referralCount} filleuls)`;
       keyboard.inline_keyboard.push([{
         text: buttonText,
-        callback_data: `plug_${plug._id}`
+        callback_data: `plug_from_referral_${plug._id}`
       }]);
     });
     
