@@ -81,6 +81,16 @@ const settingsSchema = new mongoose.Schema({
   maintenanceMode: {
     type: Boolean,
     default: false
+  },
+  // Image de fond pour la page de maintenance
+  maintenanceBackgroundImage: {
+    type: String,
+    default: ''
+  },
+  // Logo pour la page de maintenance
+  maintenanceLogo: {
+    type: String,
+    default: ''
   }
 }, {
   timestamps: true

@@ -65,6 +65,8 @@ export default function ConfigPage() {
   const [telegramChannelLink, setTelegramChannelLink] = useState('')
   const [telegramChannelId, setTelegramChannelId] = useState('')
   const [maintenanceMode, setMaintenanceMode] = useState(false)
+  const [maintenanceBackgroundImage, setMaintenanceBackgroundImage] = useState('')
+  const [maintenanceLogo, setMaintenanceLogo] = useState('')
   const [editingApplication, setEditingApplication] = useState<any>(null)
   const [showEditApplication, setShowEditApplication] = useState(false)
   const [newProduct, setNewProduct] = useState({
@@ -154,6 +156,12 @@ export default function ConfigPage() {
       // Charger le mode maintenance
       if (settings.maintenanceMode !== undefined) {
         setMaintenanceMode(settings.maintenanceMode)
+      }
+      if (settings.maintenanceBackgroundImage !== undefined) {
+        setMaintenanceBackgroundImage(settings.maintenanceBackgroundImage)
+      }
+      if (settings.maintenanceLogo !== undefined) {
+        setMaintenanceLogo(settings.maintenanceLogo)
       }
       
       // Charger les réseaux sociaux de la boutique
