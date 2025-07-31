@@ -8,12 +8,13 @@ async function handleReferralMenu(bot, chatId) {
     const settings = await Settings.findOne();
     
     // Récupérer les plugs triés par nombre de parrainages
-    const plugs = await Plug.find({ isActive: true, referralCount: { $gt: 0 } })
-      .sort({ referralCount: -1 })
+    const plugs = await Plug.find({ isActive: true })
+      .populate('referralStats.userId', 'username')
+      .sort({ likes: -1 })
       .limit(20);
     
     if (plugs.length === 0) {
-      await bot.sendMessage(chatId, '📊 Aucun parrainage enregistré pour le moment.', {
+      await bot.sendMessage(chatId, '📊 Aucun plug disponible pour le moment.', {
         reply_markup: {
           inline_keyboard: [
             [{ text: '⬅️ Retour', callback_data: 'main_menu' }]
@@ -40,7 +41,17 @@ async function handleReferralMenu(bot, chatId) {
       else if (index === 2) emoji = '🥉';
       else emoji = `${index + 1}.`;
       
-      const buttonText = `${emoji} ${plug.name} (${plug.referralCount} filleuls)`;
+      // Calculer le total des clics et votes de parrainage
+      let totalClicks = 0;
+      let totalVotes = 0;
+      if (plug.referralStats && plug.referralStats.length > 0) {
+        plug.referralStats.forEach(stat => {
+          totalClicks += stat.clicks || 0;
+          totalVotes += stat.votes || 0;
+        });
+      }
+      
+      const buttonText = `${emoji} ${plug.name} (${plug.likes || 0} ❤️)`;
       keyboard.inline_keyboard.push([{
         text: buttonText,
         callback_data: `plug_from_referral_${plug._id}`

@@ -472,7 +472,7 @@ async function handlePlugDetails(bot, chatId, plugId, fromMenu = 'plugs') {
     keyboard.inline_keyboard.push([
       { 
         text: likeButtonText, 
-        callback_data: isInCooldown ? `cooldown_${plugId}` : `like_${plugId}` 
+        callback_data: isInCooldown ? `cooldown_${plug._id}` : `like_${plug._id}` 
       }
     ]);
     
@@ -587,7 +587,7 @@ async function handleLike(bot, callbackQuery, plugId) {
           
           for (let row of keyboard.inline_keyboard) {
             for (let button of row) {
-              if (button.callback_data && button.callback_data.startsWith('like_')) {
+              if (button.callback_data && (button.callback_data.startsWith('like_') || button.callback_data.startsWith('cooldown_'))) {
                 button.text = `⏱️ Restant ${remainingTime}min (${plug.likes || 0})`;
                 button.callback_data = `cooldown_${plugId}`; // Désactiver le bouton
                 break;
@@ -675,7 +675,7 @@ async function handleLike(bot, callbackQuery, plugId) {
         // Trouver le bouton like et mettre à jour son texte avec le temps restant
         for (let row of keyboard.inline_keyboard) {
           for (let button of row) {
-            if (button.callback_data && button.callback_data.startsWith('like_')) {
+            if (button.callback_data && (button.callback_data.startsWith('like_') || button.callback_data.startsWith('cooldown_'))) {
               button.text = `⏱️ Restant 30min (${plug.likes})`;
               button.callback_data = `cooldown_${plug._id}`; // Changer le callback pour désactiver le bouton
               break;

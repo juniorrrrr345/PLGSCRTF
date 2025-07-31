@@ -394,6 +394,28 @@ bot.on('callback_query', async (callbackQuery) => {
       return;
     }
     
+    // Callback pour le cooldown (afficher le message de cooldown)
+    else if (data.startsWith('cooldown_')) {
+      const plugId = data.replace('cooldown_', '');
+      
+      // Vérifier le temps restant
+      const User = require('./models/User');
+      const user = await User.findOne({ telegramId: userId });
+      
+      if (user && user.lastLikeTime) {
+        const timeSinceLastLike = (new Date() - user.lastLikeTime) / 1000 / 60;
+        const remainingTime = Math.ceil(30 - timeSinceLastLike);
+        
+        if (remainingTime > 0) {
+          await bot.answerCallbackQuery(callbackQuery.id, {
+            text: `⏱️ Veuillez patienter ${remainingTime} minute${remainingTime > 1 ? 's' : ''} avant de liker à nouveau.\n\n💡 Vous pourrez voter à nouveau dans ${remainingTime} minute${remainingTime > 1 ? 's' : ''}.\n\n❤️ Merci pour votre soutien !`,
+            show_alert: true
+          });
+        }
+      }
+      return;
+    }
+    
     // Détails d'un plug depuis le top parrains
     else if (data.startsWith('plug_from_referral_')) {
       const plugId = data.replace('plug_from_referral_', '');
