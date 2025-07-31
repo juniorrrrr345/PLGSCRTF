@@ -286,11 +286,22 @@ async function handlePlugDetails(bot, chatId, plugId) {
       });
     }
     
+    // Filtrer les boutons avec des URLs valides
+    const validButtons = socialButtons.filter(button => {
+      try {
+        new URL(button.url); // Vérifier que l'URL est valide
+        return true;
+      } catch (e) {
+        console.error(`URL invalide pour ${button.text}: ${button.url}`);
+        return false;
+      }
+    });
+    
     // Organiser les boutons de réseaux sociaux par lignes de 2
-    for (let i = 0; i < socialButtons.length; i += 2) {
-      const row = [socialButtons[i]];
-      if (i + 1 < socialButtons.length) {
-        row.push(socialButtons[i + 1]);
+    for (let i = 0; i < validButtons.length; i += 2) {
+      const row = [validButtons[i]];
+      if (i + 1 < validButtons.length) {
+        row.push(validButtons[i + 1]);
       }
       keyboard.inline_keyboard.push(row);
     }
