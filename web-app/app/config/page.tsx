@@ -888,7 +888,17 @@ export default function ConfigPage() {
                           </div>
                         </div>
                         
-                        <div className="flex gap-2">
+                        <div className="flex flex-col sm:flex-row gap-2">
+                          <button
+                            onClick={() => {
+                              const link = plug.referralLink || `https://t.me/${process.env.NEXT_PUBLIC_BOT_USERNAME || 'votrebot'}?start=plug_${plug._id}`
+                              navigator.clipboard.writeText(link)
+                              toast.success('Lien de parrainage copié !')
+                            }}
+                            className="text-sm px-3 py-1 bg-blue-600 hover:bg-blue-700 rounded text-white transition-all flex items-center gap-1"
+                          >
+                            🔗 Copier lien
+                          </button>
                           <button
                             onClick={() => {
                               // Convertir socialNetworks en customNetworks si nécessaire
@@ -2131,23 +2141,70 @@ export default function ConfigPage() {
                     <h3 className="text-xl font-bold text-white mb-4 flex items-center gap-2">
                       <span className="text-2xl">🔗</span> Lien de parrainage
                     </h3>
-                    <div>
-                      <label className="block text-sm font-semibold text-gray-300 mb-2">
-                        Lien de parrainage personnalisé (optionnel)
-                      </label>
-                      <input
-                        type="text"
-                        placeholder="https://t.me/votrebot?start=..."
-                        value={editingPlug ? (editingPlug.referralLink || '') : (newPlug.referralLink || '')}
-                        onChange={(e) => editingPlug
-                          ? setEditingPlug({...editingPlug, referralLink: e.target.value})
-                          : setNewPlug({...newPlug, referralLink: e.target.value})
-                        }
-                        className="w-full px-4 py-3 bg-gray-800 border-2 border-gray-600 rounded-xl text-white placeholder-gray-400 focus:border-blue-500 focus:outline-none transition-all"
-                      />
-                      <p className="text-xs text-gray-400 mt-2">
-                        Si vide, un lien sera généré automatiquement
-                      </p>
+                    <div className="space-y-4">
+                      {/* Lien généré automatiquement */}
+                      {editingPlug?._id && (
+                        <div>
+                          <label className="block text-sm font-semibold text-gray-300 mb-2">
+                            Lien de parrainage généré
+                          </label>
+                          <div className="flex gap-2">
+                            <input
+                              type="text"
+                              readOnly
+                              value={`https://t.me/${process.env.NEXT_PUBLIC_BOT_USERNAME || 'votrebot'}?start=plug_${editingPlug._id}`}
+                              className="flex-1 px-4 py-3 bg-gray-900 border-2 border-gray-600 rounded-xl text-white"
+                            />
+                            <button
+                              type="button"
+                              onClick={() => {
+                                navigator.clipboard.writeText(`https://t.me/${process.env.NEXT_PUBLIC_BOT_USERNAME || 'votrebot'}?start=plug_${editingPlug._id}`)
+                                toast.success('Lien copié !')
+                              }}
+                              className="px-4 py-3 bg-blue-600 hover:bg-blue-700 rounded-xl text-white transition-all"
+                            >
+                              📋 Copier
+                            </button>
+                          </div>
+                        </div>
+                      )}
+                      
+                      {/* Lien personnalisé */}
+                      <div>
+                        <label className="block text-sm font-semibold text-gray-300 mb-2">
+                          Lien personnalisé (optionnel)
+                        </label>
+                        <div className="flex gap-2">
+                          <input
+                            type="text"
+                            placeholder="https://t.me/votrebot?start=custom..."
+                            value={editingPlug ? (editingPlug.referralLink || '') : (newPlug.referralLink || '')}
+                            onChange={(e) => editingPlug
+                              ? setEditingPlug({...editingPlug, referralLink: e.target.value})
+                              : setNewPlug({...newPlug, referralLink: e.target.value})
+                            }
+                            className="flex-1 px-4 py-3 bg-gray-800 border-2 border-gray-600 rounded-xl text-white placeholder-gray-400 focus:border-blue-500 focus:outline-none transition-all"
+                          />
+                          {(editingPlug?.referralLink || newPlug.referralLink) && (
+                            <button
+                              type="button"
+                              onClick={() => {
+                                const link = editingPlug ? editingPlug.referralLink : newPlug.referralLink
+                                if (link) {
+                                  navigator.clipboard.writeText(link)
+                                  toast.success('Lien personnalisé copié !')
+                                }
+                              }}
+                              className="px-4 py-3 bg-green-600 hover:bg-green-700 rounded-xl text-white transition-all"
+                            >
+                              📋 Copier
+                            </button>
+                          )}
+                        </div>
+                        <p className="text-xs text-gray-400 mt-2">
+                          Si défini, ce lien sera utilisé à la place du lien généré
+                        </p>
+                      </div>
                     </div>
                   </div>
 
