@@ -255,10 +255,31 @@ bot.on('callback_query', async (callbackQuery) => {
     // Vérifier d'abord si c'est une callback admin
     const isAdminCallback = await handleAdminCallbacks(bot, callbackQuery);
     if (isAdminCallback) return;
+    
+    // Vérification de l'appartenance au canal
+    if (data === 'check_membership') {
+      const { checkChannelMembership, CHANNEL_LINK } = require('./middleware/channelCheck');
+      const userId = callbackQuery.from.id;
+      const isMember = await checkChannelMembership(bot, userId);
+      
+      if (isMember) {
+        await bot.answerCallbackQuery(callbackQuery.id, {
+          text: '✅ Vérification réussie ! Bienvenue !',
+          show_alert: true
+        });
+        await bot.deleteMessage(chatId, messageId);
+        await showMainMenu(bot, chatId);
+      } else {
+        await bot.answerCallbackQuery(callbackQuery.id, {
+          text: '❌ Vous n\'avez pas encore rejoint le canal. Veuillez le rejoindre puis réessayer.',
+          show_alert: true
+        });
+      }
+    }
     // Menu principal
-    if (data === 'main_menu') {
+    else if (data === 'main_menu') {
       await bot.deleteMessage(chatId, messageId);
-      await showMainMenu(bot, chatId);
+      await showMainMenu(bot, chatId, callbackQuery.from.id);
     }
     
     // Informations
@@ -305,8 +326,13 @@ bot.on('callback_query', async (callbackQuery) => {
     
     // PLUGS CRTFS
     else if (data === 'plugs') {
-      await bot.deleteMessage(chatId, messageId);
-      await handlePlugsMenu(bot, chatId);
+      const { requireChannelMembership } = require('./middleware/channelCheck');
+      const userId = callbackQuery.from.id;
+      const hasAccess = await requireChannelMembership(bot, chatId, userId);
+      if (hasAccess) {
+        await bot.deleteMessage(chatId, messageId);
+        await handlePlugsMenu(bot, chatId);
+      }
     }
     
     // Top Parrains

@@ -43,8 +43,8 @@ async function handleStart(bot, msg, param) {
     user.lastSeen = new Date();
     await user.save();
     
-    // Afficher le menu principal
-    await showMainMenu(bot, chatId);
+    // Afficher le menu principal avec vérification du canal
+    await showMainMenu(bot, chatId, userId);
     
   } catch (error) {
     console.error('Error in handleStart:', error);
@@ -52,7 +52,15 @@ async function handleStart(bot, msg, param) {
   }
 }
 
-async function showMainMenu(bot, chatId) {
+async function showMainMenu(bot, chatId, userId = null) {
+  // Si userId est fourni, vérifier l'appartenance au canal
+  if (userId) {
+    const hasAccess = await requireChannelMembership(bot, chatId, userId);
+    if (!hasAccess) {
+      return; // Le message de rejoindre le canal a déjà été envoyé
+    }
+  }
+  
   const settings = await Settings.findOne();
   const welcomeMessage = settings?.welcomeMessage || 
     '🔌 <b>Bienvenue sur PLUGS CRTFS !</b>\n\nLa marketplace exclusive des vendeurs certifiés.';
