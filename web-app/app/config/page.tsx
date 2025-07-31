@@ -1187,130 +1187,27 @@ export default function ConfigPage() {
                   </div>
                   
                   <div className="glass-card p-6">
-                    <h2 className="text-xl font-bold mb-6">Gérer les réseaux sociaux</h2>
+                    <h2 className="text-xl font-bold mb-6">Gérer les réseaux sociaux de la boutique</h2>
                     <p className="text-gray-400 mb-6">
-                      Configurez les liens vers vos réseaux sociaux qui seront affichés sur la page dédiée.
+                      Configurez les liens vers vos réseaux sociaux qui seront affichés sur la page publique.
                     </p>
                     
-                    <div className="space-y-4">
-                      <div className="bg-blue-900/20 border border-blue-600/30 rounded-lg p-4 mb-4">
-                        <p className="text-sm text-blue-400">
-                          💡 Conseil : Ajoutez vos réseaux sociaux, configurez-les et cliquez sur "Sauvegarder" pour les afficher sur la page publique.
-                        </p>
-                      </div>
-                      
-                      {shopSocialNetworks.map((network, index) => (
-                        <div key={network.id || index} className="flex items-center gap-4 p-4 bg-gray-800 rounded-lg hover:bg-gray-700 transition-colors">
-                          {/* Emoji */}
-                          <input
-                            type="text"
-                            value={network.emoji}
-                            onChange={(e) => {
-                              const updated = [...shopSocialNetworks]
-                              updated[index].emoji = e.target.value.slice(-2)
-                              setShopSocialNetworks(updated)
-                            }}
-                            className="w-16 px-2 py-2 bg-white/10 border border-white/20 rounded-lg text-center text-2xl"
-                            maxLength={2}
-                          />
-                          
-                          {/* Name */}
-                          <input
-                            type="text"
-                            value={network.name}
-                            onChange={(e) => {
-                              const updated = [...shopSocialNetworks]
-                              updated[index].name = e.target.value
-                              setShopSocialNetworks(updated)
-                            }}
-                            placeholder="Nom du réseau"
-                            className="flex-1 px-4 py-2 bg-white/10 border border-white/20 rounded-lg"
-                          />
-                          
-                          {/* Link */}
-                          <input
-                            type="text"
-                            value={network.link}
-                            onChange={(e) => {
-                              const updated = [...shopSocialNetworks]
-                              updated[index].link = e.target.value
-                              setShopSocialNetworks(updated)
-                            }}
-                            placeholder="Lien ou @username"
-                            className="flex-1 px-4 py-2 bg-white/10 border border-white/20 rounded-lg"
-                          />
-                          
-                          {/* Move Up */}
-                          <button
-                            onClick={() => {
-                              if (index > 0) {
-                                const updated = [...shopSocialNetworks]
-                                const temp = updated[index]
-                                updated[index] = updated[index - 1]
-                                updated[index - 1] = temp
-                                setShopSocialNetworks(updated)
-                              }
-                            }}
-                            disabled={index === 0}
-                            className={`p-2 rounded-lg transition-colors ${
-                              index === 0 
-                                ? 'bg-gray-800 text-gray-600 cursor-not-allowed' 
-                                : 'bg-blue-600/20 text-blue-400 hover:bg-blue-600/30'
-                            }`}
-                          >
-                            ↑
-                          </button>
-                          
-                          {/* Move Down */}
-                          <button
-                            onClick={() => {
-                              if (index < shopSocialNetworks.length - 1) {
-                                const updated = [...shopSocialNetworks]
-                                const temp = updated[index]
-                                updated[index] = updated[index + 1]
-                                updated[index + 1] = temp
-                                setShopSocialNetworks(updated)
-                              }
-                            }}
-                            disabled={index === shopSocialNetworks.length - 1}
-                            className={`p-2 rounded-lg transition-colors ${
-                              index === shopSocialNetworks.length - 1
-                                ? 'bg-gray-800 text-gray-600 cursor-not-allowed' 
-                                : 'bg-blue-600/20 text-blue-400 hover:bg-blue-600/30'
-                            }`}
-                          >
-                            ↓
-                          </button>
-                          
-                          {/* Delete */}
-                          {network.id !== 'miniapp' && network.name !== 'Mini App' ? (
-                            <button
-                              onClick={() => {
-                                const updated = shopSocialNetworks.filter((_, i) => i !== index)
-                                setShopSocialNetworks(updated)
-                              }}
-                              className="p-2 bg-red-600/20 text-red-400 rounded-lg hover:bg-red-600/30 transition-colors"
-                            >
-                              <TrashIcon className="w-5 h-5" />
-                            </button>
-                          ) : (
-                            <div className="p-2 text-gray-500" title="Mini App ne peut pas être supprimé">
-                              <span className="text-xs">Fixe</span>
-                            </div>
-                          )}
-                        </div>
-                      ))}
-                      
-                      {shopSocialNetworks.length === 0 && (
-                        <p className="text-gray-500 text-center py-8">
-                          Aucun réseau social configuré. Cliquez sur "Ajouter un réseau" pour commencer.
-                        </p>
-                      )}
-                    </div>
+                    <SocialNetworkManager 
+                      networks={shopSocialNetworks.filter(n => n.id !== 'miniapp' && n.name !== 'Mini App')}
+                      onChange={(networks) => {
+                        // Garder le Mini App en premier s'il existe
+                        const miniApp = shopSocialNetworks.find(n => n.id === 'miniapp' || n.name === 'Mini App')
+                        if (miniApp) {
+                          setShopSocialNetworks([miniApp, ...networks])
+                        } else {
+                          setShopSocialNetworks(networks)
+                        }
+                      }}
+                    />
                     
                     <button
                       onClick={handleSaveShopSocialNetworks}
-                      className="btn-primary mt-6 flex items-center gap-2"
+                      className="w-full mt-6 px-6 py-3 bg-gradient-to-r from-blue-600 to-purple-600 text-white rounded-lg font-medium hover:from-blue-700 hover:to-purple-700 transition-all flex items-center justify-center gap-2"
                     >
                       <CheckIcon className="w-5 h-5" />
                       Sauvegarder les réseaux sociaux
