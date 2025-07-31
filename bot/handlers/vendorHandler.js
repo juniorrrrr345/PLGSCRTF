@@ -25,6 +25,7 @@ async function handleVendorApplication(bot, chatId, userStates, action = null, m
       type: 'vendor_application',
       step: 'social_primary',
       stepIndex: 0,
+      lastQuestionMessageId: null,  // ID du dernier message de question envoyé
       data: {
         socialNetworks: { primary: [], links: {}, others: '' },
         methods: { delivery: false, shipping: false, meetup: false },
@@ -89,10 +90,26 @@ async function handleVendorApplication(bot, chatId, userStates, action = null, m
   // Traiter les réponses selon l'étape
   if (msg && msg.text) {
     await processVendorResponse(userState, msg.text);
+    
+    // Supprimer le message de l'utilisateur
+    try {
+      await bot.deleteMessage(chatId, msg.message_id);
+    } catch (e) {
+      // Ignorer l'erreur si le message ne peut pas être supprimé
+    }
+  }
+  
+  // Supprimer l'ancien message de question si il existe
+  if (userState.lastQuestionMessageId) {
+    try {
+      await bot.deleteMessage(chatId, userState.lastQuestionMessageId);
+    } catch (e) {
+      // Ignorer l'erreur si le message ne peut pas être supprimé
+    }
   }
   
   // Afficher l'étape actuelle
-  await displayVendorStep(bot, chatId, userState);
+  await displayVendorStep(bot, chatId, userState, userStates);
 }
 
 async function processVendorResponse(userState, response) {
@@ -128,7 +145,7 @@ async function processVendorResponse(userState, response) {
   }
 }
 
-async function displayVendorStep(bot, chatId, userState) {
+async function displayVendorStep(bot, chatId, userState, userStates) {
   let message = '';
   let keyboard = { inline_keyboard: [] };
   
@@ -390,10 +407,16 @@ async function displayVendorStep(bot, chatId, userState) {
   
   keyboard.inline_keyboard.push(navButtons);
   
-  await bot.sendMessage(chatId, message, {
+  const sentMessage = await bot.sendMessage(chatId, message, {
     reply_markup: keyboard,
     parse_mode: 'HTML'
   });
+  
+  // Sauvegarder l'ID du message pour pouvoir le supprimer plus tard
+  const userState = userStates.get(chatId);
+  if (userState) {
+    userState.lastQuestionMessageId = sentMessage.message_id;
+  }
 }
 
 module.exports = { handleVendorApplication };
