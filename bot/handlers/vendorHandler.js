@@ -1,6 +1,7 @@
 const User = require('../models/User');
 const VendorApplication = require('../models/VendorApplication');
 const Settings = require('../models/Settings');
+const { checkMaintenanceMode } = require('../middleware/maintenanceCheck');
 
 const vendorSteps = [
   'social_primary',
@@ -17,6 +18,12 @@ const vendorSteps = [
 ];
 
 async function handleVendorApplication(bot, chatId, userStates, action = null, msg = null) {
+  // Vérifier d'abord si on est en maintenance
+  const inMaintenance = await checkMaintenanceMode(bot, chatId);
+  if (inMaintenance) {
+    return; // Arrêter ici si en maintenance
+  }
+  
   let userState = userStates.get(chatId);
   
   // Initialiser l'état si nécessaire

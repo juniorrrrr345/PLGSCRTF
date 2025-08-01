@@ -262,6 +262,14 @@ bot.on('callback_query', async (callbackQuery) => {
     const isAdminCallback = await handleAdminCallbacks(bot, callbackQuery);
     if (isAdminCallback) return;
     
+    // Vérifier si on est en maintenance (sauf pour les callbacks admin)
+    const { checkMaintenanceMode } = require('./middleware/maintenanceCheck');
+    const inMaintenance = await checkMaintenanceMode(bot, chatId);
+    if (inMaintenance) {
+      await bot.deleteMessage(chatId, messageId);
+      return; // Arrêter ici si en maintenance
+    }
+    
     // Vérification de l'appartenance au canal
     if (data === 'check_membership') {
       const { checkChannelMembership } = require('./middleware/channelCheck');

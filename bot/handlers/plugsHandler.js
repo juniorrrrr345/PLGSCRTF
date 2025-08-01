@@ -23,9 +23,16 @@ function getCountryName(countryCode) {
   return countries[countryCode] || countryCode;
 }
 const Settings = require('../models/Settings');
+const { checkMaintenanceMode } = require('../middleware/maintenanceCheck');
 
 async function handlePlugsMenu(bot, chatId, filters = {}) {
   try {
+    // Vérifier d'abord si on est en maintenance
+    const inMaintenance = await checkMaintenanceMode(bot, chatId);
+    if (inMaintenance) {
+      return; // Arrêter ici si en maintenance
+    }
+    
     // Récupérer les paramètres pour l'image d'accueil
     const settings = await Settings.findOne();
     
@@ -242,6 +249,12 @@ async function handlePlugsMenu(bot, chatId, filters = {}) {
 
 async function handlePlugDetails(bot, chatId, plugId, fromMenu = 'plugs', userId = null) {
   try {
+    // Vérifier d'abord si on est en maintenance
+    const inMaintenance = await checkMaintenanceMode(bot, chatId);
+    if (inMaintenance) {
+      return; // Arrêter ici si en maintenance
+    }
+    
     console.log(`📱 Chargement des détails du plug: ${plugId}`);
     console.log(`📱 ChatId: ${chatId}, UserId: ${userId || chatId}`);
     

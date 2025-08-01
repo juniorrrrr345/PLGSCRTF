@@ -70,6 +70,12 @@ async function handleStart(bot, msg, param) {
     
     // Gérer les deep links pour les plugs avec traçage
     if (param && param.startsWith('plug_')) {
+      // Vérifier d'abord si on est en maintenance
+      const inMaintenance = await checkMaintenanceMode(bot, chatId);
+      if (inMaintenance) {
+        return; // Arrêter ici si en maintenance
+      }
+      
       // Format: plug_PLUGID_REFERRERID
       const parts = param.split('_');
       const plugId = parts[1];

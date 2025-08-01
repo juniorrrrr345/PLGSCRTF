@@ -1,9 +1,16 @@
 const Plug = require('../models/Plug');
 const User = require('../models/User');
 const Settings = require('../models/Settings');
+const { checkMaintenanceMode } = require('../middleware/maintenanceCheck');
 
 async function handleReferralMenu(bot, chatId) {
   try {
+    // Vérifier d'abord si on est en maintenance
+    const inMaintenance = await checkMaintenanceMode(bot, chatId);
+    if (inMaintenance) {
+      return; // Arrêter ici si en maintenance
+    }
+    
     // Récupérer les paramètres pour l'image d'accueil
     const settings = await Settings.findOne();
     
