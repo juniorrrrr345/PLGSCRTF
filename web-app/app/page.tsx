@@ -47,7 +47,7 @@ export default function Home() {
   const heroSubtitle = isTelegram ? "text-base" : "text-lg sm:text-xl md:text-2xl"
   const buttonSize = isTelegram ? "text-sm px-4 py-2" : "text-base sm:text-lg px-6 sm:px-8 py-3 sm:py-4"
   const sectionPadding = isTelegram ? "px-3 pt-16" : "px-4 pt-20 sm:pt-24 md:pt-16"
-  const statsGrid = isTelegram ? "grid-cols-2 gap-3" : "grid-cols-2 md:grid-cols-4 gap-4 sm:gap-6"
+  const statsGrid = isTelegram ? "grid-cols-2 gap-3" : "grid-cols-2 gap-3 sm:gap-4"
 
   return (
     <>
@@ -111,86 +111,71 @@ export default function Home() {
               <ArrowRightIcon className={isTelegram ? "w-4 h-4" : "w-4 h-4 sm:w-5 sm:h-5"} />
             </Link>
             <Link 
-              href="/products" 
+              href="/search" 
               className={`btn-secondary ${buttonSize} flex items-center justify-center gap-2 bg-gray-800 hover:bg-gray-700 border-2 border-gray-700 rounded-xl font-semibold transition-all ${!isTelegram ? 'transform hover:scale-105' : ''}`}
             >
-              Voir les Produits
+              Recherche Avancée
             </Link>
           </motion.div>
 
-          {/* Stats avec animation */}
+          {/* Stats en temps réel avec animation */}
+          <motion.div
+            initial={{ opacity: 0, scale: 0.9 }}
+            animate={{ opacity: 1, scale: 1 }}
+            transition={{ duration: 0.6, delay: 0.4 }}
+            className={`grid ${statsGrid} max-w-sm sm:max-w-md mx-auto px-4`}
+          >
+            <motion.div 
+              className="bg-gray-800/60 backdrop-blur-sm border-2 border-gray-700 rounded-xl p-3 sm:p-4 shadow-xl"
+              key={stats?.plugCount}
+              initial={{ scale: 1 }}
+              animate={{ scale: [1, 1.1, 1] }}
+              transition={{ duration: 0.3 }}
+            >
+              <div className={`${isTelegram ? 'text-2xl' : 'text-2xl sm:text-3xl'} font-bold text-white`}>
+                {stats?.plugCount || 0}
+              </div>
+              <div className={`${isTelegram ? 'text-xs' : 'text-sm sm:text-base'} text-gray-300 font-medium`}>Plugs Actifs</div>
+              <div className="text-xs text-green-400 mt-1">🟢 En temps réel</div>
+            </motion.div>
+            <motion.div 
+              className="bg-gray-800/60 backdrop-blur-sm border-2 border-gray-700 rounded-xl p-3 sm:p-4 shadow-xl"
+              key={stats?.userCount}
+              initial={{ scale: 1 }}
+              animate={{ scale: [1, 1.1, 1] }}
+              transition={{ duration: 0.3 }}
+            >
+              <div className={`${isTelegram ? 'text-2xl' : 'text-2xl sm:text-3xl'} font-bold text-white`}>
+                {stats?.userCount || 0}
+              </div>
+              <div className={`${isTelegram ? 'text-xs' : 'text-sm sm:text-base'} text-gray-300 font-medium`}>Utilisateurs</div>
+              <div className="text-xs text-green-400 mt-1">🟢 En temps réel</div>
+            </motion.div>
+          </motion.div>
+
+          {/* CTA Section avec meilleur espacement */}
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.6, delay: 0.4 }}
-            className={`grid ${statsGrid} max-w-2xl mx-auto`}
+            transition={{ duration: 0.6, delay: 0.6 }}
+            className={`${isTelegram ? 'mt-12' : 'mt-16 sm:mt-20 md:mt-24'} px-4`}
           >
-            {[
-              { label: 'Vendeurs', value: stats?.vendeurs || '0', suffix: '+' },
-              { label: 'Produits', value: stats?.produits || '0', suffix: '+' },
-              { label: 'Clients', value: stats?.clients || '0', suffix: '+' },
-              { label: 'Satisfaction', value: stats?.satisfaction || '100', suffix: '%' }
-            ].map((stat, index) => (
-              <motion.div
-                key={stat.label}
-                initial={{ opacity: 0, scale: 0.5 }}
-                animate={{ opacity: 1, scale: 1 }}
-                transition={{ duration: 0.5, delay: 0.5 + index * 0.1 }}
-                className={`glass-card text-center ${isTelegram ? 'p-3' : 'p-4 sm:p-6'}`}
+            <div className={`bg-gradient-to-r from-blue-600/20 to-purple-600/20 backdrop-blur-sm rounded-2xl ${isTelegram ? 'p-6' : 'p-6 sm:p-8 md:p-10'} border border-white/10 max-w-3xl mx-auto`}>
+              <h2 className={`${isTelegram ? 'text-xl' : 'text-2xl sm:text-3xl md:text-4xl'} font-bold mb-3 sm:mb-4 text-white`}>
+                Prêt à rejoindre l'aventure ?
+              </h2>
+              <p className={`${isTelegram ? 'text-sm' : 'text-base sm:text-lg md:text-xl'} text-gray-300 mb-4 sm:mb-6`}>
+                Découvrez les meilleurs vendeurs certifiés de votre région
+              </p>
+              <Link 
+                href="/plugs" 
+                className={`inline-flex items-center gap-2 bg-gradient-to-r from-blue-600 to-purple-600 text-white ${isTelegram ? 'px-4 py-2 text-sm' : 'px-6 sm:px-8 py-3 sm:py-4 text-base sm:text-lg'} rounded-xl font-bold hover:from-blue-700 hover:to-purple-700 transition-all ${!isTelegram ? 'transform hover:scale-105' : ''} shadow-xl`}
               >
-                <div className={`${isTelegram ? 'text-2xl' : 'text-3xl sm:text-4xl'} font-bold text-white mb-1`}>
-                  {stat.value}{stat.suffix}
-                </div>
-                <div className={`${isTelegram ? 'text-xs' : 'text-sm'} text-gray-400`}>{stat.label}</div>
-              </motion.div>
-            ))}
+                Commencer maintenant
+                <ArrowRightIcon className={isTelegram ? "w-4 h-4" : "w-4 h-4 sm:w-5 sm:h-5"} />
+              </Link>
+            </div>
           </motion.div>
-        </div>
-      </section>
-
-      {/* Features Section */}
-      <section className={`py-16 ${isTelegram ? 'px-3' : 'px-4'}`}>
-        <div className={`${isTelegram ? 'max-w-sm' : 'max-w-6xl'} mx-auto`}>
-          <motion.h2
-            initial={{ opacity: 0, y: 20 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.6 }}
-            className={`${isTelegram ? 'text-2xl' : 'text-3xl sm:text-4xl md:text-5xl'} font-bold text-center mb-12 text-white`}
-          >
-            Pourquoi choisir <span className="gradient-text">PLUGS CRTFS</span> ?
-          </motion.h2>
-
-          <div className={`grid ${isTelegram ? 'grid-cols-1 gap-4' : 'md:grid-cols-3 gap-6 sm:gap-8'}`}>
-            {[
-              {
-                title: '✅ Vendeurs Certifiés',
-                description: 'Tous nos vendeurs sont vérifiés et certifiés pour garantir votre sécurité'
-              },
-              {
-                title: '🔒 Transactions Sécurisées',
-                description: 'Système de paiement sécurisé avec protection des acheteurs'
-              },
-              {
-                title: '⚡ Support 24/7',
-                description: 'Une équipe dédiée pour vous accompagner à tout moment'
-              }
-            ].map((feature, index) => (
-              <motion.div
-                key={index}
-                initial={{ opacity: 0, y: 20 }}
-                whileInView={{ opacity: 1, y: 0 }}
-                transition={{ duration: 0.6, delay: index * 0.1 }}
-                className={`glass-card ${isTelegram ? 'p-4' : 'p-6 sm:p-8'} text-center`}
-              >
-                <h3 className={`${isTelegram ? 'text-lg' : 'text-xl sm:text-2xl'} font-bold mb-3 text-white`}>
-                  {feature.title}
-                </h3>
-                <p className={`${isTelegram ? 'text-sm' : 'text-base'} text-gray-300`}>
-                  {feature.description}
-                </p>
-              </motion.div>
-            ))}
-          </div>
         </div>
       </section>
       </motion.div>
