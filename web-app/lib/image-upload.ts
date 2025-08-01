@@ -1,4 +1,7 @@
-// Upload d'image via notre API
+// Import de la fonction Cloudinary qui fonctionnait
+import { uploadToCloudinary } from './cloudinary'
+
+// Upload d'image - utilise la fonction qui marchait avant
 export const uploadImage = async (file: File): Promise<string> => {
   console.log('[Upload] Starting image upload...', {
     fileName: file.name,
@@ -17,33 +20,40 @@ export const uploadImage = async (file: File): Promise<string> => {
   }
 
   try {
-    const formData = new FormData()
-    formData.append('file', file)
-    
-    // Utiliser notre route API au lieu d'appeler directement Cloudinary
-    const response = await fetch('/api/upload', {
-      method: 'POST',
-      body: formData
-    })
-    
-    const data = await response.json()
-    
-    if (!response.ok) {
-      console.error('[Upload] API error response:', data)
-      throw new Error(data.error || `Erreur upload: ${response.status}`)
-    }
-    
-    console.log('[Upload] Success! URL:', data.url)
-    return data.url
+    // Utiliser la fonction uploadToCloudinary du fichier cloudinary.ts
+    const url = await uploadToCloudinary(file)
+    console.log('[Upload] Success! URL:', url)
+    return url
     
   } catch (error) {
     console.error('[Upload] Error details:', error)
     
-    if (error instanceof Error) {
-      throw error
+    // Si Cloudinary échoue, essayer via notre API
+    try {
+      const formData = new FormData()
+      formData.append('file', file)
+      
+      const response = await fetch('/api/upload', {
+        method: 'POST',
+        body: formData
+      })
+      
+      const data = await response.json()
+      
+      if (!response.ok) {
+        throw new Error(data.error || `Erreur upload: ${response.status}`)
+      }
+      
+      return data.url
+    } catch (apiError) {
+      console.error('[Upload] API error:', apiError)
+      
+      if (error instanceof Error) {
+        throw error
+      }
+      
+      throw new Error('Erreur lors de l\'upload. Veuillez réessayer.')
     }
-    
-    throw new Error('Erreur lors de l\'upload. Veuillez réessayer.')
   }
 }
 
