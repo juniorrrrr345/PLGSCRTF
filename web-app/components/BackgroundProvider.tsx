@@ -41,80 +41,98 @@ export default function BackgroundProvider({ children }: { children: React.React
       }
       
       // Tailles adaptatives selon l'appareil
-      const imageSize = isTelegram ? '120px' : 'min(250px, 30vw)'
-      const mobileImageSize = 'min(150px, 40vw)'
+      const imageSize = isTelegram ? '100px' : '150px'
+      const gap = isTelegram ? '10px' : '20px'
       
-      // Styles pour la mosaïque
+      // Styles pour la mosaïque complète
       mosaicContainer.innerHTML = `
         <style>
-          .mosaic-image {
+          .mosaic-grid {
             position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            display: grid;
+            grid-template-columns: repeat(auto-fill, ${imageSize});
+            grid-template-rows: repeat(auto-fill, ${imageSize});
+            gap: ${gap};
+            padding: ${gap};
+            justify-content: center;
+          }
+          
+          .mosaic-image {
             width: ${imageSize};
             height: ${imageSize};
             background-image: url(${settings.backgroundImage});
             background-size: cover;
             background-position: center;
-            opacity: 0.15;
-            filter: grayscale(50%);
+            opacity: 0.08;
+            border-radius: 12px;
+            filter: grayscale(30%);
+            transition: all 0.3s ease;
           }
           
-          @media (max-width: 768px) {
-            .mosaic-image {
-              width: ${mobileImageSize};
-              height: ${mobileImageSize};
+          /* Variations de rotation pour créer un effet dynamique */
+          .mosaic-image:nth-child(4n+1) { transform: rotate(5deg); }
+          .mosaic-image:nth-child(4n+2) { transform: rotate(-5deg); }
+          .mosaic-image:nth-child(4n+3) { transform: rotate(3deg); }
+          .mosaic-image:nth-child(4n) { transform: rotate(-3deg); }
+          
+          /* Variations d'opacité */
+          .mosaic-image:nth-child(5n+1) { opacity: 0.06; }
+          .mosaic-image:nth-child(5n+2) { opacity: 0.08; }
+          .mosaic-image:nth-child(5n+3) { opacity: 0.1; }
+          .mosaic-image:nth-child(5n+4) { opacity: 0.07; }
+          .mosaic-image:nth-child(5n) { opacity: 0.09; }
+          
+          /* Animation subtile au survol (desktop) */
+          @media (hover: hover) {
+            .mosaic-image:hover {
+              opacity: 0.15;
+              transform: scale(1.1) rotate(0deg);
+              z-index: 1;
             }
           }
           
-          .mosaic-top-left {
-            top: 10%;
-            left: 5%;
-            transform: rotate(-15deg);
-          }
-          
-          .mosaic-top-right {
-            top: 10%;
-            right: 5%;
-            transform: rotate(15deg);
-          }
-          
-          .mosaic-bottom-left {
-            bottom: 10%;
-            left: 5%;
-            transform: rotate(15deg);
-          }
-          
-          .mosaic-bottom-right {
-            bottom: 10%;
-            right: 5%;
-            transform: rotate(-15deg);
-          }
-          
+          /* Responsive pour mobile */
           @media (max-width: 768px) {
-            .mosaic-top-left { top: 5%; left: 2%; }
-            .mosaic-top-right { top: 5%; right: 2%; }
-            .mosaic-bottom-left { bottom: 5%; left: 2%; }
-            .mosaic-bottom-right { bottom: 5%; right: 2%; }
+            .mosaic-grid {
+              grid-template-columns: repeat(auto-fill, ${isTelegram ? '80px' : '100px'});
+              grid-template-rows: repeat(auto-fill, ${isTelegram ? '80px' : '100px'});
+              gap: ${isTelegram ? '8px' : '15px'};
+              padding: ${isTelegram ? '8px' : '15px'};
+            }
+            
+            .mosaic-image {
+              width: ${isTelegram ? '80px' : '100px'};
+              height: ${isTelegram ? '80px' : '100px'};
+              border-radius: 8px;
+            }
           }
           
-          /* Animation subtile */
-          @keyframes float {
-            0%, 100% { transform: translateY(0) rotate(var(--rotation)); }
-            50% { transform: translateY(-10px) rotate(var(--rotation)); }
+          /* Animation de fade-in */
+          @keyframes fadeIn {
+            from { opacity: 0; transform: scale(0.8); }
+            to { opacity: var(--final-opacity, 0.08); transform: scale(1) rotate(var(--rotation, 0deg)); }
           }
           
           .mosaic-image {
-            animation: float 6s ease-in-out infinite;
+            animation: fadeIn 0.5s ease-out forwards;
           }
           
-          .mosaic-top-left { --rotation: -15deg; animation-delay: 0s; }
-          .mosaic-top-right { --rotation: 15deg; animation-delay: 1.5s; }
-          .mosaic-bottom-left { --rotation: 15deg; animation-delay: 3s; }
-          .mosaic-bottom-right { --rotation: -15deg; animation-delay: 4.5s; }
+          /* Délais d'animation pour effet cascade */
+          ${Array.from({ length: 50 }, (_, i) => `
+            .mosaic-image:nth-child(${i + 1}) {
+              animation-delay: ${i * 0.02}s;
+              --final-opacity: ${0.06 + (i % 5) * 0.01};
+              --rotation: ${(i % 4 - 2) * 3}deg;
+            }
+          `).join('')}
         </style>
-        <div class="mosaic-image mosaic-top-left"></div>
-        <div class="mosaic-image mosaic-top-right"></div>
-        <div class="mosaic-image mosaic-bottom-left"></div>
-        <div class="mosaic-image mosaic-bottom-right"></div>
+        <div class="mosaic-grid">
+          ${Array.from({ length: 100 }, () => '<div class="mosaic-image"></div>').join('')}
+        </div>
       `
       
       // Ajouter un overlay sombre pour la lisibilité
@@ -127,7 +145,7 @@ export default function BackgroundProvider({ children }: { children: React.React
         overlay.style.left = '0'
         overlay.style.right = '0'
         overlay.style.bottom = '0'
-        overlay.style.background = 'linear-gradient(to bottom, rgba(0,0,0,0.8), rgba(0,0,0,0.9))'
+        overlay.style.background = 'linear-gradient(to bottom, rgba(0,0,0,0.85), rgba(0,0,0,0.9))'
         overlay.style.zIndex = '-1'
         overlay.style.pointerEvents = 'none'
         document.body.appendChild(overlay)
