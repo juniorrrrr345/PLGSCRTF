@@ -4,6 +4,8 @@ import { motion } from 'framer-motion'
 import { useEffect, useState } from 'react'
 import { useTelegram } from './TelegramProvider'
 
+// Version sans bouton Actualiser - Mise à jour forcée pour Vercel
+
 interface SocialNetwork {
   id: string
   name: string
@@ -177,6 +179,7 @@ export default function MaintenancePage() {
           )}
         </div>
         
+        {/* Section avec seulement le bouton Bot Telegram - PAS de bouton Actualiser */}
         <div className={`flex justify-center ${isTelegram ? 'mb-4' : 'mb-8'}`}>
           <a
             href="https://t.me/PLGSCRTF_BOT"
