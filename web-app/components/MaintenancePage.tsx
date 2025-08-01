@@ -177,7 +177,7 @@ export default function MaintenancePage() {
           )}
         </div>
         
-        <div className={`flex flex-col ${isTelegram ? 'gap-2 mb-4' : 'sm:flex-row gap-4 mb-8'} justify-center`}>
+        <div className={`flex justify-center ${isTelegram ? 'mb-4' : 'mb-8'}`}>
           <a
             href="https://t.me/PLGSCRTF_BOT"
             className={`inline-flex items-center justify-center gap-2 ${buttonPadding} bg-blue-600 hover:bg-blue-700 text-white rounded-lg transition-all`}
@@ -193,16 +193,6 @@ export default function MaintenancePage() {
             </svg>
             Notre Bot Telegram
           </a>
-          
-          <button
-            onClick={() => window.location.reload()}
-            className={`inline-flex items-center justify-center gap-2 ${buttonPadding} bg-gray-700 hover:bg-gray-600 text-white rounded-lg transition-all`}
-          >
-            <svg className={isTelegram ? "w-4 h-4" : "w-5 h-5"} fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
-            </svg>
-            Actualiser
-          </button>
         </div>
         
         <p className={`${isTelegram ? 'text-xs' : 'text-sm'} text-gray-500`}>
