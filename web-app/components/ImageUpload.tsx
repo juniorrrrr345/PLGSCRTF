@@ -43,29 +43,29 @@ export default function ImageUpload({ onUpload, currentImage, label = 'Choisir u
     setUploading(true)
     setProgress(10)
     
+    let progressInterval: NodeJS.Timeout | null = null
+    
     try {
       // Progression plus réaliste
-      const progressInterval = setInterval(() => {
+      progressInterval = setInterval(() => {
         setProgress(prev => {
-          // Ralentir la progression après 70%
-          if (prev >= 70 && prev < 90) {
-            return prev + 2
-          } else if (prev < 70) {
-            return prev + 10
-          }
-          return prev
+          if (prev >= 90) return prev
+          if (prev >= 70) return prev + 2
+          if (prev >= 50) return prev + 5
+          return prev + 10
         })
-      }, 300)
+      }, 500)
 
-      // Timeout de 30 secondes
+      // Timeout de 20 secondes
       const uploadPromise = uploadImage(file)
-      const timeoutPromise = new Promise((_, reject) => 
-        setTimeout(() => reject(new Error('Upload timeout - Veuillez réessayer')), 30000)
+      const timeoutPromise = new Promise<never>((_, reject) => 
+        setTimeout(() => reject(new Error('Upload trop long. Veuillez réessayer avec une image plus petite.')), 20000)
       )
 
-      const url = await Promise.race([uploadPromise, timeoutPromise]) as string
+      const url = await Promise.race([uploadPromise, timeoutPromise])
       
-      clearInterval(progressInterval)
+      // Upload réussi
+      if (progressInterval) clearInterval(progressInterval)
       setProgress(100)
       
       onUpload(url)
@@ -76,12 +76,26 @@ export default function ImageUpload({ onUpload, currentImage, label = 'Choisir u
       
     } catch (error: any) {
       console.error('Upload error:', error)
-      const errorMessage = error.message || 'Erreur lors de l\'upload'
+      
+      // Clear interval en cas d'erreur
+      if (progressInterval) clearInterval(progressInterval)
+      
+      // Message d'erreur plus spécifique
+      let errorMessage = 'Erreur lors de l\'upload'
+      if (error.message?.includes('trop long')) {
+        errorMessage = error.message
+      } else if (error.message?.includes('Network')) {
+        errorMessage = 'Erreur de connexion. Vérifiez votre internet.'
+      } else if (error.message) {
+        errorMessage = error.message
+      }
+      
       toast.error(errorMessage)
       setPreview(currentImage || null)
       setProgress(0)
     } finally {
       setUploading(false)
+      if (progressInterval) clearInterval(progressInterval)
     }
   }
 

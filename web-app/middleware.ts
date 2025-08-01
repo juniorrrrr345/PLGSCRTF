@@ -2,13 +2,24 @@ import { NextResponse } from 'next/server'
 import type { NextRequest } from 'next/server'
 
 export async function middleware(request: NextRequest) {
-  // Ne pas appliquer le middleware sur les routes API, _next, et /config
-  if (
-    request.nextUrl.pathname.startsWith('/api') ||
-    request.nextUrl.pathname.startsWith('/_next') ||
-    request.nextUrl.pathname === '/config' ||
-    request.nextUrl.pathname.startsWith('/maintenance')
-  ) {
+  const pathname = request.nextUrl.pathname
+  
+  // Routes qui doivent toujours être accessibles (même en maintenance)
+  const excludedPaths = [
+    '/api',
+    '/_next',
+    '/config',
+    '/admin',
+    '/maintenance',
+    '/static',
+    '/images',
+    '/favicon.ico'
+  ]
+  
+  // Vérifier si la route est exclue
+  const isExcluded = excludedPaths.some(path => pathname.startsWith(path))
+  
+  if (isExcluded) {
     return NextResponse.next()
   }
 
@@ -17,6 +28,7 @@ export async function middleware(request: NextRequest) {
     const maintenanceCookie = request.cookies.get('maintenanceMode')
     
     if (maintenanceCookie?.value === 'true') {
+      console.log(`[Middleware] Maintenance active, redirecting ${pathname} to /maintenance`)
       // Rediriger vers la page de maintenance
       return NextResponse.rewrite(new URL('/maintenance', request.url))
     }
@@ -38,6 +50,7 @@ export async function middleware(request: NextRequest) {
       })
       
       if (data.maintenanceMode) {
+        console.log(`[Middleware] API says maintenance active, redirecting ${pathname} to /maintenance`)
         // Rediriger vers la page de maintenance
         return NextResponse.rewrite(new URL('/maintenance', request.url))
       }
