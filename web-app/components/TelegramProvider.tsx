@@ -34,6 +34,7 @@ interface TelegramWebApp {
   isExpanded: boolean
   viewportHeight: number
   viewportStableHeight: number
+  openLink: (url: string) => void
 }
 
 interface TelegramContextType {
