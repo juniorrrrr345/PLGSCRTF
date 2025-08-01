@@ -15,7 +15,6 @@ interface SocialNetwork {
 
 export default function MaintenancePage() {
   const [socialNetworks, setSocialNetworks] = useState<SocialNetwork[]>([])
-  const [maintenanceBackgroundImage, setMaintenanceBackgroundImage] = useState<string>('')
   const [maintenanceLogo, setMaintenanceLogo] = useState<string>('')
   const [maintenanceEndTime, setMaintenanceEndTime] = useState<Date | null>(null)
   const [timeLeft, setTimeLeft] = useState<string>('')
@@ -28,9 +27,6 @@ export default function MaintenancePage() {
       .then(data => {
         if (data.shopSocialNetworks) {
           setSocialNetworks(data.shopSocialNetworks.sort((a: SocialNetwork, b: SocialNetwork) => a.order - b.order))
-        }
-        if (data.maintenanceBackgroundImage) {
-          setMaintenanceBackgroundImage(data.maintenanceBackgroundImage)
         }
         if (data.maintenanceLogo) {
           setMaintenanceLogo(data.maintenanceLogo)
@@ -76,8 +72,8 @@ export default function MaintenancePage() {
 
   // Classes conditionnelles pour Telegram
   const containerClass = isTelegram 
-    ? "min-h-screen bg-gradient-to-br from-gray-900 via-black to-gray-900 flex items-center justify-center p-4"
-    : "min-h-screen bg-gradient-to-br from-gray-900 via-black to-gray-900 flex items-center justify-center px-4"
+    ? "min-h-screen flex items-center justify-center p-4"
+    : "min-h-screen flex items-center justify-center px-4"
   
   const contentClass = isTelegram
     ? "max-w-sm w-full text-center relative z-10"
@@ -90,20 +86,7 @@ export default function MaintenancePage() {
   const buttonPadding = isTelegram ? "px-4 py-2 text-sm" : "px-6 py-3"
 
   return (
-    <div 
-      className={containerClass}
-      style={{
-        backgroundImage: maintenanceBackgroundImage && !isTelegram ? `url(${maintenanceBackgroundImage})` : undefined,
-        backgroundSize: 'cover',
-        backgroundPosition: 'center',
-        backgroundRepeat: 'no-repeat'
-      }}
-    >
-      {/* Overlay sombre si image de fond (désactivé sur Telegram pour la performance) */}
-      {maintenanceBackgroundImage && !isTelegram && (
-        <div className="absolute inset-0 bg-black/70"></div>
-      )}
-      
+    <div className={containerClass}>
       <motion.div
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
