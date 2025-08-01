@@ -1688,6 +1688,7 @@ export default function ConfigPage() {
                         </h3>
                         <div className="bg-gray-800 border-2 border-gray-600 rounded-xl p-4">
                           <ImageUpload
+                            currentImage={settings?.backgroundImage}
                             onUpload={async (url) => {
                               try {
                                 const res = await fetch('/api/settings/background', {
@@ -1697,6 +1698,12 @@ export default function ConfigPage() {
                                 })
                                 if (res.ok) {
                                   toast.success('Fond mis à jour !')
+                                  // Forcer le rechargement des settings
+                                  mutate('/api/settings')
+                                  // Recharger la page après 1 seconde pour appliquer le fond
+                                  setTimeout(() => {
+                                    window.location.reload()
+                                  }, 1000)
                                 }
                               } catch (error) {
                                 toast.error('Erreur lors de la mise à jour')
@@ -1706,6 +1713,16 @@ export default function ConfigPage() {
                           <p className="text-xs text-gray-400 mt-2">
                             Recommandé : Image haute résolution, 1920x1080px minimum
                           </p>
+                          {settings?.backgroundImage && (
+                            <div className="mt-3">
+                              <p className="text-xs text-gray-400 mb-1">Image actuelle :</p>
+                              <img 
+                                src={settings.backgroundImage} 
+                                alt="Fond actuel" 
+                                className="w-32 h-20 object-cover rounded border border-gray-700"
+                              />
+                            </div>
+                          )}
                         </div>
                       </div>
 

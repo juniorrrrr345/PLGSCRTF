@@ -3,11 +3,20 @@
 import { useEffect, useState } from 'react'
 import useSWR from 'swr'
 
-const fetcher = (url: string) => fetch(url).then(res => res.json())
+const fetcher = async (url: string) => {
+  const res = await fetch(url)
+  if (!res.ok) {
+    console.error('[BackgroundProvider] Failed to fetch:', res.status)
+    throw new Error('Failed to fetch background')
+  }
+  return res.json()
+}
 
 export default function BackgroundProvider({ children }: { children: React.ReactNode }) {
-  const { data: settings } = useSWR('/api/settings/background', fetcher, {
-    refreshInterval: 30000 // Rafraîchir toutes les 30 secondes
+  const { data: settings, error } = useSWR('/api/settings/background', fetcher, {
+    refreshInterval: 30000, // Rafraîchir toutes les 30 secondes
+    revalidateOnFocus: true,
+    revalidateOnReconnect: true
   })
   
   const [mounted, setMounted] = useState(false)
@@ -17,7 +26,13 @@ export default function BackgroundProvider({ children }: { children: React.React
   }, [])
 
   useEffect(() => {
+    if (error) {
+      console.error('[BackgroundProvider] Error loading background:', error)
+    }
+    
     if (mounted && settings?.backgroundImage) {
+      console.log('[BackgroundProvider] Applying background image:', settings.backgroundImage)
+      
       // Appliquer l'image de fond au body pour qu'elle couvre toute la page
       document.body.style.backgroundImage = `url(${settings.backgroundImage})`
       document.body.style.backgroundSize = 'cover'
@@ -42,7 +57,9 @@ export default function BackgroundProvider({ children }: { children: React.React
         overlay.style.pointerEvents = 'none'
         document.body.appendChild(overlay)
       }
-    } else if (mounted) {
+    } else if (mounted && !settings?.backgroundImage) {
+      console.log('[BackgroundProvider] No background image, cleaning up')
+      
       // Retirer le background si pas d'image
       document.body.style.backgroundImage = ''
       document.body.style.backgroundColor = ''
@@ -63,7 +80,7 @@ export default function BackgroundProvider({ children }: { children: React.React
         overlay.remove()
       }
     }
-  }, [mounted, settings?.backgroundImage])
+  }, [mounted, settings?.backgroundImage, error])
 
   return <>{children}</>
 }
