@@ -41,15 +41,29 @@ export default function ImageUpload({ onUpload, currentImage, label = 'Choisir u
 
     // Upload vers le service
     setUploading(true)
-    setProgress(20)
+    setProgress(10)
     
     try {
-      // Simuler la progression
+      // Progression plus réaliste
       const progressInterval = setInterval(() => {
-        setProgress(prev => Math.min(prev + 10, 90))
-      }, 200)
+        setProgress(prev => {
+          // Ralentir la progression après 70%
+          if (prev >= 70 && prev < 90) {
+            return prev + 2
+          } else if (prev < 70) {
+            return prev + 10
+          }
+          return prev
+        })
+      }, 300)
 
-      const url = await uploadImage(file)
+      // Timeout de 30 secondes
+      const uploadPromise = uploadImage(file)
+      const timeoutPromise = new Promise((_, reject) => 
+        setTimeout(() => reject(new Error('Upload timeout - Veuillez réessayer')), 30000)
+      )
+
+      const url = await Promise.race([uploadPromise, timeoutPromise]) as string
       
       clearInterval(progressInterval)
       setProgress(100)
@@ -93,6 +107,9 @@ export default function ImageUpload({ onUpload, currentImage, label = 'Choisir u
                   />
                 </div>
                 <span className="text-white text-sm">Upload en cours... {progress}%</span>
+                {progress >= 90 && (
+                  <span className="text-xs text-gray-400 mt-1">Finalisation...</span>
+                )}
               </div>
             )}
           </div>
