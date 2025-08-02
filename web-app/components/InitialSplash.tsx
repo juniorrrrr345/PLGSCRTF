@@ -1,5 +1,5 @@
 import { cookies } from 'next/headers'
-import connectDB from '@/lib/mongodb'
+import { connectToDatabase } from '@/lib/mongodb'
 import Settings from '@/models/Settings'
 
 export default async function InitialSplash() {
@@ -14,7 +14,7 @@ export default async function InitialSplash() {
   // Récupérer l'image de fond directement depuis la DB
   let backgroundImage = ''
   try {
-    await connectDB()
+    await connectToDatabase()
     const settings = await Settings.findOne({})
     if (settings?.backgroundImage) {
       backgroundImage = settings.backgroundImage
