@@ -2,7 +2,6 @@
 
 import { useEffect, useState } from 'react'
 import { useParams, useRouter } from 'next/navigation'
-import { motion } from 'framer-motion'
 import useSWR from 'swr'
 import { ArrowLeftIcon, ShareIcon, ShoppingBagIcon, PlayIcon } from '@heroicons/react/24/outline'
 import { HeartIcon } from '@heroicons/react/24/solid'
@@ -80,17 +79,7 @@ export default function ProductPage() {
     )
   }
 
-  if (isLoading || !product) {
-    return (
-      <div className="min-h-screen flex items-center justify-center">
-        <motion.div
-          animate={{ rotate: 360 }}
-          transition={{ duration: 1, repeat: Infinity, ease: "linear" }}
-          className="w-16 h-16 border-4 border-primary border-t-transparent rounded-full"
-        />
-      </div>
-    )
-  }
+  // Pas d'écran de chargement
 
   return (
     <div className="min-h-screen pt-20 px-4 pb-20">

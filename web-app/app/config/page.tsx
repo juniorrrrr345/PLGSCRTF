@@ -45,7 +45,7 @@ const fetcher = (url: string) => fetch(url).then(res => res.json())
 export default function ConfigPage() {
   const router = useRouter()
   const [isAuthenticated, setIsAuthenticated] = useState(false)
-  const [isLoading, setIsLoading] = useState(true)
+  const [isLoading, setIsLoading] = useState(false)
   const [password, setPassword] = useState('')
   const [activeTab, setActiveTab] = useState('dashboard')
   const [showAddPlug, setShowAddPlug] = useState(false)
@@ -620,17 +620,7 @@ export default function ConfigPage() {
     }
   }
   
-  if (isLoading) {
-    return (
-      <div className="min-h-screen flex items-center justify-center">
-        <motion.div
-          animate={{ rotate: 360 }}
-          transition={{ duration: 1, repeat: Infinity, ease: "linear" }}
-          className="w-16 h-16 border-4 border-blue-500 border-t-transparent rounded-full"
-        />
-      </div>
-    )
-  }
+  // Pas d'écran de chargement
 
   if (!isAuthenticated) {
     return (

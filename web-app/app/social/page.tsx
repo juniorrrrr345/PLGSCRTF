@@ -13,7 +13,7 @@ interface SocialNetwork {
 
 export default function SocialPage() {
   const [socialNetworks, setSocialNetworks] = useState<SocialNetwork[]>([])
-  const [loading, setLoading] = useState(true)
+  const [loading, setLoading] = useState(false)
 
   useEffect(() => {
     fetchSocialNetworks()

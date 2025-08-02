@@ -15,32 +15,8 @@ export default function Home() {
     refreshInterval: 5000
   })
 
-  const [mounted, setMounted] = useState(false)
-  const [showSplash, setShowSplash] = useState(true)
+  const [showSplash, setShowSplash] = useState(false) // Désactiver le splash screen
   const { isTelegram } = useTelegram()
-
-  useEffect(() => {
-    setMounted(true)
-    // Vérifier si c'est la première visite (désactiver splash pour Telegram)
-    const hasVisited = sessionStorage.getItem('hasVisited')
-    if (hasVisited || isTelegram) {
-      setShowSplash(false)
-    } else {
-      sessionStorage.setItem('hasVisited', 'true')
-    }
-  }, [isTelegram])
-
-  if (!mounted) {
-    return (
-      <div className="min-h-screen flex items-center justify-center">
-        <motion.div
-          animate={{ rotate: 360 }}
-          transition={{ duration: 1, repeat: Infinity, ease: "linear" }}
-          className="w-16 h-16 border-4 border-blue-500 border-t-transparent rounded-full"
-        />
-      </div>
-    )
-  }
 
   // Classes adaptées pour Telegram
   const heroTitle = isTelegram ? "text-3xl sm:text-4xl" : "text-4xl sm:text-5xl md:text-6xl lg:text-7xl"

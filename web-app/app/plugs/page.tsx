@@ -89,13 +89,7 @@ export default function PlugsPage() {
     )
   }
 
-  if (isLoading) {
-    return (
-      <div className="min-h-screen flex items-center justify-center pt-20">
-        <div className="w-16 h-16 border-4 border-primary border-t-transparent rounded-full animate-spin" />
-      </div>
-    )
-  }
+  // Pas d'écran de chargement - afficher directement
 
   return (
     <div className="min-h-screen pt-20 px-4">
