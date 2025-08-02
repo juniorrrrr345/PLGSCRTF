@@ -521,12 +521,18 @@ export default function ConfigPage() {
   }
 
   const handleUpdateProduct = async () => {
+    if (!editingProduct._id) {
+      toast.error('Erreur: ID du produit manquant')
+      return
+    }
+    
     if (!editingProduct.title || !editingProduct.description || !editingProduct.media || !editingProduct.socialLink) {
       toast.error('Veuillez remplir tous les champs obligatoires')
       return
     }
 
     try {
+      console.log('Updating product:', editingProduct._id)
       const res = await fetch(`/api/products/${editingProduct._id}`, {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
@@ -538,8 +544,12 @@ export default function ConfigPage() {
         setProducts(products.map(p => p._id === updatedProduct._id ? updatedProduct : p))
         toast.success('Produit mis à jour !')
         setEditingProduct(null)
+      } else {
+        const error = await res.json()
+        toast.error(`Erreur: ${error.error || 'Mise à jour échouée'}`)
       }
     } catch (error) {
+      console.error('Update error:', error)
       toast.error('Erreur lors de la mise à jour')
     }
   }
@@ -1205,7 +1215,11 @@ export default function ConfigPage() {
                         {/* Actions */}
                         <div className="flex gap-2">
                           <button
-                            onClick={() => setEditingProduct(product)}
+                            onClick={() => {
+                              console.log('Editing product:', product)
+                              setEditingProduct(product)
+                              setShowAddProduct(false) // S'assurer que showAddProduct est false
+                            }}
                             className="flex-1 px-3 py-2 bg-blue-600/20 text-blue-400 rounded-lg hover:bg-blue-600/30 transition-colors flex items-center justify-center gap-2"
                           >
                             <PencilIcon className="w-4 h-4" />
@@ -2347,7 +2361,8 @@ export default function ConfigPage() {
                           setEditingProduct({
                             ...editingProduct, 
                             media: url,
-                            mediaType: isVideo ? 'video' : 'image'
+                            mediaType: isVideo ? 'video' : 'image',
+                            _id: editingProduct._id // Préserver l'ID
                           })
                         } else {
                           setNewProduct({

@@ -27,18 +27,26 @@ export async function PUT(
 ) {
   try {
     const data = await request.json()
+    console.log('Updating product with ID:', params.id)
+    console.log('Update data:', data)
+    
     await connectToDatabase()
+    
+    // Enlever l'_id du data pour éviter les conflits
+    const { _id, ...updateData } = data
     
     const product = await Product.findByIdAndUpdate(
       params.id,
-      { ...data, updatedAt: new Date() },
-      { new: true }
+      { ...updateData, updatedAt: new Date() },
+      { new: true, runValidators: true }
     )
     
     if (!product) {
+      console.error('Product not found with ID:', params.id)
       return NextResponse.json({ error: 'Product not found' }, { status: 404 })
     }
     
+    console.log('Product updated successfully:', product._id)
     return NextResponse.json(product)
   } catch (error) {
     console.error('Error updating product:', error)
