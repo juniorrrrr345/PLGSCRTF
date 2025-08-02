@@ -53,18 +53,18 @@ export default function PlugCard({ plug, onClick }: PlugCardProps) {
       {/* Card content */}
       <div className="relative bg-white/5 backdrop-blur-sm border border-white/20 rounded-2xl overflow-hidden hover:bg-white/10 transition-all shadow-xl">
         {/* Header with image */}
-        <div className="relative h-40 overflow-hidden bg-gradient-to-br from-gray-800 to-gray-900">
+        <div className="relative h-40 overflow-hidden bg-gray-800">
           {plug.photo ? (
             <>
               <img
                 src={plug.photo}
                 alt={plug.name}
-                className="w-full h-full object-cover opacity-80"
+                className="w-full h-full object-contain"
               />
-              <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/40 to-transparent" />
+              <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent" />
             </>
           ) : (
-            <div className="w-full h-full flex items-center justify-center">
+            <div className="w-full h-full flex items-center justify-center bg-gradient-to-br from-gray-800 to-gray-900">
               <span className="text-6xl opacity-50">🔌</span>
             </div>
           )}
