@@ -15,8 +15,18 @@ export default function Home() {
     refreshInterval: 5000
   })
 
-  const [showSplash, setShowSplash] = useState(false) // Désactiver le splash screen
+  const [showSplash, setShowSplash] = useState(true)
   const { isTelegram } = useTelegram()
+  
+  useEffect(() => {
+    // Vérifier si c'est la première visite
+    const hasVisited = sessionStorage.getItem('hasVisited')
+    if (hasVisited || isTelegram) {
+      setShowSplash(false)
+    } else {
+      sessionStorage.setItem('hasVisited', 'true')
+    }
+  }, [isTelegram])
 
   // Classes adaptées pour Telegram
   const heroTitle = isTelegram ? "text-3xl sm:text-4xl" : "text-4xl sm:text-5xl md:text-6xl lg:text-7xl"
