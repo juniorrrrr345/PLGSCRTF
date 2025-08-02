@@ -62,16 +62,15 @@ export default function Navbar() {
         <div className={`flex items-center justify-between ${navHeight}`}>
           {/* Logo */}
           <Link href="/" className="flex items-center">
-            <motion.div
-              whileHover={!isTelegram ? { scale: 1.05 } : undefined}
-              className={`${logoSize} font-bold transition-all navbar-title ${
+            <div
+              className={`${logoSize} font-bold navbar-title ${
                 isHomePage && !scrolled 
                   ? 'text-gray-400 opacity-60' 
                   : 'text-white'
               }`}
             >
               PLUGS CRTFS
-            </motion.div>
+            </div>
           </Link>
 
           {/* Desktop Navigation - caché sur Telegram pour plus d'espace */}
