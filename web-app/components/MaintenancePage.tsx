@@ -117,13 +117,15 @@ export default function MaintenancePage() {
           </motion.div>
         )}
         
-        <h1 className={`${titleSize} font-bold text-white mb-3`}>
-          🔧 Maintenance en cours
-        </h1>
-        
-        <p className={`${subtitleSize} text-gray-300 mb-3`}>
-          Nous sommes bientôt de retour !
-        </p>
+        <div className="bg-black/60 backdrop-blur-sm rounded-xl p-4 mb-4">
+          <h1 className={`${titleSize} font-bold text-white mb-3`}>
+            🔧 Maintenance en cours
+          </h1>
+          
+          <p className={`${subtitleSize} text-gray-300`}>
+            Nous sommes bientôt de retour !
+          </p>
+        </div>
         
         {timeLeft && (
           <div className={`mb-4 p-4 bg-white/10 backdrop-blur-sm border border-white/20 rounded-xl shadow-2xl`}>

@@ -79,25 +79,37 @@ PLUGS CRTFS`;
       }
       
       // Envoyer le message avec l'image et les boutons
+      let sentMessage;
       if (settings.welcomeImage) {
         try {
-          await bot.sendPhoto(chatId, settings.welcomeImage, {
+          sentMessage = await bot.sendPhoto(chatId, settings.welcomeImage, {
             caption: maintenanceMessage,
             parse_mode: 'HTML',
             reply_markup: keyboard.inline_keyboard.length > 0 ? keyboard : undefined
           });
         } catch (error) {
           // Si l'image échoue, envoyer juste le message
-          await bot.sendMessage(chatId, maintenanceMessage, {
+          sentMessage = await bot.sendMessage(chatId, maintenanceMessage, {
             parse_mode: 'HTML',
             reply_markup: keyboard.inline_keyboard.length > 0 ? keyboard : undefined
           });
         }
       } else {
-        await bot.sendMessage(chatId, maintenanceMessage, {
+        sentMessage = await bot.sendMessage(chatId, maintenanceMessage, {
           parse_mode: 'HTML',
           reply_markup: keyboard.inline_keyboard.length > 0 ? keyboard : undefined
         });
+      }
+      
+      // Supprimer le message après 10 secondes
+      if (sentMessage) {
+        setTimeout(async () => {
+          try {
+            await bot.deleteMessage(chatId, sentMessage.message_id);
+          } catch (error) {
+            console.error('Erreur lors de la suppression du message de maintenance:', error);
+          }
+        }, 10000);
       }
       
       return true; // En maintenance
