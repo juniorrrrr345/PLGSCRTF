@@ -57,7 +57,7 @@ export default function PlugModal({ plug, onClose, isOpen }: PlugModalProps) {
       <div
         className="fixed inset-x-4 top-[5%] bottom-[5%] md:inset-x-auto md:left-1/2 md:-translate-x-1/2 md:w-full md:max-w-4xl z-50"
       >
-            <div className="bg-gray-900 rounded-3xl shadow-2xl h-full flex flex-col">
+        <div className="bg-gray-900 rounded-3xl shadow-2xl h-full flex flex-col">
               {/* Header avec image */}
               <div className="relative h-72 md:h-96 flex-shrink-0">
                 {plug.photo ? (
@@ -259,7 +259,6 @@ export default function PlugModal({ plug, onClose, isOpen }: PlugModalProps) {
               </div>
             </div>
           </div>
-        </div>
-      </>
-    )
-  }
+        </>
+      )
+    }
