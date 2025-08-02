@@ -6,6 +6,7 @@ import Navbar from '@/components/Navbar'
 import ScrollIndicator from '@/components/ScrollIndicator'
 import BackgroundProvider from '@/components/BackgroundProvider'
 import TelegramProvider from '@/components/TelegramProvider'
+import InitialSplash from '@/components/InitialSplash'
 
 const inter = Inter({ subsets: ['latin'] })
 
@@ -53,6 +54,7 @@ export default function RootLayout({
         />
       </head>
       <body className={`${inter.className} bg-dark text-white min-h-screen`}>
+        <InitialSplash />
         <TelegramProvider>
           <BackgroundProvider>
             <Navbar />

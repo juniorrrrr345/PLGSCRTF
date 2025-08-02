@@ -1,11 +1,11 @@
 'use client'
 
 import { useEffect, useState } from 'react'
-import { motion, AnimatePresence } from 'framer-motion'
+import { motion } from 'framer-motion'
 import Link from 'next/link'
 import useSWR from 'swr'
 import { ArrowRightIcon } from '@heroicons/react/24/outline'
-import SplashScreen from '@/components/SplashScreen'
+
 import { useTelegram } from '@/components/TelegramProvider'
 
 const fetcher = (url: string) => fetch(url).then(res => res.json())
@@ -15,25 +15,7 @@ export default function Home() {
     refreshInterval: 5000
   })
 
-  const [showSplash, setShowSplash] = useState(true)
-  const [mounted, setMounted] = useState(false)
   const { isTelegram } = useTelegram()
-  
-  useEffect(() => {
-    setMounted(true)
-    // Vérifier si c'est la première visite
-    const hasVisited = sessionStorage.getItem('hasVisited')
-    if (hasVisited || isTelegram) {
-      setShowSplash(false)
-    } else {
-      sessionStorage.setItem('hasVisited', 'true')
-    }
-  }, [isTelegram])
-
-  // Afficher le splash screen si nécessaire
-  if (showSplash && !isTelegram) {
-    return <SplashScreen onComplete={() => setShowSplash(false)} />
-  }
 
   // Classes adaptées pour Telegram
   const heroTitle = isTelegram ? "text-3xl sm:text-4xl" : "text-4xl sm:text-5xl md:text-6xl lg:text-7xl"
@@ -43,18 +25,11 @@ export default function Home() {
   const statsGrid = isTelegram ? "grid-cols-2 gap-3" : "grid-cols-2 gap-3 sm:gap-4"
 
   return (
-    <>
-      <AnimatePresence mode="wait">
-        {showSplash && !isTelegram && (
-          <SplashScreen onComplete={() => setShowSplash(false)} />
-        )}
-      </AnimatePresence>
-      
-      <motion.div 
-        initial={{ opacity: showSplash && !isTelegram ? 0 : 1 }}
-        animate={{ opacity: showSplash && !isTelegram ? 0 : 1 }}
-        transition={{ duration: 0.5 }}
-        className="relative min-h-screen">
+    <motion.div 
+      initial={{ opacity: 1 }}
+      animate={{ opacity: 1 }}
+      transition={{ duration: 0.5 }}
+      className="relative min-h-screen">
       {/* Animated Background - Plus léger pour Telegram */}
       {!isTelegram && (
         <div className="fixed inset-0 -z-10">
@@ -172,6 +147,5 @@ export default function Home() {
         </div>
       </section>
       </motion.div>
-    </>
   )
 }
