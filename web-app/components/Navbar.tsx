@@ -2,7 +2,6 @@
 
 import Link from 'next/link'
 import { useState, useEffect } from 'react'
-import { motion, AnimatePresence } from 'framer-motion'
 import { Bars3Icon, XMarkIcon } from '@heroicons/react/24/outline'
 import { usePathname } from 'next/navigation'
 import { useTelegram } from './TelegramProvider'
@@ -82,7 +81,7 @@ export default function Navbar() {
                 <Link
                   key={item.href}
                   href={item.href}
-                  className={`flex items-center gap-1 px-3 lg:px-4 py-2 rounded-lg text-sm lg:text-base font-medium transition-all ${
+                  className={`flex items-center gap-1 px-3 lg:px-4 py-2 rounded-lg text-sm lg:text-base font-medium ${
                     pathname === item.href
                       ? 'bg-gradient-to-r from-purple-600/20 to-pink-600/20 text-white border border-purple-500/30'
                       : 'text-white/80 hover:text-white hover:bg-white/10'
@@ -97,7 +96,7 @@ export default function Navbar() {
           {/* Mobile menu button - toujours visible sur Telegram */}
           <button
             onClick={() => setIsOpen(!isOpen)}
-            className={`${isTelegram ? '' : 'md:hidden'} p-2 rounded-lg text-gray-300 hover:text-white hover:bg-white/10 transition-all`}
+            className={`${isTelegram ? '' : 'md:hidden'} p-2 rounded-lg text-white hover:bg-white/10`}
           >
             {isOpen ? (
               <XMarkIcon className={isTelegram ? "h-5 w-5" : "h-5 w-5 sm:h-6 sm:w-6"} />
@@ -109,22 +108,17 @@ export default function Navbar() {
       </div>
 
       {/* Mobile Navigation */}
-      <AnimatePresence>
-        {isOpen && (
-          <motion.div
-            initial={{ opacity: 0, height: 0 }}
-            animate={{ opacity: 1, height: 'auto' }}
-            exit={{ opacity: 0, height: 0 }}
-            transition={{ duration: 0.2 }}
-            className={`${isTelegram ? '' : 'md:hidden'} absolute top-full left-0 right-0 bg-black backdrop-blur-xl border-t border-white/10 shadow-2xl z-50 overflow-hidden`}
-          >
+      {isOpen && (
+        <div
+          className={`${isTelegram ? '' : 'md:hidden'} absolute top-full left-0 right-0 bg-black border-t border-white/10 shadow-2xl z-50`}
+        >
             <div className={`${isTelegram ? 'px-3 py-2' : 'px-4 py-3'} space-y-1`}>
               {navItems.map((item) => (
                 <Link
                   key={item.href}
                   href={item.href}
                   onClick={() => setIsOpen(false)}
-                  className={`flex items-center gap-2 ${isTelegram ? 'px-3 py-2 text-sm' : 'px-4 py-3 text-base'} rounded-lg font-medium transition-all ${
+                  className={`flex items-center gap-2 ${isTelegram ? 'px-3 py-2 text-sm' : 'px-4 py-3 text-base'} rounded-lg font-medium ${
                     pathname === item.href
                       ? 'bg-gradient-to-r from-purple-600/20 to-pink-600/20 text-white border border-purple-500/30'
                       : 'text-white/90 hover:text-white hover:bg-white/10'
@@ -134,9 +128,8 @@ export default function Navbar() {
                 </Link>
               ))}
             </div>
-          </motion.div>
+          </div>
         )}
-      </AnimatePresence>
     </nav>
   )
 }
