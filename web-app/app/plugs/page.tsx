@@ -1,7 +1,6 @@
 'use client'
 
 import { useState, useEffect } from 'react'
-import { motion } from 'framer-motion'
 import useSWR, { mutate } from 'swr'
 import PlugCard from '@/components/PlugCard'
 import PlugModal from '@/components/PlugModal'
@@ -93,11 +92,7 @@ export default function PlugsPage() {
   if (isLoading) {
     return (
       <div className="min-h-screen flex items-center justify-center pt-20">
-        <motion.div
-          animate={{ rotate: 360 }}
-          transition={{ duration: 1, repeat: Infinity, ease: "linear" }}
-          className="w-16 h-16 border-4 border-primary border-t-transparent rounded-full"
-        />
+        <div className="w-16 h-16 border-4 border-primary border-t-transparent rounded-full animate-spin" />
       </div>
     )
   }
@@ -106,11 +101,7 @@ export default function PlugsPage() {
     <div className="min-h-screen pt-20 px-4">
       <div className="max-w-7xl mx-auto">
         {/* Header */}
-        <motion.div
-          initial={{ opacity: 0, y: -20 }}
-          animate={{ opacity: 1, y: 0 }}
-          className="text-center mb-8"
-        >
+        <div className="text-center mb-8">
           <h1 className="text-4xl md:text-5xl font-black mb-3">
             🔌 Nos <span className="gradient-text">Plugs Certifiés</span>
           </h1>
@@ -122,13 +113,10 @@ export default function PlugsPage() {
               {filteredPlugs.length} plug{filteredPlugs.length > 1 ? 's' : ''} trouvé{filteredPlugs.length > 1 ? 's' : ''}
             </p>
           )}
-        </motion.div>
+        </div>
 
         {/* Filtres */}
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.1 }}
+        <div
           className="mb-8 space-y-4"
         >
           {/* Barre de recherche */}
@@ -172,36 +160,26 @@ export default function PlugsPage() {
               )
             })}
           </div>
-        </motion.div>
+        </div>
 
         {/* Plugs Grid - 2 per row on all devices */}
         <div className="grid grid-cols-2 gap-4 md:gap-6 lg:gap-8 max-w-6xl mx-auto">
-          {filteredPlugs.map((plug: any, index: number) => (
-            <motion.div
+          {filteredPlugs.map((plug: any) => (
+            <PlugCard 
               key={plug._id}
-              initial={{ opacity: 0, y: 30 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: index * 0.1 }}
-            >
-              <PlugCard 
-                plug={plug} 
-                onClick={() => {
-                  setSelectedPlug(plug)
-                  setIsModalOpen(true)
-                }}
-              />
-            </motion.div>
+              plug={plug} 
+              onClick={() => {
+                setSelectedPlug(plug)
+                setIsModalOpen(true)
+              }}
+            />
           ))}
         </div>
 
         {filteredPlugs.length === 0 && (
-          <motion.div
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            className="text-center py-20"
-          >
+          <div className="text-center py-20">
             <p className="text-gray-400 text-lg">Aucun plug trouvé</p>
-          </motion.div>
+          </div>
         )}
       </div>
 
