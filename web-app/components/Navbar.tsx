@@ -50,7 +50,6 @@ export default function Navbar() {
     { href: '/search', label: 'Rechercher' },
     { href: '/about', label: 'À propos' },
     { href: '/social', label: 'Réseaux' },
-    { href: '/config', label: 'Admin', icon: '⚙️' },
   ]
 
   // Classes adaptées pour Telegram
@@ -86,7 +85,7 @@ export default function Navbar() {
                   className={`flex items-center gap-1 px-3 lg:px-4 py-2 rounded-lg text-sm lg:text-base font-medium transition-all ${
                     pathname === item.href
                       ? 'bg-gradient-to-r from-purple-600/20 to-pink-600/20 text-white border border-purple-500/30'
-                      : 'text-gray-300 hover:text-white hover:bg-white/5'
+                      : 'text-white/80 hover:text-white hover:bg-white/10'
                   }`}
                 >
                   {item.icon && <span className="text-sm">{item.icon}</span>}
@@ -113,24 +112,12 @@ export default function Navbar() {
       {/* Mobile Navigation */}
       <AnimatePresence>
         {isOpen && (
-          <>
-            {/* Overlay */}
-            <motion.div
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              exit={{ opacity: 0 }}
-              transition={{ duration: 0.2 }}
-              className="fixed inset-0 bg-black/50 backdrop-blur-sm z-40"
-              onClick={() => setIsOpen(false)}
-            />
-            
-            {/* Menu */}
-            <motion.div
+          <motion.div
             initial={{ opacity: 0, y: -10 }}
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: -10 }}
             transition={{ duration: 0.3, ease: "easeInOut" }}
-            className={`${isTelegram ? '' : 'md:hidden'} absolute top-full left-0 right-0 bg-black/95 backdrop-blur-xl border-t border-white/10 shadow-2xl z-50`}
+            className={`${isTelegram ? '' : 'md:hidden'} absolute top-full left-0 right-0 bg-black backdrop-blur-xl border-t border-white/10 shadow-2xl z-50`}
           >
             <motion.div 
               className={`${isTelegram ? 'px-3 py-2' : 'px-4 py-3'} space-y-1`}
@@ -172,7 +159,7 @@ export default function Navbar() {
                     className={`flex items-center gap-2 ${isTelegram ? 'px-3 py-2 text-sm' : 'px-4 py-3 text-base'} rounded-lg font-medium transition-all ${
                       pathname === item.href
                         ? 'bg-gradient-to-r from-purple-600/20 to-pink-600/20 text-white border border-purple-500/30'
-                        : 'text-gray-300 hover:text-white hover:bg-white/5'
+                        : 'text-white/90 hover:text-white hover:bg-white/10'
                     }`}
                   >
                     {item.icon && <span className="text-lg">{item.icon}</span>}
@@ -182,7 +169,6 @@ export default function Navbar() {
               ))}
             </motion.div>
           </motion.div>
-          </>
         )}
       </AnimatePresence>
     </nav>
