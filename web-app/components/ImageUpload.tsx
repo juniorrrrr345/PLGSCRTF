@@ -26,11 +26,7 @@ export default function ImageUpload({ onUpload, currentImage, label = 'Choisir u
       return
     }
 
-    // Vérifier la taille (max 10MB)
-    if (file.size > 10 * 1024 * 1024) {
-      toast.error('Image trop grande. Maximum 10MB.')
-      return
-    }
+
 
     // Afficher la prévisualisation immédiatement
     const reader = new FileReader()
@@ -56,10 +52,10 @@ export default function ImageUpload({ onUpload, currentImage, label = 'Choisir u
         })
       }, 500)
 
-      // Timeout de 20 secondes
+      // Timeout de 5 minutes pour les gros fichiers
       const uploadPromise = uploadImage(file)
       const timeoutPromise = new Promise<never>((_, reject) => 
-        setTimeout(() => reject(new Error('Upload trop long. Veuillez réessayer avec une image plus petite.')), 20000)
+        setTimeout(() => reject(new Error('Upload trop long. Veuillez réessayer.')), 300000)
       )
 
       const url = await Promise.race([uploadPromise, timeoutPromise])
@@ -141,7 +137,7 @@ export default function ImageUpload({ onUpload, currentImage, label = 'Choisir u
               Cliquez ou glissez une image ici
             </p>
             <p className="text-xs text-gray-500 mt-1">
-              JPG, PNG, GIF • Max 10MB
+              JPG, PNG, GIF
             </p>
           </label>
         )}

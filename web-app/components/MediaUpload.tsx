@@ -29,8 +29,6 @@ export default function MediaUpload({
     ? 'image/*,video/mp4,video/webm,video/quicktime' 
     : 'image/*'
   
-  const maxSize = acceptVideo ? 50 : 10 // 50MB pour vidéos, 10MB pour images
-
   const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0]
     if (!file) return
@@ -46,13 +44,6 @@ export default function MediaUpload({
 
     if (!acceptVideo && isVideo) {
       toast.error('Seules les images sont acceptées')
-      return
-    }
-
-    // Vérifier la taille
-    const maxSizeBytes = maxSize * 1024 * 1024
-    if (file.size > maxSizeBytes) {
-      toast.error(`Fichier trop grand. Maximum ${maxSize}MB.`)
       return
     }
 
@@ -83,11 +74,11 @@ export default function MediaUpload({
         })
       }, isVideo ? 1000 : 500) // Plus lent pour les vidéos
 
-      // Timeout plus long pour les vidéos
-      const timeout = isVideo ? 60000 : 20000
+      // Timeout très long pour les gros fichiers (5 minutes)
+      const timeout = 300000 // 5 minutes
       const uploadPromise = uploadImage(file)
       const timeoutPromise = new Promise<never>((_, reject) => 
-        setTimeout(() => reject(new Error(`Upload trop long. Veuillez réessayer avec un fichier plus petit.`)), timeout)
+        setTimeout(() => reject(new Error(`Upload trop long. Veuillez réessayer.`)), timeout)
       )
 
       const url = await Promise.race([uploadPromise, timeoutPromise])
@@ -179,8 +170,8 @@ export default function MediaUpload({
             </p>
             <p className="text-xs text-gray-500 mt-1">
               {acceptVideo 
-                ? 'JPG, PNG, GIF, MP4, WEBM • Max 50MB pour vidéos, 10MB pour images'
-                : 'JPG, PNG, GIF • Max 10MB'
+                ? 'JPG, PNG, GIF, MP4, WEBM'
+                : 'JPG, PNG, GIF'
               }
             </p>
           </label>

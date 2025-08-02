@@ -31,14 +31,7 @@ export async function POST(request: NextRequest) {
       )
     }
     
-    // Vérifier la taille (50MB max pour vidéos, 10MB pour images)
-    const maxSize = isVideo ? 50 * 1024 * 1024 : 10 * 1024 * 1024
-    if (file.size > maxSize) {
-      return NextResponse.json(
-        { error: `Fichier trop grand. Maximum ${isVideo ? '50MB' : '10MB'}.` },
-        { status: 400 }
-      )
-    }
+
 
     // Convertir en buffer
     const bytes = await file.arrayBuffer()

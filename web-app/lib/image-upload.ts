@@ -9,10 +9,7 @@ export const uploadImage = async (file: File): Promise<string> => {
     fileType: file.type
   })
   
-  // Vérifier la taille du fichier
-  if (file.size > 10 * 1024 * 1024) {
-    throw new Error('Image trop grande. Maximum 10MB.')
-  }
+
 
   // Vérifier le type de fichier
   const isImage = file.type.startsWith('image/')
