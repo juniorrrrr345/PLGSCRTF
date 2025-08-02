@@ -25,11 +25,6 @@ export default async function InitialSplash() {
   
   return (
     <>
-      <style jsx global>{`
-        body {
-          overflow: hidden !important;
-        }
-      `}</style>
       <div 
         className="fixed inset-0 z-[100] flex items-center justify-center bg-black"
         id="initial-splash"
@@ -53,6 +48,9 @@ export default async function InitialSplash() {
       </div>
       <script dangerouslySetInnerHTML={{
         __html: `
+          // Bloquer le scroll pendant le splash
+          document.body.style.overflow = 'hidden';
+          
           // Cacher le splash après 6 secondes
           setTimeout(function() {
             const splash = document.getElementById('initial-splash');
