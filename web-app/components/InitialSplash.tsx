@@ -1,4 +1,6 @@
 import { cookies } from 'next/headers'
+import connectDB from '@/lib/mongodb'
+import Settings from '@/models/Settings'
 
 export default async function InitialSplash() {
   const cookieStore = cookies()
@@ -9,15 +11,14 @@ export default async function InitialSplash() {
     return null
   }
   
-  // Récupérer l'image de fond
+  // Récupérer l'image de fond directement depuis la DB
   let backgroundImage = ''
   try {
-    const response = await fetch(`${process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000'}/api/settings`, {
-      cache: 'no-store'
-    })
-    if (response.ok) {
-      const settings = await response.json()
-      backgroundImage = settings.backgroundImage || ''
+    await connectDB()
+    const settings = await Settings.findOne({})
+    if (settings?.backgroundImage) {
+      backgroundImage = settings.backgroundImage
+      console.log('Background image found:', backgroundImage)
     }
   } catch (error) {
     console.error('Error fetching background:', error)
