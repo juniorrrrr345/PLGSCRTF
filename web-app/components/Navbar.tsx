@@ -22,22 +22,36 @@ export default function Navbar() {
     return () => window.removeEventListener('scroll', handleScroll)
   }, [])
 
-  // Navigation adaptée pour Telegram (moins d'items)
-  const navItems = isTelegram 
-    ? [
-        { href: '/', label: 'Accueil' },
-        { href: '/plugs', label: 'Plugs' },
-        { href: '/products', label: 'Produits' },
-        { href: '/search', label: 'Rechercher' },
-      ]
-    : [
-        { href: '/', label: 'Accueil' },
-        { href: '/plugs', label: 'Plugs' },
-        { href: '/products', label: 'Produits' },
-        { href: '/search', label: 'Rechercher' },
-        { href: '/about', label: 'À propos' },
-        { href: '/social', label: 'Réseaux' },
-      ]
+  // Fermer le menu quand on clique en dehors
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      const nav = document.querySelector('nav')
+      if (nav && !nav.contains(event.target as Node)) {
+        setIsOpen(false)
+      }
+    }
+
+    if (isOpen) {
+      document.addEventListener('click', handleClickOutside)
+      return () => document.removeEventListener('click', handleClickOutside)
+    }
+  }, [isOpen])
+
+  // Fermer le menu quand on change de page
+  useEffect(() => {
+    setIsOpen(false)
+  }, [pathname])
+
+  // Navigation unifiée pour tous les appareils
+  const navItems = [
+    { href: '/', label: 'Accueil' },
+    { href: '/plugs', label: 'Plugs' },
+    { href: '/products', label: 'Produits' },
+    { href: '/search', label: 'Rechercher' },
+    { href: '/about', label: 'À propos' },
+    { href: '/social', label: 'Réseaux' },
+    { href: '/config', label: 'Admin', icon: '⚙️' },
+  ]
 
   // Classes adaptées pour Telegram
   const navHeight = isTelegram ? 'h-12' : 'h-14 sm:h-16'
@@ -69,12 +83,13 @@ export default function Navbar() {
                 <Link
                   key={item.href}
                   href={item.href}
-                  className={`px-3 lg:px-4 py-2 rounded-lg text-sm lg:text-base font-medium transition-all ${
+                  className={`flex items-center gap-1 px-3 lg:px-4 py-2 rounded-lg text-sm lg:text-base font-medium transition-all ${
                     pathname === item.href
-                      ? 'bg-white/10 text-white'
+                      ? 'bg-gradient-to-r from-purple-600/20 to-pink-600/20 text-white border border-purple-500/30'
                       : 'text-gray-300 hover:text-white hover:bg-white/5'
                   }`}
                 >
+                  {item.icon && <span className="text-sm">{item.icon}</span>}
                   {item.label}
                 </Link>
               ))}
@@ -98,57 +113,76 @@ export default function Navbar() {
       {/* Mobile Navigation */}
       <AnimatePresence>
         {isOpen && (
-          <motion.div
-            initial={{ opacity: 0, height: 0 }}
-            animate={{ opacity: 1, height: 'auto' }}
-            exit={{ opacity: 0, height: 0 }}
-            transition={{ duration: 0.2 }}
-            className={`${isTelegram ? '' : 'md:hidden'} bg-black/95 backdrop-blur-lg border-t border-white/10`}
+          <>
+            {/* Overlay */}
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              transition={{ duration: 0.2 }}
+              className="fixed inset-0 bg-black/50 backdrop-blur-sm z-40"
+              onClick={() => setIsOpen(false)}
+            />
+            
+            {/* Menu */}
+            <motion.div
+            initial={{ opacity: 0, y: -10 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -10 }}
+            transition={{ duration: 0.3, ease: "easeInOut" }}
+            className={`${isTelegram ? '' : 'md:hidden'} absolute top-full left-0 right-0 bg-black/95 backdrop-blur-xl border-t border-white/10 shadow-2xl z-50`}
           >
-            <div className={`${isTelegram ? 'px-3 py-2' : 'px-4 py-3'} space-y-1`}>
-              {navItems.map((item) => (
-                <Link
+            <motion.div 
+              className={`${isTelegram ? 'px-3 py-2' : 'px-4 py-3'} space-y-1`}
+              initial="closed"
+              animate="open"
+              exit="closed"
+              variants={{
+                open: {
+                  transition: { staggerChildren: 0.05 }
+                },
+                closed: {
+                  transition: { staggerChildren: 0.05, staggerDirection: -1 }
+                }
+              }}
+            >
+              {navItems.map((item, index) => (
+                <motion.div
                   key={item.href}
-                  href={item.href}
-                  onClick={() => setIsOpen(false)}
-                  className={`block ${isTelegram ? 'px-3 py-2 text-sm' : 'px-3 py-2 text-sm'} rounded-lg font-medium transition-all ${
-                    pathname === item.href
-                      ? 'bg-white/10 text-white'
-                      : 'text-gray-300 hover:text-white hover:bg-white/5'
-                  }`}
+                  variants={{
+                    open: {
+                      y: 0,
+                      opacity: 1,
+                      transition: {
+                        y: { stiffness: 1000, velocity: -100 }
+                      }
+                    },
+                    closed: {
+                      y: 20,
+                      opacity: 0,
+                      transition: {
+                        y: { stiffness: 1000 }
+                      }
+                    }
+                  }}
                 >
-                  {item.label}
-                </Link>
+                  <Link
+                    href={item.href}
+                    onClick={() => setIsOpen(false)}
+                    className={`flex items-center gap-2 ${isTelegram ? 'px-3 py-2 text-sm' : 'px-4 py-3 text-base'} rounded-lg font-medium transition-all ${
+                      pathname === item.href
+                        ? 'bg-gradient-to-r from-purple-600/20 to-pink-600/20 text-white border border-purple-500/30'
+                        : 'text-gray-300 hover:text-white hover:bg-white/5'
+                    }`}
+                  >
+                    {item.icon && <span className="text-lg">{item.icon}</span>}
+                    {item.label}
+                  </Link>
+                </motion.div>
               ))}
-              {/* Ajouter les liens supplémentaires pour Telegram */}
-              {isTelegram && (
-                <>
-                  <Link
-                    href="/about"
-                    onClick={() => setIsOpen(false)}
-                    className={`block px-3 py-2 text-sm rounded-lg font-medium transition-all ${
-                      pathname === '/about'
-                        ? 'bg-white/10 text-white'
-                        : 'text-gray-300 hover:text-white hover:bg-white/5'
-                    }`}
-                  >
-                    À propos
-                  </Link>
-                  <Link
-                    href="/social"
-                    onClick={() => setIsOpen(false)}
-                    className={`block px-3 py-2 text-sm rounded-lg font-medium transition-all ${
-                      pathname === '/social'
-                        ? 'bg-white/10 text-white'
-                        : 'text-gray-300 hover:text-white hover:bg-white/5'
-                    }`}
-                  >
-                    Réseaux
-                  </Link>
-                </>
-              )}
-            </div>
+            </motion.div>
           </motion.div>
+          </>
         )}
       </AnimatePresence>
     </nav>
