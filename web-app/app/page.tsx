@@ -30,8 +30,8 @@ export default function Home() {
     }
   }, [isTelegram])
 
-  // Afficher le splash screen immédiatement
-  if (!mounted) {
+  // Afficher le splash screen si nécessaire
+  if (showSplash && !isTelegram) {
     return <SplashScreen onComplete={() => setShowSplash(false)} />
   }
 

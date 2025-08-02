@@ -2,6 +2,15 @@
 @tailwind components;
 @tailwind utilities;
 
+/* Fond noir par défaut pour éviter le flash blanc */
+html {
+  background-color: #000000 !important;
+}
+
+body {
+  background-color: #000000 !important;
+}
+
 /* Masquer le contenu initial si en maintenance */
 html[data-maintenance="true"] {
   visibility: hidden;

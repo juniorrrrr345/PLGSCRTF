@@ -23,11 +23,21 @@ export default function RootLayout({
   return (
     <html lang="fr">
       <head>
+        <style dangerouslySetInnerHTML={{
+          __html: `
+            html, body {
+              background-color: #000000 !important;
+            }
+          `
+        }} />
         <script
           dangerouslySetInnerHTML={{
             __html: `
               // Vérifier immédiatement le mode maintenance
               (function() {
+                // Forcer le fond noir dès le début
+                document.documentElement.style.backgroundColor = '#000000';
+                
                 const maintenanceMode = document.cookie
                   .split('; ')
                   .find(row => row.startsWith('maintenanceMode='))
