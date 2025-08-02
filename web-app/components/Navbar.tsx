@@ -88,7 +88,6 @@ export default function Navbar() {
                       : 'text-white/80 hover:text-white hover:bg-white/10'
                   }`}
                 >
-                  {item.icon && <span className="text-sm">{item.icon}</span>}
                   {item.label}
                 </Link>
               ))}
@@ -131,7 +130,6 @@ export default function Navbar() {
                       : 'text-white/90 hover:text-white hover:bg-white/10'
                   }`}
                 >
-                  {item.icon && <span className="text-lg">{item.icon}</span>}
                   {item.label}
                 </Link>
               ))}
