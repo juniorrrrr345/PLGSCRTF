@@ -113,61 +113,29 @@ export default function Navbar() {
       <AnimatePresence>
         {isOpen && (
           <motion.div
-            initial={{ opacity: 0, y: -10 }}
-            animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0, y: -10 }}
-            transition={{ duration: 0.3, ease: "easeInOut" }}
-            className={`${isTelegram ? '' : 'md:hidden'} absolute top-full left-0 right-0 bg-black backdrop-blur-xl border-t border-white/10 shadow-2xl z-50`}
+            initial={{ opacity: 0, height: 0 }}
+            animate={{ opacity: 1, height: 'auto' }}
+            exit={{ opacity: 0, height: 0 }}
+            transition={{ duration: 0.2 }}
+            className={`${isTelegram ? '' : 'md:hidden'} absolute top-full left-0 right-0 bg-black backdrop-blur-xl border-t border-white/10 shadow-2xl z-50 overflow-hidden`}
           >
-            <motion.div 
-              className={`${isTelegram ? 'px-3 py-2' : 'px-4 py-3'} space-y-1`}
-              initial="closed"
-              animate="open"
-              exit="closed"
-              variants={{
-                open: {
-                  transition: { staggerChildren: 0.05 }
-                },
-                closed: {
-                  transition: { staggerChildren: 0.05, staggerDirection: -1 }
-                }
-              }}
-            >
-              {navItems.map((item, index) => (
-                <motion.div
+            <div className={`${isTelegram ? 'px-3 py-2' : 'px-4 py-3'} space-y-1`}>
+              {navItems.map((item) => (
+                <Link
                   key={item.href}
-                  variants={{
-                    open: {
-                      y: 0,
-                      opacity: 1,
-                      transition: {
-                        y: { stiffness: 1000, velocity: -100 }
-                      }
-                    },
-                    closed: {
-                      y: 20,
-                      opacity: 0,
-                      transition: {
-                        y: { stiffness: 1000 }
-                      }
-                    }
-                  }}
+                  href={item.href}
+                  onClick={() => setIsOpen(false)}
+                  className={`flex items-center gap-2 ${isTelegram ? 'px-3 py-2 text-sm' : 'px-4 py-3 text-base'} rounded-lg font-medium transition-all ${
+                    pathname === item.href
+                      ? 'bg-gradient-to-r from-purple-600/20 to-pink-600/20 text-white border border-purple-500/30'
+                      : 'text-white/90 hover:text-white hover:bg-white/10'
+                  }`}
                 >
-                  <Link
-                    href={item.href}
-                    onClick={() => setIsOpen(false)}
-                    className={`flex items-center gap-2 ${isTelegram ? 'px-3 py-2 text-sm' : 'px-4 py-3 text-base'} rounded-lg font-medium transition-all ${
-                      pathname === item.href
-                        ? 'bg-gradient-to-r from-purple-600/20 to-pink-600/20 text-white border border-purple-500/30'
-                        : 'text-white/90 hover:text-white hover:bg-white/10'
-                    }`}
-                  >
-                    {item.icon && <span className="text-lg">{item.icon}</span>}
-                    {item.label}
-                  </Link>
-                </motion.div>
+                  {item.icon && <span className="text-lg">{item.icon}</span>}
+                  {item.label}
+                </Link>
               ))}
-            </motion.div>
+            </div>
           </motion.div>
         )}
       </AnimatePresence>
