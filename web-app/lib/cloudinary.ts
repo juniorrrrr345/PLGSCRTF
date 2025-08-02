@@ -36,7 +36,7 @@ export const uploadToCloudinary = async (file: File): Promise<string> => {
     }
     
     // Configuration Cloudinary
-    const CLOUD_NAME = 'dtjab1akq';
+    const CLOUD_NAME = 'ddccdadjk';
     const UPLOAD_PRESET = 'ml_default';
     
     // Créer le FormData
@@ -96,7 +96,7 @@ export const uploadToCloudinary = async (file: File): Promise<string> => {
 // Méthode alternative si le preset n'existe pas
 const uploadAlternative = async (file: File): Promise<string> => {
   try {
-    const CLOUD_NAME = 'dtjab1akq';
+    const CLOUD_NAME = 'ddccdadjk';
     
     // Convertir en base64
     const base64 = await fileToBase64(file);
