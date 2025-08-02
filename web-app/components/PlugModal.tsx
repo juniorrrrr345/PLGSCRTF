@@ -111,32 +111,23 @@ export default function PlugModal({ plug, onClose, isOpen }: PlugModalProps) {
                 <div className="p-6 md:p-8 space-y-6">
                   {/* Stats */}
                   <div className="grid grid-cols-3 gap-4">
-                    <motion.div 
-                      whileHover={{ scale: 1.05 }}
-                      className="bg-gradient-to-r from-red-600/20 to-pink-600/20 rounded-2xl p-4 text-center border border-red-600/30"
-                    >
+                    <div className="bg-gradient-to-r from-red-600/20 to-pink-600/20 rounded-2xl p-4 text-center border border-red-600/30">
                       <HeartSolid className="w-8 h-8 text-red-500 mx-auto mb-2" />
                       <div className="text-2xl font-bold text-white">{plug.likes || 0}</div>
                       <div className="text-sm text-gray-400">J'aime</div>
-                    </motion.div>
+                    </div>
                     
-                    <motion.div 
-                      whileHover={{ scale: 1.05 }}
-                      className="bg-gradient-to-r from-blue-600/20 to-purple-600/20 rounded-2xl p-4 text-center border border-blue-600/30"
-                    >
+                    <div className="bg-gradient-to-r from-blue-600/20 to-purple-600/20 rounded-2xl p-4 text-center border border-blue-600/30">
                       <LinkIcon className="w-8 h-8 text-blue-500 mx-auto mb-2" />
                       <div className="text-2xl font-bold text-white">{plug.referralCount || 0}</div>
                       <div className="text-sm text-gray-400">Parrainages</div>
-                    </motion.div>
+                    </div>
                     
-                    <motion.div 
-                      whileHover={{ scale: 1.05 }}
-                      className="bg-gradient-to-r from-green-600/20 to-emerald-600/20 rounded-2xl p-4 text-center border border-green-600/30"
-                    >
+                    <div className="bg-gradient-to-r from-green-600/20 to-emerald-600/20 rounded-2xl p-4 text-center border border-green-600/30">
                       <UsersIcon className="w-8 h-8 text-green-500 mx-auto mb-2" />
                       <div className="text-2xl font-bold text-white">{socialNetworks.length}</div>
                       <div className="text-sm text-gray-400">Réseaux</div>
-                    </motion.div>
+                    </div>
                   </div>
 
                   {/* Méthodes de livraison */}
@@ -232,15 +223,14 @@ export default function PlugModal({ plug, onClose, isOpen }: PlugModalProps) {
                       </h3>
                       <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
                         {socialNetworks.map((network: any) => (
-                          <motion.div
+                          <div
                             key={network.name}
-                            whileHover={{ scale: 1.05 }}
-                            className={`bg-gradient-to-r ${network.color} p-3 rounded-xl text-center cursor-pointer`}
+                            className={`bg-gradient-to-r ${network.color} p-3 rounded-xl text-center cursor-pointer hover:scale-105 transition-transform`}
                             onClick={() => toast.success(`${network.name}: ${network.value}`)}
                           >
                             <span className="text-2xl mb-1 block">{network.icon}</span>
                             <span className="text-white text-sm font-medium">{network.name}</span>
-                          </motion.div>
+                          </div>
                         ))}
                       </div>
                     </div>
