@@ -1,5 +1,6 @@
 // Import de la fonction Cloudinary qui fonctionnait
 import { uploadToCloudinary } from './cloudinary'
+import { uploadWithFallback } from './cloudinary-fallback'
 
 // Upload d'image - utilise la fonction qui marchait avant
 export const uploadImage = async (file: File): Promise<string> => {
@@ -26,9 +27,19 @@ export const uploadImage = async (file: File): Promise<string> => {
     return url
     
   } catch (error) {
-    console.error('[Upload] Error details:', error)
+    console.error('[Upload] Cloudinary error:', error)
     
-    // Si Cloudinary échoue, essayer via notre API
+    // Essayer avec les configurations de fallback
+    try {
+      console.log('[Upload] Trying fallback configurations...')
+      const url = await uploadWithFallback(file)
+      console.log('[Upload] Fallback success! URL:', url)
+      return url
+    } catch (fallbackError) {
+      console.error('[Upload] Fallback error:', fallbackError)
+    }
+    
+    // Si tout échoue, essayer via notre API
     try {
       const formData = new FormData()
       formData.append('file', file)

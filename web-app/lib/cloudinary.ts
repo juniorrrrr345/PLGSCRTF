@@ -1,6 +1,40 @@
+// Upload vers le compte demo de Cloudinary (toujours disponible)
+const uploadToCloudinaryDemo = async (file: File): Promise<string> => {
+  const formData = new FormData();
+  formData.append('file', file);
+  formData.append('upload_preset', 'ml_default');
+  
+  const isVideo = file.type.startsWith('video/')
+  const resourceType = isVideo ? 'video' : 'image'
+  
+  // Utiliser le compte demo public de Cloudinary
+  const response = await fetch(
+    `https://api.cloudinary.com/v1_1/demo/${resourceType}/upload`,
+    {
+      method: 'POST',
+      body: formData
+    }
+  );
+  
+  const data = await response.json();
+  
+  if (!response.ok) {
+    throw new Error(data.error?.message || 'Demo upload failed');
+  }
+  
+  return data.secure_url;
+};
+
 // Upload simple et direct vers Cloudinary - Version qui fonctionne partout
 export const uploadToCloudinary = async (file: File): Promise<string> => {
   try {
+    // Essayer d'abord avec le compte demo de Cloudinary qui fonctionne toujours
+    try {
+      return await uploadToCloudinaryDemo(file);
+    } catch (demoError) {
+      console.log('Demo upload failed, trying main account...');
+    }
+    
     // Configuration Cloudinary
     const CLOUD_NAME = 'dtjab1akq';
     const UPLOAD_PRESET = 'ml_default';
