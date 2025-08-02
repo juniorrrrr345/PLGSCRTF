@@ -16,9 +16,11 @@ export default function Home() {
   })
 
   const [showSplash, setShowSplash] = useState(true)
+  const [mounted, setMounted] = useState(false)
   const { isTelegram } = useTelegram()
   
   useEffect(() => {
+    setMounted(true)
     // Vérifier si c'est la première visite
     const hasVisited = sessionStorage.getItem('hasVisited')
     if (hasVisited || isTelegram) {
@@ -27,6 +29,11 @@ export default function Home() {
       sessionStorage.setItem('hasVisited', 'true')
     }
   }, [isTelegram])
+
+  // Afficher le splash screen immédiatement
+  if (!mounted) {
+    return <SplashScreen onComplete={() => setShowSplash(false)} />
+  }
 
   // Classes adaptées pour Telegram
   const heroTitle = isTelegram ? "text-3xl sm:text-4xl" : "text-4xl sm:text-5xl md:text-6xl lg:text-7xl"

@@ -11,7 +11,10 @@ const fetcher = (url: string) => fetch(url).then(res => res.json())
 
 export default function SplashScreen({ onComplete }: SplashScreenProps) {
   const [backgroundImage, setBackgroundImage] = useState('')
-  const { data: settings } = useSWR('/api/settings', fetcher)
+  const { data: settings } = useSWR('/api/settings', fetcher, {
+    revalidateOnMount: true,
+    revalidateOnFocus: false
+  })
 
   useEffect(() => {
     if (settings?.backgroundImage) {
@@ -19,15 +22,15 @@ export default function SplashScreen({ onComplete }: SplashScreenProps) {
     }
   }, [settings])
 
-  // Afficher pendant 4.5 secondes
+  // Afficher pendant 6 secondes
   useEffect(() => {
-    const timer = setTimeout(onComplete, 4500)
+    const timer = setTimeout(onComplete, 6000)
     return () => clearTimeout(timer)
   }, [onComplete])
 
   return (
     <div 
-      className="fixed inset-0 z-50 flex items-center justify-center"
+      className="fixed inset-0 z-50 flex items-center justify-center bg-black"
       style={{
         backgroundImage: backgroundImage ? `url(${backgroundImage})` : 'none',
         backgroundSize: 'cover',
