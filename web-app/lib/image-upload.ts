@@ -15,8 +15,11 @@ export const uploadImage = async (file: File): Promise<string> => {
   }
 
   // Vérifier le type de fichier
-  if (!file.type.startsWith('image/')) {
-    throw new Error('Le fichier doit être une image')
+  const isImage = file.type.startsWith('image/')
+  const isVideo = file.type.startsWith('video/')
+  
+  if (!isImage && !isVideo) {
+    throw new Error('Le fichier doit être une image ou une vidéo')
   }
 
   try {

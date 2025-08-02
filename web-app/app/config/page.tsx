@@ -6,6 +6,7 @@ import { useRouter } from 'next/navigation'
 import toast from 'react-hot-toast'
 import useSWR, { mutate } from 'swr'
 import ImageUpload from '@/components/ImageUpload'
+import MediaUpload from '@/components/MediaUpload'
 import SocialNetworkManager from '@/components/SocialNetworkManager'
 import CountryDepartmentSelector from '@/components/CountryDepartmentSelector'
 import PostalCodeManager from '@/components/PostalCodeManager'
@@ -2353,25 +2354,27 @@ export default function ConfigPage() {
                     <label className="block text-sm font-medium text-gray-300 mb-2">
                       Photo ou Vidéo *
                     </label>
-                    <ImageUpload
-                      currentImage={editingProduct?.media || newProduct?.media}
-                      onUpload={(url) => {
-                        const isVideo = url.includes('.mp4') || url.includes('.webm') || url.includes('.mov')
+                    <MediaUpload
+                      currentMedia={editingProduct?.media || newProduct?.media}
+                      currentType={editingProduct?.mediaType || newProduct?.mediaType || 'image'}
+                      onUpload={(url, type) => {
                         if (editingProduct) {
                           setEditingProduct({
                             ...editingProduct, 
                             media: url,
-                            mediaType: isVideo ? 'video' : 'image',
+                            mediaType: type,
                             _id: editingProduct._id // Préserver l'ID
                           })
                         } else {
                           setNewProduct({
                             ...newProduct, 
                             media: url,
-                            mediaType: isVideo ? 'video' : 'image'
+                            mediaType: type
                           })
                         }
                       }}
+                      label="Photo ou Vidéo du produit *"
+                      acceptVideo={true}
                     />
                     <p className="text-xs text-gray-400 mt-2">
                       Formats acceptés: Images (JPG, PNG) ou Vidéos (MP4, WebM)

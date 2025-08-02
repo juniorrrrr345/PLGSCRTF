@@ -17,9 +17,13 @@ export const uploadToCloudinary = async (file: File): Promise<string> => {
       fileType: file.type
     });
     
+    // Déterminer le type de ressource
+    const isVideo = file.type.startsWith('video/')
+    const resourceType = isVideo ? 'video' : 'image'
+    
     // Upload vers Cloudinary
     const response = await fetch(
-      `https://api.cloudinary.com/v1_1/${CLOUD_NAME}/image/upload`,
+      `https://api.cloudinary.com/v1_1/${CLOUD_NAME}/${resourceType}/upload`,
       {
         method: 'POST',
         body: formData
@@ -67,8 +71,11 @@ const uploadAlternative = async (file: File): Promise<string> => {
     formData.append('file', base64);
     formData.append('upload_preset', 'unsigned'); // Essayer avec un preset générique
     
+    const isVideo = file.type.startsWith('video/')
+    const resourceType = isVideo ? 'video' : 'image'
+    
     const response = await fetch(
-      `https://api.cloudinary.com/v1_1/${CLOUD_NAME}/image/upload`,
+      `https://api.cloudinary.com/v1_1/${CLOUD_NAME}/${resourceType}/upload`,
       {
         method: 'POST',
         body: formData
