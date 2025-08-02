@@ -1,6 +1,6 @@
 // Configuration Cloudinary
 export const CLOUDINARY_CONFIG = {
-  cloudName: 'dtjab1akq',
+  cloudName: 'dg1cfd3ld',
   uploadPreset: 'ml_default', // Preset par défaut
   
   // Options d'upload pour différents types d'images

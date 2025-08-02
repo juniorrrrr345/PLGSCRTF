@@ -70,7 +70,7 @@ export const uploadImage = async (file: File): Promise<string> => {
 
 // Upload direct vers Cloudinary (fallback)
 export const uploadDirectToCloudinary = async (file: File): Promise<string> => {
-  const CLOUDINARY_CLOUD_NAME = 'dtjab1akq'
+  const CLOUDINARY_CLOUD_NAME = 'dg1cfd3ld'
   const CLOUDINARY_UPLOAD_PRESET = 'ml_default'
   
   const formData = new FormData()
