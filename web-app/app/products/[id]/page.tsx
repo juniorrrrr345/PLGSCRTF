@@ -85,22 +85,17 @@ export default function ProductPage() {
     <div className="min-h-screen pt-20 px-4 pb-20">
       <div className="max-w-6xl mx-auto">
         {/* Back Button */}
-        <motion.button
-          initial={{ opacity: 0, x: -20 }}
-          animate={{ opacity: 1, x: 0 }}
+        <button
           onClick={() => router.back()}
           className="flex items-center gap-2 text-gray-400 hover:text-white transition-colors mb-8"
         >
           <ArrowLeftIcon className="w-5 h-5" />
           Retour
-        </motion.button>
+        </button>
 
         <div className="grid lg:grid-cols-2 gap-12">
           {/* Media Section */}
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-          >
+          <div>
             {product.videos && product.videos.length > 0 ? (
               <div>
                 <div className="relative aspect-video bg-black rounded-xl overflow-hidden mb-4">
@@ -147,14 +142,10 @@ export default function ProductPage() {
                 <PlayIcon className="w-16 h-16 text-gray-600" />
               </div>
             )}
-          </motion.div>
+          </div>
 
           {/* Info Section */}
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.1 }}
-          >
+          <div>
             <h1 className="text-4xl font-black mb-4">{product.name}</h1>
             
             <div className="flex items-center gap-6 mb-6 text-gray-400">
@@ -256,7 +247,7 @@ export default function ProductPage() {
                 </a>
               </div>
             )}
-          </motion.div>
+          </div>
         </div>
       </div>
     </div>
