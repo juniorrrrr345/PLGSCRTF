@@ -27,6 +27,10 @@ export default function SearchPage() {
   const [filteredPlugs, setFilteredPlugs] = useState<any[]>([])
   const [showFilters, setShowFilters] = useState(false)
   const [availableCountries, setAvailableCountries] = useState<any[]>([])
+  
+  // Vérifier si des filtres sont actifs
+  const hasActiveFilters = selectedCountry || selectedDepartment || 
+    selectedMethods.delivery || selectedMethods.shipping || selectedMethods.meetup
 
   useEffect(() => {
     if (plugs) {
@@ -196,9 +200,19 @@ export default function SearchPage() {
             />
             <button
               onClick={() => setShowFilters(!showFilters)}
-              className="absolute right-2 top-1/2 transform -translate-y-1/2 p-2 bg-primary/20 hover:bg-primary/30 rounded-full transition-all"
+              className={`absolute right-2 top-1/2 transform -translate-y-1/2 p-3 rounded-full transition-all group ${
+                showFilters 
+                  ? 'bg-primary text-white shadow-lg shadow-primary/30 scale-110' 
+                  : hasActiveFilters
+                    ? 'bg-blue-600 text-white shadow-lg hover:bg-blue-700 border-2 border-blue-400'
+                    : 'bg-white/20 hover:bg-white/30 text-white border border-white/30 hover:scale-105'
+              }`}
+              title={hasActiveFilters ? "Filtres actifs" : "Filtres avancés"}
             >
-              <FunnelIcon className="w-6 h-6 text-primary" />
+              <FunnelIcon className={`w-6 h-6 ${showFilters ? 'rotate-180' : ''} transition-transform duration-300`} />
+              {hasActiveFilters && !showFilters && (
+                <span className="absolute -top-1 -right-1 w-3 h-3 bg-red-500 rounded-full animate-pulse"></span>
+              )}
             </button>
           </div>
         </motion.div>
