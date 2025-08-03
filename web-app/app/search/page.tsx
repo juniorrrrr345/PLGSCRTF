@@ -27,6 +27,7 @@ export default function SearchPage() {
   const [filteredPlugs, setFilteredPlugs] = useState<any[]>([])
   const [showFilters, setShowFilters] = useState(false)
   const [availableCountries, setAvailableCountries] = useState<any[]>([])
+  const [availableDepartments, setAvailableDepartments] = useState<string[]>([])
   
   // Vérifier si des filtres sont actifs
   const hasActiveFilters = selectedCountry || selectedDepartment || 
