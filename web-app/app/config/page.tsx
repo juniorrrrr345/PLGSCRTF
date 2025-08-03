@@ -93,6 +93,7 @@ export default function ConfigPage() {
     meetupDepartments: string[]
     meetupPostalCodes: string[]
     countries: string[]
+    shippingCountries?: string[]
     location: { country: string, department: string, postalCode: string }
     description: string
     referralLink?: string
@@ -2067,12 +2068,11 @@ export default function ConfigPage() {
                         </label>
                       </div>
 
-                      {/* Départements de livraison/envoi */}
-                      {(editingPlug?.methods?.delivery || editingPlug?.methods?.shipping || 
-                        newPlug.methods.delivery || newPlug.methods.shipping) && (
-                        <div className="mt-6 p-4 bg-gray-800 rounded-xl border-2 border-green-600/30">
+                      {/* Départements de livraison */}
+                      {(editingPlug?.methods?.delivery || newPlug.methods.delivery) && (
+                        <div className="mt-6 p-4 bg-gray-800 rounded-xl border-2 border-blue-600/30">
                           <h4 className="text-sm font-semibold text-gray-300 mb-4">
-                            📦 Sélectionnez les départements où vous livrez/envoyez
+                            🚚 Sélectionnez les départements où vous livrez
                           </h4>
                           <CountryDepartmentSelector
                             selectedCountries={editingPlug?.countries || newPlug.countries}
@@ -2105,6 +2105,28 @@ export default function ConfigPage() {
                               placeholder="Ex: 75001, 69002..."
                             />
                           </div>
+                        </div>
+                      )}
+
+                      {/* Pays d'envoi postal */}
+                      {(editingPlug?.methods?.shipping || newPlug.methods.shipping) && (
+                        <div className="mt-6 p-4 bg-gray-800 rounded-xl border-2 border-green-600/30">
+                          <h4 className="text-sm font-semibold text-gray-300 mb-4">
+                            📦 Sélectionnez les pays où vous envoyez
+                          </h4>
+                          <CountryDepartmentSelector
+                            selectedCountries={editingPlug?.shippingCountries || editingPlug?.countries || newPlug.countries}
+                            selectedDepartments={[]}
+                            onCountriesChange={(countries) => {
+                              if (editingPlug) {
+                                setEditingPlug({...editingPlug, shippingCountries: countries})
+                              } else {
+                                setNewPlug({...newPlug, shippingCountries: countries})
+                              }
+                            }}
+                            onDepartmentsChange={() => {}}
+                            showDepartments={false}
+                          />
                         </div>
                       )}
 

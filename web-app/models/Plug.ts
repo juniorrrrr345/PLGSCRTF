@@ -48,6 +48,9 @@ const plugSchema = new mongoose.Schema({
   countries: [{
     type: String
   }],
+  shippingCountries: [{
+    type: String
+  }],
   country: String, // Rétrocompatibilité
   countryFlag: String, // Rétrocompatibilité
   department: String,

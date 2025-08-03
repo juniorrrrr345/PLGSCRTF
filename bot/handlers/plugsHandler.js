@@ -283,24 +283,40 @@ async function handlePlugDetails(bot, chatId, plugId, fromMenu = 'plugs', userId
     }
     message += '\n\n';
     
-    // Méthodes disponibles (sans les zones car déjà affichées dans la localisation)
+    // Méthodes disponibles avec détails
     message += `📦 <b>Méthodes disponibles:</b>\n`;
-    const methods = [];
+    
     if (plug.methods?.delivery) {
-      methods.push('🚚 Livraison');
-    }
-    if (plug.methods?.shipping) {
-      methods.push('📮 Envoi');
-    }
-    if (plug.methods?.meetup) {
-      methods.push('🤝 Meetup');
+      message += '🚚 <b>Livraison</b>';
+      if (plug.deliveryDepartments && plug.deliveryDepartments.length > 0) {
+        message += ` - Départements: ${plug.deliveryDepartments.join(', ')}`;
+      }
+      message += '\n';
     }
     
-    if (methods.length > 0) {
-      message += methods.join(' • ') + '\n\n';
-    } else {
-      message += 'Aucune méthode spécifiée\n\n';
+    if (plug.methods?.shipping) {
+      message += '📮 <b>Envoi</b>';
+      const shippingCountries = plug.shippingCountries || plug.countries || [];
+      if (shippingCountries.length > 0) {
+        message += ' - Pays: ';
+        message += shippingCountries.map(c => `${getCountryFlag(c)} ${c}`).join(', ');
+      }
+      message += '\n';
     }
+    
+    if (plug.methods?.meetup) {
+      message += '🤝 <b>Meetup</b>';
+      if (plug.meetupDepartments && plug.meetupDepartments.length > 0) {
+        message += ` - Départements: ${plug.meetupDepartments.join(', ')}`;
+      }
+      message += '\n';
+    }
+    
+    if (!plug.methods?.delivery && !plug.methods?.shipping && !plug.methods?.meetup) {
+      message += 'Aucune méthode spécifiée\n';
+    }
+    
+    message += '\n';
     
     // Description
     if (plug.description) {
