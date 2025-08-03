@@ -203,10 +203,7 @@ export default function SearchPage() {
 
       setFilteredPlugs(filtered)
     }
-  }, [plugs, searchTerm, selectedCountry, selectedDepartment, selectedMethods])
-
-  // Obtenir les départements disponibles pour le pays sélectionné
-  const availableDepartments = locations?.countries?.find((c: any) => c.code === selectedCountry)?.departments || []
+  }, [plugs, searchTerm, selectedCountry, selectedDepartment, selectedMethods, settings])
 
 
 
