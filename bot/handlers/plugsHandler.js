@@ -344,96 +344,9 @@ async function handlePlugDetails(bot, chatId, plugId, fromMenu = 'plugs', userId
       telegram: '✈️ Telegram'
     };
     
-    if (plug.socialNetworks) {
-      // Gérer les réseaux primaires avec leurs liens
-      if (plug.socialNetworks.primary && plug.socialNetworks.links) {
-        const networkCounts = {};
-        plug.socialNetworks.primary.forEach((network, index) => {
-          const link = plug.socialNetworks.links[network];
-          if (link) {
-            let url = link;
-            
-            // Si c'est déjà une URL complète, la garder
-            if (link.startsWith('http://') || link.startsWith('https://')) {
-              url = link;
-            }
-            // Gérer les usernames avec @
-            else if (link.startsWith('@')) {
-              const username = link.substring(1);
-              if (network === 'instagram') {
-                url = `https://instagram.com/${username}`;
-              } else if (network === 'telegram') {
-                url = `https://t.me/${username}`;
-              } else if (network === 'snap' || network === 'snapchat') {
-                url = `https://snapchat.com/add/${username}`;
-              } else {
-                url = `https://${network}.com/${username}`;
-              }
-            }
-            // Gérer les liens sans @ ni http
-            else {
-              if (network === 'whatsapp') {
-                // Pour WhatsApp, extraire seulement les chiffres
-                const phoneNumber = link.replace(/[^0-9]/g, '');
-                url = phoneNumber ? `https://wa.me/${phoneNumber}` : `https://wa.me/${link}`;
-              } else if (network === 'instagram') {
-                url = `https://instagram.com/${link}`;
-              } else if (network === 'snap' || network === 'snapchat') {
-                url = `https://snapchat.com/add/${link}`;
-              } else if (network === 'telegram') {
-                url = `https://t.me/${link}`;
-              } else if (network === 'signal') {
-                url = `https://signal.me/#p/${link}`;
-              } else {
-                // Pour les autres, essayer de créer une URL valide
-                url = `https://${link}`;
-              }
-            }
-            
-            // Gérer les multiples comptes du même réseau
-            networkCounts[network] = (networkCounts[network] || 0) + 1;
-            const displayName = networkCounts[network] > 1 
-              ? `${networkNames[network] || network} ${networkCounts[network]}`
-              : networkNames[network] || network;
-            
-            // Log pour débugger
-            console.log(`Réseau: ${network}, Lien original: ${link}, URL générée: ${url}`);
-            
-            socialButtons.push({ 
-              text: displayName, 
-              url: url 
-            });
-          }
-        });
-      }
-      
-      // Gérer l'ancienne structure pour la compatibilité
-      else {
-        if (plug.socialNetworks.snap) {
-          const snapUrl = plug.socialNetworks.snap.startsWith('http') ? plug.socialNetworks.snap : `https://snapchat.com/add/${plug.socialNetworks.snap}`;
-          socialButtons.push({ text: '👻 Snapchat', url: snapUrl });
-        }
-        if (plug.socialNetworks.instagram) {
-          const instaUrl = plug.socialNetworks.instagram.startsWith('http') ? plug.socialNetworks.instagram : `https://instagram.com/${plug.socialNetworks.instagram.replace('@', '')}`;
-          socialButtons.push({ text: '📸 Instagram', url: instaUrl });
-        }
-        if (plug.socialNetworks.whatsapp) {
-          const whatsappUrl = plug.socialNetworks.whatsapp.startsWith('http') ? plug.socialNetworks.whatsapp : `https://wa.me/${plug.socialNetworks.whatsapp.replace(/[^0-9]/g, '')}`;
-          socialButtons.push({ text: '💬 WhatsApp', url: whatsappUrl });
-        }
-        if (plug.socialNetworks.signal) {
-          const signalUrl = plug.socialNetworks.signal.startsWith('http') ? plug.socialNetworks.signal : `https://signal.me/#p/${plug.socialNetworks.signal}`;
-          socialButtons.push({ text: '🔐 Signal', url: signalUrl });
-        }
-      }
-      if (plug.socialNetworks.telegram) {
-        const telegramUrl = plug.socialNetworks.telegram.startsWith('http') ? plug.socialNetworks.telegram : `https://t.me/${plug.socialNetworks.telegram.replace('@', '')}`;
-        socialButtons.push({ text: '✈️ Telegram', url: telegramUrl });
-      }
-    }
-    
-    // Ajouter les réseaux personnalisés
+    // Utiliser customNetworks en priorité s'il existe, sinon utiliser socialNetworks
     if (plug.customNetworks && plug.customNetworks.length > 0) {
+      // Utiliser uniquement customNetworks
       plug.customNetworks.forEach(network => {
         if (network.link) {
           let url = network.link;
@@ -455,6 +368,28 @@ async function handlePlugDetails(bot, chatId, plugId, fromMenu = 'plugs', userId
           });
         }
       });
+    } else if (plug.socialNetworks) {
+      // Utiliser l'ancien format seulement si customNetworks n'existe pas
+      if (plug.socialNetworks.snap) {
+        const snapUrl = plug.socialNetworks.snap.startsWith('http') ? plug.socialNetworks.snap : `https://snapchat.com/add/${plug.socialNetworks.snap}`;
+        socialButtons.push({ text: '👻 Snapchat', url: snapUrl });
+      }
+      if (plug.socialNetworks.instagram) {
+        const instaUrl = plug.socialNetworks.instagram.startsWith('http') ? plug.socialNetworks.instagram : `https://instagram.com/${plug.socialNetworks.instagram.replace('@', '')}`;
+        socialButtons.push({ text: '📸 Instagram', url: instaUrl });
+      }
+      if (plug.socialNetworks.whatsapp) {
+        const whatsappUrl = plug.socialNetworks.whatsapp.startsWith('http') ? plug.socialNetworks.whatsapp : `https://wa.me/${plug.socialNetworks.whatsapp.replace(/[^0-9]/g, '')}`;
+        socialButtons.push({ text: '💬 WhatsApp', url: whatsappUrl });
+      }
+      if (plug.socialNetworks.signal) {
+        const signalUrl = plug.socialNetworks.signal.startsWith('http') ? plug.socialNetworks.signal : `https://signal.me/#p/${plug.socialNetworks.signal}`;
+        socialButtons.push({ text: '🔐 Signal', url: signalUrl });
+      }
+      if (plug.socialNetworks.telegram) {
+        const telegramUrl = plug.socialNetworks.telegram.startsWith('http') ? plug.socialNetworks.telegram : `https://t.me/${plug.socialNetworks.telegram.replace('@', '')}`;
+        socialButtons.push({ text: '✈️ Telegram', url: telegramUrl });
+      }
     }
     
     // Filtrer les boutons avec des URLs valides
