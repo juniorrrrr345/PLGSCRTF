@@ -52,7 +52,7 @@ export default function SearchPage() {
       
       let filtered = plugs
 
-      // Filtre par recherche (nom, description, ville, département)
+      // Filtre par recherche (nom, description, ville, département, pays)
       if (searchTerm) {
         const searchLower = searchTerm.toLowerCase()
         filtered = filtered.filter((plug: any) => {
@@ -61,6 +61,19 @@ export default function SearchPage() {
           
           // Recherche dans la description
           if (plug.description?.toLowerCase().includes(searchLower)) return true
+          
+          // Recherche dans les pays
+          if (plug.countries?.some((country: string) => {
+            const countryData = settings?.countries?.find((c: any) => c.code === country)
+            const countryName = countryData?.name || country
+            return countryName.toLowerCase().includes(searchLower) || 
+                   country.toLowerCase().includes(searchLower)
+          })) return true
+          
+          // Recherche dans le pays principal
+          if (plug.country?.toLowerCase().includes(searchLower)) return true
+          const countryData = settings?.countries?.find((c: any) => c.code === plug.country)
+          if (countryData?.name?.toLowerCase().includes(searchLower)) return true
           
           // Recherche dans les départements de livraison
           if (plug.deliveryDepartments?.some((dept: string) => 
@@ -83,9 +96,11 @@ export default function SearchPage() {
           
           // Recherche dans le département principal
           if (plug.department?.toLowerCase().includes(searchLower)) return true
+          if (plug.location?.department?.toLowerCase().includes(searchLower)) return true
           
           // Recherche dans le code postal principal
           if (plug.postalCode?.includes(searchTerm)) return true
+          if (plug.location?.postalCode?.includes(searchTerm)) return true
           
           return false
         })
@@ -93,9 +108,21 @@ export default function SearchPage() {
 
       // Filtre par pays
       if (selectedCountry) {
-        filtered = filtered.filter((plug: any) => 
-          plug.country === selectedCountry
-        )
+        filtered = filtered.filter((plug: any) => {
+          // Vérifier dans countries (nouveau format)
+          if (plug.countries?.includes(selectedCountry)) return true
+          
+          // Vérifier dans shippingCountries pour l'envoi
+          if (plug.shippingCountries?.includes(selectedCountry)) return true
+          
+          // Vérifier l'ancien format country
+          if (plug.country === selectedCountry) return true
+          
+          // Vérifier location.country
+          if (plug.location?.country === selectedCountry) return true
+          
+          return false
+        })
       }
 
       // Filtre par département
@@ -183,11 +210,11 @@ export default function SearchPage() {
             animate={{ opacity: 1, height: 'auto' }}
             className="glass-card p-6 mb-8 max-w-2xl mx-auto"
           >
-            <h3 className="text-lg font-bold mb-4">Filtres avancés</h3>
+            <h3 className="text-lg font-bold mb-4 text-white">Filtres avancés</h3>
             
             {/* Country */}
             <div className="mb-4">
-              <label className="block text-sm font-medium mb-2">Pays</label>
+              <label className="block text-sm font-medium mb-2 text-gray-300">Pays</label>
               <select
                 value={selectedCountry}
                 onChange={(e) => {
@@ -196,9 +223,9 @@ export default function SearchPage() {
                 }}
                 className="w-full p-3 bg-white/10 border border-white/20 rounded-lg text-white focus:outline-none focus:border-primary"
               >
-                <option value="">Tous les pays</option>
+                <option value="" className="bg-gray-900 text-white">Tous les pays</option>
                 {availableCountries.map((country: any) => (
-                  <option key={country.code} value={country.code}>
+                  <option key={country.code} value={country.code} className="bg-gray-900 text-white">
                     {country.flag} {country.name}
                   </option>
                 ))}
@@ -208,15 +235,15 @@ export default function SearchPage() {
             {/* Department */}
             {selectedCountry && (
               <div className="mb-4">
-                <label className="block text-sm font-medium mb-2">Département</label>
+                <label className="block text-sm font-medium mb-2 text-gray-300">Département</label>
                 <select
                   value={selectedDepartment}
                   onChange={(e) => setSelectedDepartment(e.target.value)}
                   className="w-full p-3 bg-white/10 border border-white/20 rounded-lg text-white focus:outline-none focus:border-primary"
                 >
-                  <option value="">Tous les départements</option>
+                  <option value="" className="bg-gray-900 text-white">Tous les départements</option>
                   {availableDepartments.map((dept: any) => (
-                    <option key={dept.code} value={dept.name}>
+                    <option key={dept.code} value={dept.name} className="bg-gray-900 text-white">
                       {dept.name}
                     </option>
                   ))}
@@ -226,7 +253,7 @@ export default function SearchPage() {
 
             {/* Methods */}
             <div className="mb-4">
-              <label className="block text-sm font-medium mb-2">Méthodes</label>
+              <label className="block text-sm font-medium mb-2 text-gray-300">Méthodes</label>
               <div className="space-y-2">
                 <label className="flex items-center gap-3 cursor-pointer">
                   <input
@@ -235,7 +262,7 @@ export default function SearchPage() {
                     onChange={(e) => setSelectedMethods({ ...selectedMethods, delivery: e.target.checked })}
                     className="w-5 h-5 rounded border-white/20 bg-white/10 text-primary focus:ring-primary"
                   />
-                  <span>🚚 Livraison</span>
+                  <span className="text-white">🚚 Livraison</span>
                 </label>
                 <label className="flex items-center gap-3 cursor-pointer">
                   <input
@@ -244,7 +271,7 @@ export default function SearchPage() {
                     onChange={(e) => setSelectedMethods({ ...selectedMethods, shipping: e.target.checked })}
                     className="w-5 h-5 rounded border-white/20 bg-white/10 text-secondary focus:ring-secondary"
                   />
-                  <span>📮 Envoi postal</span>
+                  <span className="text-white">📮 Envoi postal</span>
                 </label>
                 <label className="flex items-center gap-3 cursor-pointer">
                   <input
@@ -253,7 +280,7 @@ export default function SearchPage() {
                     onChange={(e) => setSelectedMethods({ ...selectedMethods, meetup: e.target.checked })}
                     className="w-5 h-5 rounded border-white/20 bg-white/10 text-accent focus:ring-accent"
                   />
-                                          <span>🤝 Meetup</span>
+                  <span className="text-white">🤝 Meetup</span>
                 </label>
               </div>
             </div>
@@ -265,7 +292,7 @@ export default function SearchPage() {
                 setSelectedDepartment('')
                 setSelectedMethods({ delivery: false, shipping: false, meetup: false })
               }}
-              className="w-full py-3 bg-white/10 hover:bg-white/20 rounded-lg font-medium transition-all"
+              className="w-full py-3 bg-white/10 hover:bg-white/20 rounded-lg font-medium transition-all text-white"
             >
               Réinitialiser les filtres
             </button>
