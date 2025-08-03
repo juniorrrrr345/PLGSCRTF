@@ -51,7 +51,7 @@ export default function PlugCard({ plug, onClick }: PlugCardProps) {
       onClick={onClick}
     >
       {/* Card content */}
-      <div className="relative bg-white/5 backdrop-blur-sm border border-white/20 rounded-2xl overflow-hidden hover:bg-white/10 transition-all shadow-xl">
+      <div className="relative bg-gradient-to-br from-gray-800/40 to-gray-900/40 backdrop-blur-sm border border-amber-500/20 rounded-2xl overflow-hidden hover:from-gray-700/50 hover:to-gray-800/50 transition-all shadow-xl hover:shadow-amber-500/20">
         {/* Header with image */}
         <div className="relative h-48 md:h-56 overflow-hidden bg-gray-900">
           {plug.photo ? (
@@ -74,7 +74,7 @@ export default function PlugCard({ plug, onClick }: PlugCardProps) {
           <div className="absolute top-2 left-2 right-2 flex justify-between items-start pointer-events-none">
             {/* Rank badge if in top 3 */}
             {plug.rank && plug.rank <= 3 && (
-              <div className="bg-black/80 backdrop-blur-sm rounded-full px-2 py-1 border border-white/20">
+              <div className="bg-gradient-to-r from-amber-600/90 to-yellow-600/90 backdrop-blur-sm rounded-full px-2 py-1 border border-amber-400/50 shadow-lg">
                 <span className="text-lg">
                   {plug.rank === 1 && '🥇'}
                   {plug.rank === 2 && '🥈'}
@@ -84,24 +84,24 @@ export default function PlugCard({ plug, onClick }: PlugCardProps) {
             )}
             
             {/* Like count */}
-            <div className="bg-black/80 backdrop-blur-sm rounded-full px-2 py-1 flex items-center gap-1 border border-white/20 ml-auto">
-              <HeartIcon className="w-3 h-3 text-red-400" />
-              <span className="text-xs font-medium text-white">{plug.likes}</span>
+            <div className="bg-gradient-to-r from-red-600/90 to-pink-600/90 backdrop-blur-sm rounded-full px-2 py-1 flex items-center gap-1 border border-red-400/50 ml-auto shadow-lg">
+              <HeartIcon className="w-3 h-3 text-white" />
+              <span className="text-xs font-bold text-white">{plug.likes}</span>
             </div>
           </div>
         </div>
         
         {/* Content */}
         <div className="p-3 md:p-5 space-y-2 md:space-y-3">
-          <h3 className="text-base md:text-xl font-bold text-white bg-black/30 backdrop-blur-sm rounded-lg px-2 md:px-3 py-1 md:py-2 inline-block">
+          <h3 className="text-base md:text-xl font-bold text-white bg-gradient-to-r from-gray-800/60 to-gray-700/60 backdrop-blur-sm rounded-lg px-2 md:px-3 py-1 md:py-2 inline-block shadow-lg">
             {plug.name}
           </h3>
           
           {/* Location */}
-          <div className="bg-black/20 rounded-lg px-2 md:px-3 py-1.5 md:py-2">
-            <div className="flex items-center gap-1 md:gap-2 text-gray-300 text-xs md:text-sm">
-              <MapPinIcon className="w-3 md:w-4 h-3 md:h-4 flex-shrink-0" />
-              <span className="truncate font-medium">{formatLocation()}</span>
+          <div className="bg-gradient-to-r from-gray-700/30 to-gray-600/30 backdrop-blur-sm rounded-lg px-2 md:px-3 py-1.5 md:py-2 border border-gray-600/20">
+            <div className="flex items-center gap-1 md:gap-2 text-white text-xs md:text-sm">
+              <MapPinIcon className="w-3 md:w-4 h-3 md:h-4 flex-shrink-0 text-amber-400" />
+              <span className="truncate font-semibold">{formatLocation()}</span>
             </div>
           </div>
           
@@ -109,9 +109,9 @@ export default function PlugCard({ plug, onClick }: PlugCardProps) {
           <div className="space-y-1">
             {/* Départements de livraison */}
             {plug.deliveryDepartments && plug.deliveryDepartments.length > 0 && (
-              <div className="bg-blue-500/10 rounded-lg px-2 md:px-3 py-1 md:py-1.5 border border-blue-500/20">
-                <div className="text-[10px] md:text-xs text-blue-300">
-                  <span className="font-medium">🚚 Livraison : </span>
+              <div className="bg-gradient-to-r from-amber-600/20 to-yellow-600/20 backdrop-blur-sm rounded-lg px-2 md:px-3 py-1 md:py-1.5 border border-amber-500/30">
+                <div className="text-[10px] md:text-xs text-white font-medium">
+                  <span className="font-bold">🚚 Livraison : </span>
                   {plug.deliveryDepartments.length > 3 
                     ? `${plug.deliveryDepartments.slice(0, 3).join(', ')} +${plug.deliveryDepartments.length - 3}`
                     : plug.deliveryDepartments.join(', ')
@@ -122,9 +122,9 @@ export default function PlugCard({ plug, onClick }: PlugCardProps) {
             
             {/* Pays d'envoi postal */}
             {plug.shippingCountries && plug.shippingCountries.length > 0 && (
-              <div className="bg-green-500/10 rounded-lg px-2 md:px-3 py-1 md:py-1.5 border border-green-500/20">
-                <div className="text-[10px] md:text-xs text-green-300">
-                  <span className="font-medium">📮 Envoi : </span>
+              <div className="bg-gradient-to-r from-emerald-600/20 to-green-600/20 backdrop-blur-sm rounded-lg px-2 md:px-3 py-1 md:py-1.5 border border-emerald-500/30">
+                <div className="text-[10px] md:text-xs text-white font-medium">
+                  <span className="font-bold">📮 Envoi : </span>
                   {plug.shippingCountries.map((code: string) => {
                     const flag = getCountryFlag(code)
                     return `${flag} ${code}`
@@ -135,9 +135,9 @@ export default function PlugCard({ plug, onClick }: PlugCardProps) {
             
             {/* Départements de meetup */}
             {plug.meetupDepartments && plug.meetupDepartments.length > 0 && (
-              <div className="bg-purple-500/10 rounded-lg px-2 md:px-3 py-1 md:py-1.5 border border-purple-500/20">
-                <div className="text-[10px] md:text-xs text-purple-300">
-                  <span className="font-medium">🤝 Meetup : </span>
+              <div className="bg-gradient-to-r from-purple-600/20 to-pink-600/20 backdrop-blur-sm rounded-lg px-2 md:px-3 py-1 md:py-1.5 border border-purple-500/30">
+                <div className="text-[10px] md:text-xs text-white font-medium">
+                  <span className="font-bold">🤝 Meetup : </span>
                   {plug.meetupDepartments.length > 3 
                     ? `${plug.meetupDepartments.slice(0, 3).join(', ')} +${plug.meetupDepartments.length - 3}`
                     : plug.meetupDepartments.join(', ')
@@ -150,21 +150,21 @@ export default function PlugCard({ plug, onClick }: PlugCardProps) {
           {/* Methods */}
           <div className="flex flex-wrap gap-1 md:gap-2">
             {plug.methods?.delivery && (
-              <div className="bg-blue-500/30 backdrop-blur-sm text-blue-300 px-2 md:px-3 py-1 md:py-1.5 rounded-md md:rounded-lg text-[10px] md:text-xs flex items-center gap-1 md:gap-1.5 border border-blue-400/30">
+              <div className="bg-gradient-to-r from-blue-600/40 to-blue-500/40 backdrop-blur-sm text-white px-2 md:px-3 py-1 md:py-1.5 rounded-md md:rounded-lg text-[10px] md:text-xs flex items-center gap-1 md:gap-1.5 border border-blue-400/40 font-semibold shadow-sm">
                 <TruckIcon className="w-3 md:w-3.5 h-3 md:h-3.5" />
                 <span className="hidden sm:inline">Livraison</span>
                 <span className="sm:hidden">Liv.</span>
               </div>
             )}
             {plug.methods?.shipping && (
-              <div className="bg-green-500/30 backdrop-blur-sm text-green-300 px-2 md:px-3 py-1 md:py-1.5 rounded-md md:rounded-lg text-[10px] md:text-xs flex items-center gap-1 md:gap-1.5 border border-green-400/30">
+              <div className="bg-gradient-to-r from-green-600/40 to-green-500/40 backdrop-blur-sm text-white px-2 md:px-3 py-1 md:py-1.5 rounded-md md:rounded-lg text-[10px] md:text-xs flex items-center gap-1 md:gap-1.5 border border-green-400/40 font-semibold shadow-sm">
                 <CubeIcon className="w-3 md:w-3.5 h-3 md:h-3.5" />
                 <span className="hidden sm:inline">Envoi</span>
                 <span className="sm:hidden">Env.</span>
               </div>
             )}
             {plug.methods?.meetup && (
-              <div className="bg-purple-500/30 backdrop-blur-sm text-purple-300 px-2 md:px-3 py-1 md:py-1.5 rounded-md md:rounded-lg text-[10px] md:text-xs flex items-center gap-1 md:gap-1.5 border border-purple-400/30">
+              <div className="bg-gradient-to-r from-purple-600/40 to-purple-500/40 backdrop-blur-sm text-white px-2 md:px-3 py-1 md:py-1.5 rounded-md md:rounded-lg text-[10px] md:text-xs flex items-center gap-1 md:gap-1.5 border border-purple-400/40 font-semibold shadow-sm">
                 <UserGroupIcon className="w-3 md:w-3.5 h-3 md:h-3.5" />
                 <span className="hidden sm:inline">Meetup</span>
                 <span className="sm:hidden">Meet</span>
@@ -173,16 +173,16 @@ export default function PlugCard({ plug, onClick }: PlugCardProps) {
           </div>
           
           {/* Stats */}
-          <div className="flex items-center justify-between pt-2 md:pt-3 border-t border-white/10">
-            <div className="bg-black/30 backdrop-blur-sm rounded-md md:rounded-lg px-2 md:px-3 py-1 md:py-1.5">
-              <span className="text-[10px] md:text-sm text-gray-300">
+          <div className="flex items-center justify-between pt-2 md:pt-3 border-t border-amber-500/20">
+            <div className="bg-gradient-to-r from-amber-600/30 to-yellow-600/30 backdrop-blur-sm rounded-md md:rounded-lg px-2 md:px-3 py-1 md:py-1.5 border border-amber-500/20">
+              <span className="text-[10px] md:text-sm text-white font-semibold">
                 🔗 {plug.referralCount || 0}
               </span>
             </div>
             
             <motion.span
               whileHover={{ scale: 1.05 }}
-              className="text-white/80 hover:text-white text-xs md:text-sm font-medium cursor-pointer"
+              className="text-amber-400 hover:text-amber-300 text-xs md:text-sm font-bold cursor-pointer"
             >
               <span className="hidden sm:inline">Voir plus →</span>
               <span className="sm:hidden">→</span>
