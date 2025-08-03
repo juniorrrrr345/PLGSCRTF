@@ -105,18 +105,47 @@ export default function PlugCard({ plug, onClick }: PlugCardProps) {
             </div>
           </div>
           
-          {/* Départements de livraison */}
-          {plug.deliveryDepartments && plug.deliveryDepartments.length > 0 && (
-            <div className="bg-green-500/10 rounded-lg px-2 md:px-3 py-1.5 md:py-2 border border-green-500/20">
-              <div className="text-[10px] md:text-xs text-green-400">
-                <span className="font-medium">📦 Livraison : </span>
-                {plug.deliveryDepartments.length > 3 
-                  ? `${plug.deliveryDepartments.slice(0, 3).join(', ')} +${plug.deliveryDepartments.length - 3}`
-                  : plug.deliveryDepartments.join(', ')
-                }
+          {/* Départements et pays configurés */}
+          <div className="space-y-1">
+            {/* Départements de livraison */}
+            {plug.deliveryDepartments && plug.deliveryDepartments.length > 0 && (
+              <div className="bg-blue-500/10 rounded-lg px-2 md:px-3 py-1 md:py-1.5 border border-blue-500/20">
+                <div className="text-[10px] md:text-xs text-blue-300">
+                  <span className="font-medium">🚚 Livraison : </span>
+                  {plug.deliveryDepartments.length > 3 
+                    ? `${plug.deliveryDepartments.slice(0, 3).join(', ')} +${plug.deliveryDepartments.length - 3}`
+                    : plug.deliveryDepartments.join(', ')
+                  }
+                </div>
               </div>
-            </div>
-          )}
+            )}
+            
+            {/* Pays d'envoi postal */}
+            {plug.shippingCountries && plug.shippingCountries.length > 0 && (
+              <div className="bg-green-500/10 rounded-lg px-2 md:px-3 py-1 md:py-1.5 border border-green-500/20">
+                <div className="text-[10px] md:text-xs text-green-300">
+                  <span className="font-medium">📮 Envoi : </span>
+                  {plug.shippingCountries.map((code: string) => {
+                    const flag = getCountryFlag(code)
+                    return `${flag} ${code}`
+                  }).join(', ')}
+                </div>
+              </div>
+            )}
+            
+            {/* Départements de meetup */}
+            {plug.meetupDepartments && plug.meetupDepartments.length > 0 && (
+              <div className="bg-purple-500/10 rounded-lg px-2 md:px-3 py-1 md:py-1.5 border border-purple-500/20">
+                <div className="text-[10px] md:text-xs text-purple-300">
+                  <span className="font-medium">🤝 Meetup : </span>
+                  {plug.meetupDepartments.length > 3 
+                    ? `${plug.meetupDepartments.slice(0, 3).join(', ')} +${plug.meetupDepartments.length - 3}`
+                    : plug.meetupDepartments.join(', ')
+                  }
+                </div>
+              </div>
+            )}
+          </div>
           
           {/* Methods */}
           <div className="flex flex-wrap gap-1 md:gap-2">

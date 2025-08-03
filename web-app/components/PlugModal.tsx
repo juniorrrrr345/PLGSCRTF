@@ -161,10 +161,10 @@ export default function PlugModal({ plug, onClose, isOpen }: PlugModalProps) {
                     {/* Départements de livraison */}
                     {plug.deliveryDepartments && plug.deliveryDepartments.length > 0 && (
                       <div className="mt-4 pt-4 border-t border-gray-700">
-                        <h4 className="text-sm font-medium text-gray-400 mb-2">Livraison disponible dans les départements :</h4>
+                        <h4 className="text-sm font-medium text-gray-400 mb-2">🚚 Livraison disponible dans les départements :</h4>
                         <div className="flex flex-wrap gap-2">
                           {plug.deliveryDepartments.map((dept: string) => (
-                            <span key={dept} className="bg-green-600/20 text-green-400 px-3 py-1 rounded-lg text-sm font-medium border border-green-600/30">
+                            <span key={dept} className="bg-blue-600/20 text-blue-400 px-3 py-1 rounded-lg text-sm font-medium border border-blue-600/30">
                               {dept}
                             </span>
                           ))}
@@ -186,10 +186,34 @@ export default function PlugModal({ plug, onClose, isOpen }: PlugModalProps) {
                       </div>
                     )}
 
+                    {/* Pays d'envoi postal */}
+                    {plug.shippingCountries && plug.shippingCountries.length > 0 && (
+                      <div className="mt-4 pt-4 border-t border-gray-700">
+                        <h4 className="text-sm font-medium text-gray-400 mb-2">📮 Envoi postal disponible vers :</h4>
+                        <div className="flex flex-wrap gap-2">
+                          {plug.shippingCountries.map((code: string) => {
+                            const getCountryFlag = (country: string) => {
+                              const flags: { [key: string]: string } = {
+                                'FR': '🇫🇷', 'BE': '🇧🇪', 'CH': '🇨🇭',
+                                'CA': '🇨🇦', 'LU': '🇱🇺', 'MC': '🇲🇨'
+                              }
+                              return flags[country] || '🌍'
+                            }
+                            const flag = getCountryFlag(code)
+                            return (
+                              <span key={code} className="bg-green-600/20 text-green-400 px-3 py-1 rounded-lg text-sm font-medium border border-green-600/30">
+                                {flag} {code}
+                              </span>
+                            )
+                          })}
+                        </div>
+                      </div>
+                    )}
+
                     {/* Zones de meetup */}
                     {plug.meetupDepartments && plug.meetupDepartments.length > 0 && (
                       <div className="mt-4 pt-4 border-t border-gray-700">
-                        <h4 className="text-sm font-medium text-gray-400 mb-2">Meetup possible dans les zones :</h4>
+                        <h4 className="text-sm font-medium text-gray-400 mb-2">🤝 Meetup possible dans les départements :</h4>
                         <div className="flex flex-wrap gap-2">
                           {plug.meetupDepartments.map((dept: string) => (
                             <span key={dept} className="bg-purple-600/20 text-purple-400 px-3 py-1 rounded-lg text-sm font-medium border border-purple-600/30">
