@@ -353,6 +353,8 @@ export default function ConfigPage() {
           referralLink: ''
         })
         mutate('/api/plugs?all=true')
+        mutate('/api/plugs')
+        mutate('/api/stats')
       }
     } catch (error) {
       toast.error('Erreur lors de l\'ajout')
@@ -394,6 +396,8 @@ export default function ConfigPage() {
         setShowAddPlug(false)
         setEditingPlug(null)
         mutate('/api/plugs?all=true')
+        mutate('/api/plugs')
+        mutate('/api/stats')
       } else {
         const error = await res.json()
         toast.error(error.error || 'Erreur lors de la mise à jour')
@@ -583,6 +587,8 @@ export default function ConfigPage() {
       if (res.ok) {
         toast.success('Plug supprimé !')
         mutate('/api/plugs?all=true')
+        mutate('/api/plugs')
+        mutate('/api/stats')
       }
     } catch (error) {
       toast.error('Erreur lors de la suppression')

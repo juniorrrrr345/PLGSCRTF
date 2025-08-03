@@ -8,11 +8,17 @@ export async function GET() {
     await connectToDatabase()
     
     const userCount = await User.countDocuments()
-    const plugCount = await Plug.countDocuments({ isActive: true })
+    const plugCount = await Plug.countDocuments()
     
     return NextResponse.json({
       userCount,
       plugCount
+    }, {
+      headers: {
+        'Cache-Control': 'no-store, no-cache, must-revalidate',
+        'Pragma': 'no-cache',
+        'Expires': '0'
+      }
     })
   } catch (error) {
     console.error('Stats API error:', error)
