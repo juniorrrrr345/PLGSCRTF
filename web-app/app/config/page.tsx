@@ -915,29 +915,32 @@ export default function ConfigPage() {
                               if (!plugToEdit.countries || plugToEdit.countries.length === 0) {
                                 plugToEdit.countries = plugToEdit.country ? [plugToEdit.country] : ['FR']
                               }
-                              if (!plugToEdit.customNetworks || plugToEdit.customNetworks.length === 0) {
+                              if (!plugToEdit.customNetworks) {
                                 plugToEdit.customNetworks = []
-                                if (plugToEdit.socialNetworks) {
-                                  const networkMap: any = {
-                                    snap: { name: 'Snapchat', emoji: '👻' },
-                                    instagram: { name: 'Instagram', emoji: '📷' },
-                                    whatsapp: { name: 'WhatsApp', emoji: '💬' },
-                                    telegram: { name: 'Telegram', emoji: '✈️' },
-                                    signal: { name: 'Signal', emoji: '🔒' },
-                                    threema: { name: 'Threema', emoji: '🔐' },
-                                    potato: { name: 'Potato', emoji: '🥔' }
-                                  }
-                                  Object.entries(plugToEdit.socialNetworks).forEach(([key, value]) => {
-                                    if (value && networkMap[key]) {
-                                      plugToEdit.customNetworks.push({
-                                        id: Date.now().toString() + Math.random(),
-                                        name: networkMap[key].name,
-                                        emoji: networkMap[key].emoji,
-                                        link: value as string
-                                      })
-                                    }
-                                  })
+                              }
+                              // Convertir socialNetworks en customNetworks seulement s'il n'y a pas déjà de customNetworks
+                              if (plugToEdit.customNetworks.length === 0 && plugToEdit.socialNetworks) {
+                                const networkMap: any = {
+                                  snap: { name: 'Snapchat', emoji: '👻' },
+                                  instagram: { name: 'Instagram', emoji: '📷' },
+                                  whatsapp: { name: 'WhatsApp', emoji: '💬' },
+                                  telegram: { name: 'Telegram', emoji: '✈️' },
+                                  signal: { name: 'Signal', emoji: '🔒' },
+                                  threema: { name: 'Threema', emoji: '🔐' },
+                                  potato: { name: 'Potato', emoji: '🥔' }
                                 }
+                                Object.entries(plugToEdit.socialNetworks).forEach(([key, value]) => {
+                                  if (value && networkMap[key]) {
+                                    plugToEdit.customNetworks.push({
+                                      id: Date.now().toString() + Math.random(),
+                                      name: networkMap[key].name,
+                                      emoji: networkMap[key].emoji,
+                                      link: value as string
+                                    })
+                                  }
+                                })
+                                // Effacer socialNetworks après conversion pour éviter la duplication
+                                plugToEdit.socialNetworks = {}
                               }
                               setEditingPlug(plugToEdit)
                             }}

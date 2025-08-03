@@ -484,27 +484,32 @@ async function handlePlugDetails(bot, chatId, plugId, fromMenu = 'plugs', userId
     
     // Boutons d'action - Vérifier le temps restant pour le like
     const User = require('../models/User');
+    const Vote = require('../models/Vote');
     const userIdToSearch = userId || chatId; // Utiliser userId si fourni, sinon chatId
-    const user = await User.findOne({ telegramId: userIdToSearch });
     let likeButtonText = `❤️ Like (${plug.likes || 0})`;
     let isInCooldown = false;
     
-    console.log(`🔍 Vérification cooldown pour user ${userIdToSearch}:`, {
-      userFound: !!user,
-      lastLikeAt: user?.lastLikeAt,
-      telegramId: user?.telegramId
+    // Vérifier si l'utilisateur a déjà voté pour ce plug spécifique
+    const existingVote = await Vote.findOne({ 
+      userId: userIdToSearch.toString(), 
+      plugId: plug._id 
     });
     
-    if (user && user.lastLikeAt) {
+    console.log(`🔍 Vérification vote pour user ${userIdToSearch} et plug ${plug._id}:`, {
+      voteFound: !!existingVote,
+      votedAt: existingVote?.votedAt
+    });
+    
+    if (existingVote) {
       const now = new Date();
-      const lastLikeTime = new Date(user.lastLikeAt);
-      const timeSinceLastLike = (now - lastLikeTime) / 1000 / 60; // en minutes
-      const remainingTime = Math.ceil(30 - timeSinceLastLike);
+      const lastVoteTime = new Date(existingVote.votedAt);
+      const timeSinceLastVote = (now - lastVoteTime) / 1000 / 60; // en minutes
+      const remainingTime = Math.ceil(30 - timeSinceLastVote);
       
       console.log(`⏱️ Calcul cooldown:`, {
         now: now.toISOString(),
-        lastLikeTime: lastLikeTime.toISOString(),
-        timeSinceLastLike: timeSinceLastLike.toFixed(2),
+        lastVoteTime: lastVoteTime.toISOString(),
+        timeSinceLastVote: timeSinceLastVote.toFixed(2),
         remainingTime
       });
       
@@ -600,6 +605,7 @@ async function handlePlugDetails(bot, chatId, plugId, fromMenu = 'plugs', userId
 async function handleLike(bot, callbackQuery, plugId) {
   const chatId = callbackQuery.message.chat.id;
   const userId = callbackQuery.from.id;
+  const Vote = require('../models/Vote');
   
   try {
     // Vérifier l'utilisateur
@@ -612,18 +618,25 @@ async function handleLike(bot, callbackQuery, plugId) {
       return;
     }
     
-    // Vérifier le cooldown
-    const now = new Date();
-    const lastLike = user.lastLikeAt ? new Date(user.lastLikeAt) : new Date(0);
-    const cooldownMinutes = 30;
-    const timeSinceLastLike = (now - lastLike) / 1000 / 60; // en minutes
+    // Vérifier le cooldown pour CE plug spécifique
+    const existingVote = await Vote.findOne({ 
+      userId: userId.toString(), 
+      plugId: plugId 
+    });
     
-    if (timeSinceLastLike < cooldownMinutes) {
-      const remainingTime = Math.ceil(cooldownMinutes - timeSinceLastLike);
-      await bot.answerCallbackQuery(callbackQuery.id, {
-        text: `⏱️ Veuillez patienter ${remainingTime} minute${remainingTime > 1 ? 's' : ''} avant de liker à nouveau.\n\n💡 Vous pourrez voter à nouveau dans ${remainingTime} minute${remainingTime > 1 ? 's' : ''}.\n\n❤️ Merci pour votre soutien !`,
-        show_alert: true
-      });
+    const now = new Date();
+    const cooldownMinutes = 30;
+    
+    if (existingVote) {
+      const lastVoteTime = new Date(existingVote.votedAt);
+      const timeSinceLastVote = (now - lastVoteTime) / 1000 / 60; // en minutes
+      
+      if (timeSinceLastVote < cooldownMinutes) {
+        const remainingTime = Math.ceil(cooldownMinutes - timeSinceLastVote);
+        await bot.answerCallbackQuery(callbackQuery.id, {
+          text: `⏱️ Vous avez déjà voté pour ce plug.\n\n⏰ Prochain vote possible dans ${remainingTime} minute${remainingTime > 1 ? 's' : ''}.\n\n💡 Vous pouvez voter pour d'autres plugs en attendant !`,
+          show_alert: true
+        });
       
       // Mettre à jour le bouton pour afficher le temps restant
       try {
@@ -659,7 +672,8 @@ async function handleLike(bot, callbackQuery, plugId) {
         console.error('Erreur mise à jour bouton:', error);
       }
       
-      return;
+        return;
+      }
     }
     
     // Mettre à jour le plug
@@ -677,15 +691,21 @@ async function handleLike(bot, callbackQuery, plugId) {
       return;
     }
     
-    // Mettre à jour l'utilisateur
-    user.lastLikeAt = new Date();
-    if (!user.likedPlugs) user.likedPlugs = [];
-    if (!user.likedPlugs.includes(plugId)) {
-      user.likedPlugs.push(plugId);
+    // Créer ou mettre à jour le vote pour ce plug
+    if (existingVote) {
+      // Mettre à jour la date du vote existant
+      existingVote.votedAt = new Date();
+      await existingVote.save();
+    } else {
+      // Créer un nouveau vote
+      await Vote.create({
+        userId: userId.toString(),
+        plugId: plugId,
+        votedAt: new Date()
+      });
     }
-    await user.save();
     
-    console.log(`✅ User ${userId} mis à jour avec lastLikeTime:`, user.lastLikeAt);
+    console.log(`✅ Vote enregistré pour user ${userId} et plug ${plugId}`);
     
     // Mettre à jour les stats de parrainage si l'utilisateur est venu via un lien
     const ReferralClick = require('../models/ReferralClick');
