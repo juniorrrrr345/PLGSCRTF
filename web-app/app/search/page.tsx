@@ -182,25 +182,27 @@ export default function SearchPage() {
           </p>
         </motion.div>
 
-        {/* Search Bar */}
+        {/* Search Bar and Filter Button */}
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.2 }}
-          className="max-w-2xl mx-auto mb-8"
+          className="max-w-3xl mx-auto mb-8"
         >
-          <div className="relative">
-            <MagnifyingGlassIcon className="absolute left-4 top-1/2 transform -translate-y-1/2 w-6 h-6 text-gray-400" />
-            <input
-              type="text"
-              placeholder="Rechercher par nom, ville, département ou code postal..."
-              value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
-              className="w-full pl-12 pr-20 py-4 bg-white/10 backdrop-blur-lg border border-white/20 rounded-full text-white placeholder-gray-400 focus:outline-none focus:border-primary transition-all"
-            />
+          <div className="flex gap-3 items-center">
+            <div className="relative flex-1">
+              <MagnifyingGlassIcon className="absolute left-4 top-1/2 transform -translate-y-1/2 w-6 h-6 text-gray-400" />
+              <input
+                type="text"
+                placeholder="Rechercher par nom, ville, département ou code postal..."
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+                className="w-full pl-12 pr-4 py-4 bg-white/10 backdrop-blur-lg border border-white/20 rounded-full text-white placeholder-gray-400 focus:outline-none focus:border-primary transition-all"
+              />
+            </div>
             <button
               onClick={() => setShowFilters(!showFilters)}
-              className={`absolute right-2 top-1/2 transform -translate-y-1/2 p-3 rounded-full transition-all group ${
+              className={`p-4 rounded-full transition-all group flex-shrink-0 ${
                 showFilters 
                   ? 'bg-primary text-white shadow-lg shadow-primary/30 scale-110' 
                   : hasActiveFilters
