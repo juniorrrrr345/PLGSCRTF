@@ -1,4 +1,5 @@
 const Settings = require('../models/Settings');
+const User = require('../models/User');
 
 // Cache pour éviter le spam du message de maintenance
 const maintenanceMessageCache = new Map();
@@ -20,10 +21,15 @@ async function checkMaintenanceMode(bot, chatId) {
       // Mettre à jour le cache
       maintenanceMessageCache.set(chatId, now);
       
+      // Compter le nombre d'utilisateurs
+      const userCount = await User.countDocuments() || 0;
+      
       // Message de maintenance personnalisé
       const maintenanceMessage = `🔧 <b>Maintenance en cours</b>
 
 Nous sommes bientôt de retour !
+
+👥 <b>${userCount} utilisateurs</b> nous font déjà confiance
 
 📱 <b>Consultez la Mini App pour plus d'informations</b>
 

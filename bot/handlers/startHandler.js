@@ -153,8 +153,15 @@ async function showMainMenu(bot, chatId, userId = null) {
   }
   
   const settings = await Settings.findOne();
+  
+  // Compter le nombre d'utilisateurs
+  const userCount = await User.countDocuments() || 0;
+  
   const welcomeMessage = settings?.welcomeMessage || 
     '🔌 <b>Bienvenue sur PLUGS CRTFS !</b>\n\nLa marketplace exclusive des vendeurs certifiés.';
+  
+  // Ajouter le nombre d'utilisateurs au message
+  const messageWithUserCount = `${welcomeMessage}\n\n👥 <b>${userCount} utilisateurs</b> nous font déjà confiance !`;
   
   // Utiliser le texte personnalisé pour le bouton Mini App
   const miniAppButtonText = settings?.miniAppButtonText || '🔌 MINI APP PLGS CRTFS';
@@ -206,20 +213,20 @@ async function showMainMenu(bot, chatId, userId = null) {
   if (settings?.welcomeImage) {
     try {
       await bot.sendPhoto(chatId, settings.welcomeImage, {
-        caption: welcomeMessage,
+        caption: messageWithUserCount,
         parse_mode: 'HTML',
         reply_markup: keyboard
       });
     } catch (error) {
       console.error('Erreur envoi image:', error);
       // Si l'image échoue, envoyer juste le message
-      await bot.sendMessage(chatId, welcomeMessage, {
+      await bot.sendMessage(chatId, messageWithUserCount, {
         parse_mode: 'HTML',
         reply_markup: keyboard
       });
     }
   } else {
-    await bot.sendMessage(chatId, welcomeMessage, {
+    await bot.sendMessage(chatId, messageWithUserCount, {
       parse_mode: 'HTML',
       reply_markup: keyboard
     });
