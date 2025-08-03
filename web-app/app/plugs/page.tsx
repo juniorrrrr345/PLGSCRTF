@@ -34,9 +34,12 @@ export default function PlugsPage() {
   const { data: plugs, error, isLoading } = useSWR('/api/plugs', fetcher)
   const [searchTerm, setSearchTerm] = useState('')
   const [selectedCountry, setSelectedCountry] = useState<string>('ALL')
+  const [selectedMethod, setSelectedMethod] = useState<string>('ALL')
+  const [selectedDepartment, setSelectedDepartment] = useState<string>('ALL')
   const [selectedPlug, setSelectedPlug] = useState<any>(null)
   const [filteredPlugs, setFilteredPlugs] = useState<any[]>([])
   const [availableCountries, setAvailableCountries] = useState<string[]>([])
+  const [availableDepartments, setAvailableDepartments] = useState<string[]>([])
   const [isModalOpen, setIsModalOpen] = useState(false)
 
   useEffect(() => {
