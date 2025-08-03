@@ -41,6 +41,13 @@ export default function SearchPage() {
         if (plug.country) {
           countriesSet.add(plug.country)
         }
+        // Ajouter aussi les pays depuis countries et shippingCountries
+        if (plug.countries) {
+          plug.countries.forEach((c: string) => countriesSet.add(c))
+        }
+        if (plug.shippingCountries) {
+          plug.shippingCountries.forEach((c: string) => countriesSet.add(c))
+        }
       })
       
       // Créer la liste des pays avec leurs drapeaux
@@ -54,6 +61,43 @@ export default function SearchPage() {
       }).sort((a, b) => a.name.localeCompare(b.name))
       
       setAvailableCountries(countries)
+      
+      // Calculer les départements disponibles selon les filtres
+      const departmentsSet = new Set<string>()
+      
+      plugs.forEach((plug: any) => {
+        // Filtrer par pays si nécessaire
+        if (selectedCountry) {
+          const matchCountry = plug.country === selectedCountry || 
+                             plug.countries?.includes(selectedCountry) ||
+                             plug.shippingCountries?.includes(selectedCountry)
+          if (!matchCountry) return
+        }
+        
+        // Ajouter les départements selon les méthodes sélectionnées
+        if (!selectedMethods.delivery && !selectedMethods.shipping && !selectedMethods.meetup) {
+          // Si aucune méthode n'est sélectionnée, montrer tous les départements
+          if (plug.deliveryDepartments) {
+            plug.deliveryDepartments.forEach((dept: string) => departmentsSet.add(dept))
+          }
+          if (plug.meetupDepartments) {
+            plug.meetupDepartments.forEach((dept: string) => departmentsSet.add(dept))
+          }
+          if (plug.department) {
+            departmentsSet.add(plug.department)
+          }
+        } else {
+          // Sinon, montrer seulement les départements des méthodes sélectionnées
+          if (selectedMethods.delivery && plug.deliveryDepartments) {
+            plug.deliveryDepartments.forEach((dept: string) => departmentsSet.add(dept))
+          }
+          if (selectedMethods.meetup && plug.meetupDepartments) {
+            plug.meetupDepartments.forEach((dept: string) => departmentsSet.add(dept))
+          }
+        }
+      })
+      
+      setAvailableDepartments(Array.from(departmentsSet).sort())
       
       let filtered = plugs
 
@@ -258,12 +302,12 @@ export default function SearchPage() {
                   onChange={(e) => setSelectedDepartment(e.target.value)}
                   className="w-full p-3 bg-white/10 border border-white/20 rounded-lg text-white focus:outline-none focus:border-primary"
                 >
-                  <option value="" className="bg-gray-900 text-white">Tous les départements</option>
-                  {availableDepartments.map((dept: any) => (
-                    <option key={dept.code} value={dept.name} className="bg-gray-900 text-white">
-                      {dept.name}
-                    </option>
-                  ))}
+                                  <option value="" className="bg-gray-900 text-white">Tous les départements</option>
+                {availableDepartments.map((dept: string) => (
+                  <option key={dept} value={dept} className="bg-gray-900 text-white">
+                    {dept}
+                  </option>
+                ))}
                 </select>
               </div>
             )}

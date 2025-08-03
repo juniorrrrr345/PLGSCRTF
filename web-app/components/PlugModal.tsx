@@ -2,7 +2,6 @@
 
 import { XMarkIcon, MapPinIcon, TruckIcon, UsersIcon, LinkIcon, ChatBubbleLeftIcon } from '@heroicons/react/24/outline'
 import { HeartIcon as HeartSolid } from '@heroicons/react/24/solid'
-import toast from 'react-hot-toast'
 
 interface PlugModalProps {
   plug: any
@@ -248,14 +247,16 @@ export default function PlugModal({ plug, onClose, isOpen }: PlugModalProps) {
                       </h3>
                       <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
                         {socialNetworks.map((network: any) => (
-                          <div
+                          <a
                             key={network.name}
-                            className={`bg-gradient-to-r ${network.color} p-3 rounded-xl text-center cursor-pointer hover:scale-105 transition-transform`}
-                            onClick={() => toast.success(`${network.name}: ${network.value}`)}
+                            href={network.value}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className={`bg-gradient-to-r ${network.color} p-3 rounded-xl text-center cursor-pointer hover:scale-105 transition-transform block`}
                           >
                             <span className="text-2xl mb-1 block">{network.icon}</span>
                             <span className="text-white text-sm font-medium">{network.name}</span>
-                          </div>
+                          </a>
                         ))}
                       </div>
                     </div>
