@@ -59,21 +59,22 @@ export default function PlugModal({ plug, onClose, isOpen }: PlugModalProps) {
       >
         <div className="bg-gray-900 rounded-3xl shadow-2xl h-full flex flex-col overflow-hidden">
               {/* Header avec image */}
-              <div className="relative h-72 md:h-96 flex-shrink-0 rounded-t-3xl overflow-hidden bg-gray-800">
+              <div className="relative h-80 md:h-[28rem] flex-shrink-0 rounded-t-3xl overflow-hidden bg-gray-900">
                 {plug.photo ? (
-                  <img
-                    src={plug.photo}
-                    alt={plug.name}
-                    className="w-full h-full object-contain"
-                  />
+                  <div className="relative w-full h-full flex items-center justify-center p-4">
+                    <img
+                      src={plug.photo}
+                      alt={plug.name}
+                      className="max-w-full max-h-full object-contain drop-shadow-2xl"
+                    />
+                    {/* Gradient overlay très léger seulement en bas pour le texte */}
+                    <div className="absolute bottom-0 left-0 right-0 h-32 bg-gradient-to-t from-gray-900/95 via-gray-900/50 to-transparent" />
+                  </div>
                 ) : (
                   <div className="w-full h-full bg-gradient-to-br from-gray-800 to-gray-900 flex items-center justify-center">
                     <span className="text-8xl opacity-50">🔌</span>
                   </div>
                 )}
-                
-                {/* Overlay gradient - plus léger pour mieux voir l'image */}
-                <div className="absolute inset-0 bg-gradient-to-t from-gray-900/90 via-transparent to-transparent" />
                 
                 {/* Close button */}
                 <button

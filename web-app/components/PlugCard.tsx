@@ -53,37 +53,41 @@ export default function PlugCard({ plug, onClick }: PlugCardProps) {
       {/* Card content */}
       <div className="relative bg-white/5 backdrop-blur-sm border border-white/20 rounded-2xl overflow-hidden hover:bg-white/10 transition-all shadow-xl">
         {/* Header with image */}
-        <div className="relative h-40 overflow-hidden bg-gray-800">
+        <div className="relative h-48 md:h-56 overflow-hidden bg-gray-900">
           {plug.photo ? (
-            <>
+            <div className="relative w-full h-full flex items-center justify-center p-2">
               <img
                 src={plug.photo}
                 alt={plug.name}
-                className="w-full h-full object-contain"
+                className="max-w-full max-h-full object-contain"
               />
-              <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent" />
-            </>
+              {/* Gradient overlay léger seulement en bas */}
+              <div className="absolute bottom-0 left-0 right-0 h-16 bg-gradient-to-t from-black/50 to-transparent" />
+            </div>
           ) : (
             <div className="w-full h-full flex items-center justify-center bg-gradient-to-br from-gray-800 to-gray-900">
               <span className="text-6xl opacity-50">🔌</span>
             </div>
           )}
           
-          {/* Rank badge if in top 3 */}
-          {plug.rank && plug.rank <= 3 && (
-            <div className="absolute top-3 left-3 bg-black/70 backdrop-blur-sm rounded-full px-3 py-1.5 border border-white/20">
-              <span className="text-xl">
-                {plug.rank === 1 && '🥇'}
-                {plug.rank === 2 && '🥈'}
-                {plug.rank === 3 && '🥉'}
-              </span>
+          {/* Badges positionnés en dehors de l'image */}
+          <div className="absolute top-2 left-2 right-2 flex justify-between items-start pointer-events-none">
+            {/* Rank badge if in top 3 */}
+            {plug.rank && plug.rank <= 3 && (
+              <div className="bg-black/80 backdrop-blur-sm rounded-full px-2 py-1 border border-white/20">
+                <span className="text-lg">
+                  {plug.rank === 1 && '🥇'}
+                  {plug.rank === 2 && '🥈'}
+                  {plug.rank === 3 && '🥉'}
+                </span>
+              </div>
+            )}
+            
+            {/* Like count */}
+            <div className="bg-black/80 backdrop-blur-sm rounded-full px-2 py-1 flex items-center gap-1 border border-white/20 ml-auto">
+              <HeartIcon className="w-3 h-3 text-red-400" />
+              <span className="text-xs font-medium text-white">{plug.likes}</span>
             </div>
-          )}
-          
-          {/* Like count */}
-          <div className="absolute top-3 right-3 bg-black/70 backdrop-blur-sm rounded-full px-3 py-1.5 flex items-center gap-1.5 border border-white/20">
-            <HeartIcon className="w-4 h-4 text-red-400" />
-            <span className="text-sm font-medium text-white">{plug.likes}</span>
           </div>
         </div>
         
