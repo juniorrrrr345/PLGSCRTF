@@ -2,6 +2,7 @@ const User = require('../models/User');
 const Settings = require('../models/Settings');
 const { requireChannelMembership } = require('../middleware/channelCheck');
 const { checkMaintenanceMode } = require('../middleware/maintenanceCheck');
+const { syncUserToWebApp } = require('../utils/userSync');
 
 // Fonction pour supprimer les anciens messages du bot
 async function clearOldMessages(bot, chatId, currentMessageId) {
@@ -63,6 +64,35 @@ async function handleStart(bot, msg, param) {
       }
       
       await user.save();
+      
+      // Synchroniser le nouvel utilisateur avec la boutique web
+      syncUserToWebApp(user).catch(err => {
+        console.error('Erreur sync nouvel utilisateur:', err);
+      });
+    } else {
+      // Mettre à jour les informations si elles ont changé
+      let needsUpdate = false;
+      
+      if (user.username !== username) {
+        user.username = username;
+        needsUpdate = true;
+      }
+      if (user.firstName !== msg.from.first_name) {
+        user.firstName = msg.from.first_name;
+        needsUpdate = true;
+      }
+      if (user.lastName !== msg.from.last_name) {
+        user.lastName = msg.from.last_name;
+        needsUpdate = true;
+      }
+      
+      if (needsUpdate) {
+        await user.save();
+        // Synchroniser les mises à jour avec la boutique web
+        syncUserToWebApp(user).catch(err => {
+          console.error('Erreur sync mise à jour utilisateur:', err);
+        });
+      }
     }
     
     user.lastSeen = new Date();

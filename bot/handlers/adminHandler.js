@@ -2,6 +2,7 @@ const User = require('../models/User');
 const Plug = require('../models/Plug');
 const Settings = require('../models/Settings');
 const VendorApplication = require('../models/VendorApplication');
+const { syncAllUsers } = require('../utils/userSync');
 
 const adminStates = new Map();
 
@@ -58,6 +59,7 @@ async function showAdminMenu(bot, chatId) {
       [{ text: '⚙️ Paramètres', callback_data: 'admin_settings' }],
       [{ text: '📢 Message global', callback_data: 'admin_broadcast' }],
       [{ text: '🌍 Gérer pays/départements', callback_data: 'admin_locations' }],
+      [{ text: '🔄 Synchroniser utilisateurs', callback_data: 'admin_sync_users' }],
       [{ text: '❌ Fermer', callback_data: 'admin_close' }]
     ]
   };
@@ -104,6 +106,14 @@ async function handleAdminCallbacks(bot, callbackQuery) {
       
     case 'admin_close':
       await bot.deleteMessage(chatId, callbackQuery.message.message_id);
+      break;
+      
+    case 'admin_sync_users':
+      await handleUserSync(bot, chatId);
+      break;
+      
+    case 'admin_menu':
+      await showAdminMenu(bot, chatId);
       break;
   }
   
@@ -241,6 +251,60 @@ async function initiateBroadcast(bot, chatId) {
   });
   
   return true;
+}
+
+async function handleUserSync(bot, chatId) {
+  try {
+    // Envoyer un message de début
+    const statusMsg = await bot.sendMessage(chatId, 
+      '🔄 Synchronisation des utilisateurs en cours...\n\n' +
+      'Cela peut prendre quelques instants.',
+      { parse_mode: 'HTML' }
+    );
+    
+    // Lancer la synchronisation
+    const result = await syncAllUsers();
+    
+    // Préparer le message de résultat
+    let resultMessage = '✅ <b>Synchronisation terminée !</b>\n\n';
+    
+    if (result.error) {
+      resultMessage = `❌ <b>Erreur lors de la synchronisation</b>\n\n`;
+      resultMessage += `Erreur: ${result.error}\n`;
+    } else {
+      resultMessage += `📊 <b>Statistiques:</b>\n`;
+      resultMessage += `• Total d'utilisateurs: ${result.total}\n`;
+      resultMessage += `• Synchronisés avec succès: ${result.synced}\n`;
+      resultMessage += `• Échecs: ${result.failed}\n\n`;
+      
+      if (result.failed > 0) {
+        resultMessage += `⚠️ ${result.failed} utilisateur(s) n'ont pas pu être synchronisés.\n`;
+        resultMessage += `Vérifiez les logs pour plus de détails.`;
+      } else {
+        resultMessage += `✨ Tous les utilisateurs sont maintenant synchronisés !`;
+      }
+    }
+    
+    // Mettre à jour le message avec les résultats
+    await bot.editMessageText(resultMessage, {
+      chat_id: chatId,
+      message_id: statusMsg.message_id,
+      parse_mode: 'HTML',
+      reply_markup: {
+        inline_keyboard: [
+          [{ text: '🔙 Retour au menu', callback_data: 'admin_menu' }]
+        ]
+      }
+    });
+    
+  } catch (error) {
+    console.error('Erreur handleUserSync:', error);
+    await bot.sendMessage(chatId, 
+      '❌ Une erreur est survenue lors de la synchronisation.\n' +
+      'Vérifiez les logs du serveur.',
+      { parse_mode: 'HTML' }
+    );
+  }
 }
 
 module.exports = { handleAdminCommand: handleAdminPanel, handleAdminCallbacks };
