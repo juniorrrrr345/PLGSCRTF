@@ -196,9 +196,12 @@ async function showMainMenu(bot, chatId, userId = null) {
   // Utiliser le texte personnalisé pour le bouton Mini App
   const miniAppButtonText = settings?.miniAppButtonText || '🔌 MINI APP PLGS CRTFS';
   
+  // Ajouter l'ID de l'utilisateur au lien de la Mini App
+  const miniAppUrl = userId ? `https://t.me/PLGSCRTF_BOT/miniapp?startapp=${userId}` : 'https://t.me/PLGSCRTF_BOT/miniapp';
+  
   const keyboard = {
     inline_keyboard: [
-      [{ text: miniAppButtonText, url: 'https://t.me/PLGSCRTF_BOT/miniapp' }],
+      [{ text: miniAppButtonText, url: miniAppUrl }],
       [{ text: '🔌 PLUGS CRTFS', callback_data: 'plugs' }],
       [{ text: '🏆 Top Parrains', callback_data: 'referrals' }],
       [{ text: '✅ Devenir Certifié', callback_data: 'apply' }],
