@@ -190,8 +190,19 @@ async function showMainMenu(bot, chatId, userId = null) {
   
   const settings = await Settings.findOne();
   
-  // Compter le nombre d'utilisateurs
-  const userCount = await User.countDocuments() || 0;
+  // Récupérer le nombre d'utilisateurs depuis la boutique web pour garantir la cohérence
+  let userCount = 0;
+  try {
+    const axios = require('axios');
+    const webAppUrl = process.env.WEB_APP_URL || 'https://plgscrtf.vercel.app';
+    const response = await axios.get(`${webAppUrl}/api/stats`, { timeout: 3000 });
+    userCount = response.data.userCount || 0;
+    console.log(`📊 Compteur récupéré depuis la boutique: ${userCount}`);
+  } catch (error) {
+    // En cas d'erreur, utiliser le compteur local
+    console.log('⚠️ Impossible de récupérer le compteur web, utilisation du compteur local');
+    userCount = await User.countDocuments() || 0;
+  }
   
   const welcomeMessage = settings?.welcomeMessage || 
     '🔌 <b>Bienvenue sur PLUGS CRTFS !</b>\n\nLa marketplace exclusive des vendeurs certifiés.';
