@@ -3,6 +3,15 @@
 import { createContext, useContext, useEffect, useState } from 'react'
 import Script from 'next/script'
 
+interface TelegramUser {
+  id: number
+  first_name: string
+  last_name?: string
+  username?: string
+  language_code?: string
+  is_premium?: boolean
+}
+
 interface TelegramWebApp {
   ready: () => void
   expand: () => void
@@ -27,7 +36,10 @@ interface TelegramWebApp {
     button_text_color?: string
   }
   initData: string
-  initDataUnsafe: any
+  initDataUnsafe: {
+    user?: TelegramUser
+    start_param?: string
+  }
   version: string
   platform: string
   colorScheme: 'light' | 'dark'
@@ -41,12 +53,16 @@ interface TelegramContextType {
   webApp: TelegramWebApp | null
   isTelegram: boolean
   theme: 'light' | 'dark'
+  user: TelegramUser | null
+  startParam: string | null
 }
 
 const TelegramContext = createContext<TelegramContextType>({
   webApp: null,
   isTelegram: false,
-  theme: 'dark'
+  theme: 'dark',
+  user: null,
+  startParam: null
 })
 
 export const useTelegram = () => useContext(TelegramContext)
@@ -55,6 +71,8 @@ export default function TelegramProvider({ children }: { children: React.ReactNo
   const [webApp, setWebApp] = useState<TelegramWebApp | null>(null)
   const [isTelegram, setIsTelegram] = useState(false)
   const [theme, setTheme] = useState<'light' | 'dark'>('dark')
+  const [user, setUser] = useState<TelegramUser | null>(null)
+  const [startParam, setStartParam] = useState<string | null>(null)
 
   useEffect(() => {
     // Vérifier si on est dans Telegram
@@ -64,6 +82,16 @@ export default function TelegramProvider({ children }: { children: React.ReactNo
         setWebApp(tg)
         setIsTelegram(true)
         setTheme(tg.colorScheme || 'dark')
+        
+        // Récupérer les données de l'utilisateur
+        if (tg.initDataUnsafe?.user) {
+          setUser(tg.initDataUnsafe.user)
+        }
+        
+        // Récupérer le paramètre de démarrage (qui contient l'ID Telegram)
+        if (tg.initDataUnsafe?.start_param) {
+          setStartParam(tg.initDataUnsafe.start_param)
+        }
         
         // Initialiser Telegram WebApp
         tg.ready()
@@ -105,6 +133,17 @@ export default function TelegramProvider({ children }: { children: React.ReactNo
             setWebApp(tg)
             setIsTelegram(true)
             setTheme(tg.colorScheme || 'dark')
+            
+            // Récupérer les données de l'utilisateur
+            if (tg.initDataUnsafe?.user) {
+              setUser(tg.initDataUnsafe.user)
+            }
+            
+            // Récupérer le paramètre de démarrage
+            if (tg.initDataUnsafe?.start_param) {
+              setStartParam(tg.initDataUnsafe.start_param)
+            }
+            
             tg.ready()
             tg.expand()
             document.documentElement.classList.add('telegram-app')
@@ -112,7 +151,7 @@ export default function TelegramProvider({ children }: { children: React.ReactNo
           }
         }}
       />
-      <TelegramContext.Provider value={{ webApp, isTelegram, theme }}>
+      <TelegramContext.Provider value={{ webApp, isTelegram, theme, user, startParam }}>
         {children}
       </TelegramContext.Provider>
     </>

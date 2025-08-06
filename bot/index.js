@@ -106,9 +106,32 @@ if (!isRender) {
 const userStates = new Map();
 
 // Connexion à MongoDB
-mongoose.connect(process.env.MONGODB_URI)
-  .then(() => console.log('✅ Connected to MongoDB'))
-  .catch(err => console.error('❌ MongoDB connection error:', err));
+// Fonction pour synchroniser tous les utilisateurs au démarrage
+async function syncAllUsersAtStartup() {
+  try {
+    console.log('🔄 Synchronisation des utilisateurs au démarrage...');
+    const { syncAllUsers } = require('./utils/userSync');
+    const result = await syncAllUsers();
+    console.log(`✅ Synchronisation terminée: ${result.synced} utilisateurs synchronisés`);
+  } catch (error) {
+    console.error('❌ Erreur lors de la synchronisation au démarrage:', error.message);
+  }
+}
+
+// Démarrer le bot
+mongoose.connect(process.env.MONGODB_URI || 'mongodb+srv://juniorakz:w7q4GYF4NsXpGqUw@plgscrtf.tp0afas.mongodb.net/?retryWrites=true&w=majority&appName=PLGSCRTF')
+  .then(async () => {
+    console.log('✅ Connecté à MongoDB');
+    
+    // Synchroniser tous les utilisateurs au démarrage
+    await syncAllUsersAtStartup();
+    
+    bot.launch();
+    console.log('🤖 Bot démarré avec succès!');
+  })
+  .catch(err => {
+    console.error('❌ Erreur de connexion MongoDB:', err);
+  });
 
 // Serveur Express avec API
 const app = express();

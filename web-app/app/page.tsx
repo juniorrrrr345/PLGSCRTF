@@ -5,8 +5,10 @@ import { motion } from 'framer-motion'
 import Link from 'next/link'
 import useSWR from 'swr'
 import { ArrowRightIcon } from '@heroicons/react/24/outline'
+import { useSearchParams } from 'next/navigation'
 
 import { useTelegram } from '@/components/TelegramProvider'
+import UserShop from '@/components/UserShop'
 
 const fetcher = (url: string) => fetch(url).then(res => res.json())
 
@@ -15,7 +17,34 @@ export default function Home() {
     refreshInterval: 5000
   })
 
-  const { isTelegram } = useTelegram()
+  const { isTelegram, user: telegramUser, startParam } = useTelegram()
+  const searchParams = useSearchParams()
+  const [userTelegramId, setUserTelegramId] = useState<string | null>(null)
+
+  useEffect(() => {
+    // Vérifier d'abord les paramètres d'URL
+    const userParam = searchParams.get('user')
+    if (userParam) {
+      setUserTelegramId(userParam)
+      return
+    }
+
+    // Si on a un startParam depuis Telegram (contient l'ID de l'utilisateur)
+    if (startParam) {
+      setUserTelegramId(startParam)
+      return
+    }
+
+    // Si on est dans Telegram et qu'on a un utilisateur, utiliser son ID
+    if (isTelegram && telegramUser?.id) {
+      setUserTelegramId(telegramUser.id.toString())
+    }
+  }, [searchParams, isTelegram, telegramUser, startParam])
+
+  // Si on a un ID d'utilisateur, afficher sa boutique
+  if (userTelegramId) {
+    return <UserShop telegramId={userTelegramId} />
+  }
 
   // Classes adaptées pour Telegram
   const heroTitle = isTelegram ? "text-3xl sm:text-4xl" : "text-4xl sm:text-5xl md:text-6xl lg:text-7xl"

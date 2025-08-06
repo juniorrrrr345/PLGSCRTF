@@ -65,10 +65,17 @@ async function handleStart(bot, msg, param) {
       
       await user.save();
       
-      // Synchroniser le nouvel utilisateur avec la boutique web
-      syncUserToWebApp(user).catch(err => {
+      // Synchroniser le nouvel utilisateur avec la boutique web de manière synchrone
+      try {
+        await syncUserToWebApp(user);
+        console.log(`✅ Nouvel utilisateur ${username} synchronisé avec la boutique`);
+        
+        // Forcer le rafraîchissement du compteur immédiatement
+        const { refreshUserCount } = require('../utils/userSync');
+        await refreshUserCount();
+      } catch (err) {
         console.error('Erreur sync nouvel utilisateur:', err);
-      });
+      }
     } else {
       // Mettre à jour les informations si elles ont changé
       let needsUpdate = false;
@@ -88,10 +95,13 @@ async function handleStart(bot, msg, param) {
       
       if (needsUpdate) {
         await user.save();
-        // Synchroniser les mises à jour avec la boutique web
-        syncUserToWebApp(user).catch(err => {
+        // Synchroniser les mises à jour avec la boutique web de manière synchrone
+        try {
+          await syncUserToWebApp(user);
+          console.log(`✅ Utilisateur ${username} mis à jour et synchronisé`);
+        } catch (err) {
           console.error('Erreur sync mise à jour utilisateur:', err);
-        });
+        }
       }
     }
     
@@ -184,8 +194,30 @@ async function showMainMenu(bot, chatId, userId = null) {
   
   const settings = await Settings.findOne();
   
-  // Compter le nombre d'utilisateurs
-  const userCount = await User.countDocuments() || 0;
+  // Récupérer le nombre d'utilisateurs depuis la boutique web pour garantir la cohérence
+  let userCount = 0;
+  try {
+    const axios = require('axios');
+    const webAppUrl = process.env.WEB_APP_URL || 'https://plgscrtf.vercel.app';
+    
+    // Petit délai pour s'assurer que la synchronisation est terminée
+    await new Promise(resolve => setTimeout(resolve, 500));
+    
+    // Utiliser l'endpoint force-count qui garantit pas de cache
+    const response = await axios.get(`${webAppUrl}/api/users/force-count?t=${Date.now()}`, { 
+      timeout: 5000,
+      headers: {
+        'Cache-Control': 'no-cache',
+        'Pragma': 'no-cache'
+      }
+    });
+    userCount = response.data.count || 0;
+    console.log(`📊 Compteur récupéré depuis la boutique (sans cache): ${userCount}`);
+  } catch (error) {
+    // En cas d'erreur, utiliser le compteur local
+    console.log('⚠️ Impossible de récupérer le compteur web, utilisation du compteur local');
+    userCount = await User.countDocuments() || 0;
+  }
   
   const welcomeMessage = settings?.welcomeMessage || 
     '🔌 <b>Bienvenue sur PLUGS CRTFS !</b>\n\nLa marketplace exclusive des vendeurs certifiés.';
@@ -196,9 +228,12 @@ async function showMainMenu(bot, chatId, userId = null) {
   // Utiliser le texte personnalisé pour le bouton Mini App
   const miniAppButtonText = settings?.miniAppButtonText || '🔌 MINI APP PLGS CRTFS';
   
+  // Ajouter l'ID de l'utilisateur au lien de la Mini App
+  const miniAppUrl = userId ? `https://t.me/PLGSCRTF_BOT/miniapp?startapp=${userId}` : 'https://t.me/PLGSCRTF_BOT/miniapp';
+  
   const keyboard = {
     inline_keyboard: [
-      [{ text: miniAppButtonText, url: 'https://t.me/PLGSCRTF_BOT/miniapp' }],
+      [{ text: miniAppButtonText, url: miniAppUrl }],
       [{ text: '🔌 PLUGS CRTFS', callback_data: 'plugs' }],
       [{ text: '🏆 Top Parrains', callback_data: 'referrals' }],
       [{ text: '✅ Devenir Certifié', callback_data: 'apply' }],

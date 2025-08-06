@@ -1,5 +1,6 @@
 const Plug = require('../models/Plug');
 const User = require('../models/User');
+const { syncPlugToWebApp } = require('../utils/plugSync');
 
 // Fonction pour obtenir le drapeau d'un pays
 function getCountryFlag(countryCode) {
@@ -618,6 +619,13 @@ async function handleLike(bot, callbackQuery, plugId) {
       { new: true }
     );
     
+    // Synchroniser avec la boutique web
+    if (plug && plug.createdBy) {
+      syncPlugToWebApp(plug, plug.createdBy).catch(err => {
+        console.error('Erreur sync plug après like:', err);
+      });
+    }
+    
     if (!plug) {
       await bot.answerCallbackQuery(callbackQuery.id, {
         text: '❌ Plug introuvable',
@@ -663,6 +671,13 @@ async function handleLike(bot, callbackQuery, plugId) {
       if (statIndex >= 0) {
         plug.referralStats[statIndex].votes += 1;
         await plug.save();
+        
+        // Synchroniser avec la boutique web après mise à jour des stats
+        if (plug.createdBy) {
+          syncPlugToWebApp(plug, plug.createdBy).catch(err => {
+            console.error('Erreur sync plug après vote referral:', err);
+          });
+        }
       }
     }
     

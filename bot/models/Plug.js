@@ -78,6 +78,10 @@ const plugSchema = new mongoose.Schema({
     type: Boolean,
     default: false
   },
+  createdBy: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'User'
+  },
   createdAt: {
     type: Date,
     default: Date.now
