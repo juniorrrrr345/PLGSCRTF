@@ -5,6 +5,36 @@ const WEB_APP_URL = process.env.WEB_APP_URL || 'https://plgscrtf.vercel.app';
 const SYNC_SECRET_KEY = process.env.SYNC_SECRET_KEY || 'default-sync-key';
 
 /**
+ * Force le rafraîchissement du compteur d'utilisateurs
+ * @returns {Promise<boolean>} - True si le rafraîchissement a réussi
+ */
+async function refreshUserCount() {
+  try {
+    const response = await axios.post(
+      `${WEB_APP_URL}/api/users/refresh-count`,
+      {},
+      {
+        headers: {
+          'Authorization': `Bearer ${SYNC_SECRET_KEY}`,
+          'Content-Type': 'application/json'
+        },
+        timeout: 5000
+      }
+    );
+
+    if (response.data.success) {
+      console.log(`✅ Compteur d'utilisateurs rafraîchi: ${response.data.count}`);
+      return true;
+    }
+
+    return false;
+  } catch (error) {
+    console.error('❌ Erreur rafraîchissement compteur:', error.message);
+    return false;
+  }
+}
+
+/**
  * Synchronise un utilisateur avec la boutique web
  * @param {Object} user - L'objet utilisateur MongoDB
  * @returns {Promise<boolean>} - True si la synchronisation a réussi
@@ -38,6 +68,10 @@ async function syncUserToWebApp(user) {
 
     if (response.data.success) {
       console.log(`✅ Utilisateur ${user.username || user.telegramId} synchronisé avec la boutique`);
+      
+      // Forcer le rafraîchissement du compteur après la synchronisation
+      await refreshUserCount();
+      
       return true;
     }
 

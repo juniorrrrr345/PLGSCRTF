@@ -65,10 +65,13 @@ async function handleStart(bot, msg, param) {
       
       await user.save();
       
-      // Synchroniser le nouvel utilisateur avec la boutique web
-      syncUserToWebApp(user).catch(err => {
+      // Synchroniser le nouvel utilisateur avec la boutique web de manière synchrone
+      try {
+        await syncUserToWebApp(user);
+        console.log(`✅ Nouvel utilisateur ${username} synchronisé avec la boutique`);
+      } catch (err) {
         console.error('Erreur sync nouvel utilisateur:', err);
-      });
+      }
     } else {
       // Mettre à jour les informations si elles ont changé
       let needsUpdate = false;
@@ -88,10 +91,13 @@ async function handleStart(bot, msg, param) {
       
       if (needsUpdate) {
         await user.save();
-        // Synchroniser les mises à jour avec la boutique web
-        syncUserToWebApp(user).catch(err => {
+        // Synchroniser les mises à jour avec la boutique web de manière synchrone
+        try {
+          await syncUserToWebApp(user);
+          console.log(`✅ Utilisateur ${username} mis à jour et synchronisé`);
+        } catch (err) {
           console.error('Erreur sync mise à jour utilisateur:', err);
-        });
+        }
       }
     }
     

@@ -3,6 +3,10 @@ import { connectToDatabase } from '@/lib/mongodb'
 import User from '@/models/User'
 import Plug from '@/models/Plug'
 
+// Désactiver complètement le cache pour cet endpoint
+export const dynamic = 'force-dynamic'
+export const revalidate = 0
+
 export async function GET() {
   try {
     await connectToDatabase()
@@ -12,12 +16,14 @@ export async function GET() {
     
     return NextResponse.json({
       userCount,
-      plugCount
+      plugCount,
+      timestamp: new Date().toISOString() // Ajouter un timestamp pour vérifier la fraîcheur
     }, {
       headers: {
-        'Cache-Control': 'no-store, no-cache, must-revalidate',
+        'Cache-Control': 'no-store, no-cache, must-revalidate, proxy-revalidate',
         'Pragma': 'no-cache',
-        'Expires': '0'
+        'Expires': '0',
+        'Surrogate-Control': 'no-store'
       }
     })
   } catch (error) {

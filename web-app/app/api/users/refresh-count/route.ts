@@ -3,55 +3,37 @@ import { connectToDatabase } from '@/lib/mongodb'
 import User from '@/models/User'
 import { revalidatePath } from 'next/cache'
 
-export const dynamic = 'force-dynamic'
-export const revalidate = 0
-
-export async function GET() {
+export async function POST(request: Request) {
   try {
-    // Forcer une nouvelle connexion
+    // Vérifier la clé secrète pour les appels depuis le bot
+    const authHeader = request.headers.get('authorization')
+    const secretKey = process.env.SYNC_SECRET_KEY || 'default-sync-key'
+    
+    // Permettre l'appel avec la clé secrète ou sans (pour les appels internes)
+    const isAuthorized = !authHeader || authHeader === `Bearer ${secretKey}`
+    
+    if (!isAuthorized) {
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+    }
+    
     await connectToDatabase()
     
-    // Compter directement sans cache
-    const userCount = await User.countDocuments({})
+    const userCount = await User.countDocuments()
     
-    // Obtenir aussi les 5 derniers utilisateurs pour vérification
-    const recentUsers = await User.find()
-      .sort({ joinedAt: -1 })
-      .limit(5)
-      .select('telegramId username firstName joinedAt')
-    
-    // Revalider les chemins qui utilisent le comptage
-    try {
-      revalidatePath('/api/users/count')
-      revalidatePath('/api/stats')
-      revalidatePath('/')
-    } catch (e) {
-      console.log('Revalidation paths:', e)
-    }
+    // Forcer le rafraîchissement du cache
+    revalidatePath('/api/stats')
+    revalidatePath('/api/users/count')
+    revalidatePath('/')
     
     return NextResponse.json({
       count: userCount,
-      recentUsers: recentUsers.map(u => ({
-        telegramId: u.telegramId,
-        username: u.username,
-        firstName: u.firstName,
-        joinedAt: u.joinedAt
-      })),
-      timestamp: new Date().toISOString(),
-      success: true
-    }, {
-      headers: {
-        'Cache-Control': 'no-store, no-cache, must-revalidate, proxy-revalidate',
-        'Pragma': 'no-cache',
-        'Expires': '0',
-        'Surrogate-Control': 'no-store',
-        'X-Vercel-Cache': 'MISS'
-      }
+      success: true,
+      message: 'Count refreshed successfully'
     })
   } catch (error) {
-    console.error('User refresh count API error:', error)
+    console.error('Refresh count error:', error)
     return NextResponse.json(
-      { error: 'Failed to refresh user count', success: false },
+      { error: 'Failed to refresh count' },
       { status: 500 }
     )
   }
