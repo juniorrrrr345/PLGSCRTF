@@ -1,85 +1,135 @@
-require('dotenv').config({ path: './bot/.env' });
+require('dotenv').config();
 const mongoose = require('mongoose');
-const { syncAllUsers } = require('./bot/utils/userSync');
+const axios = require('axios');
 
-async function performFullSync() {
+// Configuration
+const MONGODB_URI = process.env.MONGODB_URI;
+const WEB_APP_URL = process.env.WEB_APP_URL || 'https://plgscrtf.vercel.app';
+const SYNC_SECRET_KEY = process.env.SYNC_SECRET_KEY || 'default-sync-key';
+
+// Importer les modèles
+const User = require('./bot/models/User');
+
+async function syncAllUsers() {
   try {
     // Connexion à MongoDB
-    console.log('🔌 Connexion à MongoDB...');
-    await mongoose.connect(process.env.MONGODB_URI || 'mongodb+srv://juniorakz:w7q4GYF4NsXpGqUw@plgscrtf.tp0afas.mongodb.net/?retryWrites=true&w=majority&appName=PLGSCRTF');
-    console.log('✅ Connecté à MongoDB\n');
-    
-    // Vérifier d'abord les comptes
-    const User = require('./bot/models/User');
-    const axios = require('axios');
-    
-    const botUserCount = await User.countDocuments();
-    console.log(`🤖 Bot Telegram: ${botUserCount} utilisateurs`);
-    
-    // Vérifier la boutique
-    const webAppUrl = process.env.WEB_APP_URL || 'https://plgscrtf.vercel.app';
-    try {
-      const response = await axios.get(`${webAppUrl}/api/users/count`);
-      const webUserCount = response.data.count;
-      console.log(`🛍️  Boutique Web: ${webUserCount} utilisateurs`);
-      console.log(`📊 Différence: ${botUserCount - webUserCount} utilisateurs\n`);
-    } catch (error) {
-      console.log('⚠️  Impossible de vérifier le compte de la boutique\n');
-    }
-    
-    // Demander confirmation
-    console.log('🔄 Début de la synchronisation complète...\n');
-    
-    // Effectuer la synchronisation
-    const result = await syncAllUsers();
-    
-    console.log('\n📊 Résultat de la synchronisation:');
-    console.log(`   Total traité: ${result.total}`);
-    console.log(`   ✅ Synchronisés: ${result.synced}`);
-    console.log(`   ❌ Échecs: ${result.failed}`);
-    
-    if (result.failed > 0) {
-      console.log('\n⚠️  Certains utilisateurs n\'ont pas pu être synchronisés.');
-      console.log('   Vérifiez les logs pour plus de détails.');
-    }
-    
-    // Vérifier à nouveau les comptes après synchronisation
-    console.log('\n🔍 Vérification après synchronisation...');
-    
-    try {
-      const response = await axios.get(`${webAppUrl}/api/users/count`);
-      const newWebUserCount = response.data.count;
-      console.log(`🤖 Bot Telegram: ${botUserCount} utilisateurs`);
-      console.log(`🛍️  Boutique Web: ${newWebUserCount} utilisateurs`);
+    await mongoose.connect(MONGODB_URI);
+    console.log('✅ Connecté à MongoDB');
+
+    // Récupérer TOUS les utilisateurs du bot
+    const botUsers = await User.find({}).sort({ joinedAt: -1 });
+    console.log(`\n📱 Bot Telegram: ${botUsers.length} utilisateurs trouvés`);
+
+    // Vérifier le nombre d'utilisateurs dans la boutique web
+    const statsResponse = await axios.get(`${WEB_APP_URL}/api/stats`);
+    const webUserCount = statsResponse.data.userCount;
+    console.log(`🌐 Boutique Vercel: ${webUserCount} utilisateurs actuellement`);
+    console.log(`⚠️  Différence: ${botUsers.length - webUserCount} utilisateurs à synchroniser\n`);
+
+    let synced = 0;
+    let failed = 0;
+    const errors = [];
+
+    console.log('🔄 Début de la synchronisation...\n');
+
+    // Synchroniser chaque utilisateur
+    for (let i = 0; i < botUsers.length; i++) {
+      const user = botUsers[i];
+      const displayName = user.username || user.firstName || `ID:${user.telegramId}`;
       
-      if (botUserCount === newWebUserCount) {
-        console.log('\n✅ Parfait ! Les deux systèmes sont maintenant synchronisés.');
-      } else {
-        const diff = botUserCount - newWebUserCount;
-        console.log(`\n⚠️  Il reste une différence de ${Math.abs(diff)} utilisateurs.`);
-        if (result.failed > 0) {
-          console.log('   Cela correspond probablement aux échecs de synchronisation.');
+      try {
+        const userData = {
+          telegramId: user.telegramId,
+          username: user.username,
+          firstName: user.firstName,
+          lastName: user.lastName,
+          referredBy: user.referredBy,
+          hasBeenCountedAsReferral: user.hasBeenCountedAsReferral,
+          lastLikeAt: user.lastLikeAt,
+          likedPlugs: user.likedPlugs || [],
+          joinedAt: user.joinedAt,
+          isAdmin: user.isAdmin || false,
+          referralCount: user.referralCount || 0
+        };
+
+        const response = await axios.post(
+          `${WEB_APP_URL}/api/users/sync`,
+          userData,
+          {
+            headers: {
+              'Authorization': `Bearer ${SYNC_SECRET_KEY}`,
+              'Content-Type': 'application/json'
+            },
+            timeout: 10000
+          }
+        );
+
+        if (response.data.success) {
+          synced++;
+          console.log(`✅ [${i + 1}/${botUsers.length}] ${displayName} synchronisé`);
+        } else {
+          failed++;
+          errors.push(`${displayName}: Réponse négative du serveur`);
+          console.log(`❌ [${i + 1}/${botUsers.length}] ${displayName} - Échec`);
         }
+      } catch (error) {
+        failed++;
+        const errorMsg = error.response?.data?.error || error.message;
+        errors.push(`${displayName}: ${errorMsg}`);
+        console.log(`❌ [${i + 1}/${botUsers.length}] ${displayName} - Erreur: ${errorMsg}`);
       }
-    } catch (error) {
-      console.log('\n⚠️  Impossible de vérifier le résultat final');
+
+      // Pause entre les requêtes pour éviter de surcharger le serveur
+      if (i % 10 === 0 && i > 0) {
+        await new Promise(resolve => setTimeout(resolve, 500));
+      }
     }
+
+    console.log('\n📊 Résumé de la synchronisation:');
+    console.log(`✅ Synchronisés avec succès: ${synced}/${botUsers.length}`);
+    console.log(`❌ Échecs: ${failed}`);
+
+    if (errors.length > 0) {
+      console.log('\n❌ Détails des erreurs:');
+      errors.forEach(err => console.log(`   - ${err}`));
+    }
+
+    // Vérifier le nouveau compteur
+    console.log('\n🔍 Vérification finale...');
+    await new Promise(resolve => setTimeout(resolve, 2000));
     
+    const finalStatsResponse = await axios.get(`${WEB_APP_URL}/api/stats`);
+    const finalWebCount = finalStatsResponse.data.userCount;
+    
+    console.log(`\n📱 Bot Telegram: ${botUsers.length} utilisateurs`);
+    console.log(`🌐 Boutique Vercel: ${finalWebCount} utilisateurs`);
+    
+    if (botUsers.length === finalWebCount) {
+      console.log('\n✅ SUCCÈS ! Les compteurs sont maintenant synchronisés !');
+    } else {
+      console.log(`\n⚠️  Il reste une différence de ${Math.abs(botUsers.length - finalWebCount)} utilisateurs`);
+      console.log('   Relancez le script ou vérifiez les logs pour plus de détails.');
+    }
+
+    // Déconnexion
+    await mongoose.disconnect();
+    console.log('\n✅ Déconnecté de MongoDB');
+
   } catch (error) {
-    console.error('\n❌ Erreur:', error);
-  } finally {
-    await mongoose.connection.close();
-    console.log('\n🔌 Connexion fermée');
+    console.error('\n❌ Erreur fatale:', error.message);
+    if (error.response) {
+      console.error('Détails:', error.response.data);
+    }
+    process.exit(1);
   }
 }
 
-// Message d'avertissement
-console.log('🚨 SYNCHRONISATION COMPLÈTE DES UTILISATEURS 🚨\n');
-console.log('Ce script va synchroniser TOUS les utilisateurs du bot');
-console.log('vers la boutique web. Cela peut prendre du temps.\n');
-console.log('Appuyez sur Ctrl+C pour annuler, ou attendez 5 secondes pour continuer...\n');
+// Vérifier les variables d'environnement
+if (!MONGODB_URI) {
+  console.error('❌ MONGODB_URI non défini dans le fichier .env');
+  process.exit(1);
+}
 
-// Attendre 5 secondes avant de commencer
-setTimeout(() => {
-  performFullSync();
-}, 5000);
+// Lancer la synchronisation
+console.log('🚀 Script de synchronisation des utilisateurs Bot → Boutique Vercel\n');
+syncAllUsers();

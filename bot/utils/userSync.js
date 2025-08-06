@@ -155,5 +155,6 @@ async function syncAllUsers() {
 module.exports = {
   syncUserToWebApp,
   deleteUserFromWebApp,
-  syncAllUsers
+  syncAllUsers,
+  refreshUserCount
 };
