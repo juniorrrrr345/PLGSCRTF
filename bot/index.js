@@ -37,13 +37,13 @@ if (isRender) {
   
   // Configurer le webhook avec le bon URL
   const webhookPath = `/bot${process.env.TELEGRAM_BOT_TOKEN}`;
-  const webhookUrl = `https://plgscrtf.onrender.com${webhookPath}`;
+  const webhookUrl = `${process.env.WEBHOOK_URL || 'https://plgscrtf.onrender.com'}${webhookPath}`;
   
   // Définir le webhook après un court délai pour s'assurer que le serveur est prêt
   setTimeout(() => {
     bot.setWebHook(webhookUrl).then(() => {
       console.log(`✅ Webhook configuré avec succès`);
-      console.log(`📍 URL: https://plgscrtf.onrender.com/bot${process.env.TELEGRAM_BOT_TOKEN.substring(0, 10)}...`);
+      console.log(`📍 URL: ${process.env.WEBHOOK_URL || 'https://plgscrtf.onrender.com'}/bot${process.env.TELEGRAM_BOT_TOKEN.substring(0, 10)}...`);
     }).catch(err => {
       console.error('❌ Erreur configuration webhook:', err);
     });
