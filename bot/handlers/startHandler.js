@@ -69,6 +69,10 @@ async function handleStart(bot, msg, param) {
       try {
         await syncUserToWebApp(user);
         console.log(`✅ Nouvel utilisateur ${username} synchronisé avec la boutique`);
+        
+        // Forcer le rafraîchissement du compteur immédiatement
+        const { refreshUserCount } = require('../utils/userSync');
+        await refreshUserCount();
       } catch (err) {
         console.error('Erreur sync nouvel utilisateur:', err);
       }
@@ -195,9 +199,20 @@ async function showMainMenu(bot, chatId, userId = null) {
   try {
     const axios = require('axios');
     const webAppUrl = process.env.WEB_APP_URL || 'https://plgscrtf.vercel.app';
-    const response = await axios.get(`${webAppUrl}/api/stats`, { timeout: 3000 });
-    userCount = response.data.userCount || 0;
-    console.log(`📊 Compteur récupéré depuis la boutique: ${userCount}`);
+    
+    // Petit délai pour s'assurer que la synchronisation est terminée
+    await new Promise(resolve => setTimeout(resolve, 500));
+    
+    // Utiliser l'endpoint force-count qui garantit pas de cache
+    const response = await axios.get(`${webAppUrl}/api/users/force-count?t=${Date.now()}`, { 
+      timeout: 5000,
+      headers: {
+        'Cache-Control': 'no-cache',
+        'Pragma': 'no-cache'
+      }
+    });
+    userCount = response.data.count || 0;
+    console.log(`📊 Compteur récupéré depuis la boutique (sans cache): ${userCount}`);
   } catch (error) {
     // En cas d'erreur, utiliser le compteur local
     console.log('⚠️ Impossible de récupérer le compteur web, utilisation du compteur local');
