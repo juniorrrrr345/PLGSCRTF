@@ -36,14 +36,15 @@ if (isRender) {
   bot = new TelegramBot(process.env.TELEGRAM_BOT_TOKEN, { webHook: true });
   
   // Configurer le webhook avec le bon URL
+  const baseUrl = (process.env.WEBHOOK_URL || 'https://plgscrtf.onrender.com').replace(/\/$/, ''); // Enlever le / final s'il existe
   const webhookPath = `/bot${process.env.TELEGRAM_BOT_TOKEN}`;
-  const webhookUrl = `${process.env.WEBHOOK_URL || 'https://plgscrtf.onrender.com'}${webhookPath}`;
+  const webhookUrl = `${baseUrl}${webhookPath}`;
   
   // Définir le webhook après un court délai pour s'assurer que le serveur est prêt
   setTimeout(() => {
     bot.setWebHook(webhookUrl).then(() => {
       console.log(`✅ Webhook configuré avec succès`);
-      console.log(`📍 URL: ${process.env.WEBHOOK_URL || 'https://plgscrtf.onrender.com'}/bot${process.env.TELEGRAM_BOT_TOKEN.substring(0, 10)}...`);
+      console.log(`📍 URL: ${baseUrl}/bot${process.env.TELEGRAM_BOT_TOKEN.substring(0, 10)}...`);
     }).catch(err => {
       console.error('❌ Erreur configuration webhook:', err);
     });
