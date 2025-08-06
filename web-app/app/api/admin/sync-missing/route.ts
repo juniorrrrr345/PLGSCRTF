@@ -16,6 +16,14 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
 
+    // Vérifier que l'URI MongoDB est définie
+    if (!BOT_MONGODB_URI) {
+      return NextResponse.json({ 
+        error: 'MongoDB URI not configured',
+        details: 'BOT_MONGODB_URI environment variable is missing' 
+      }, { status: 500 })
+    }
+
     // Connexion à la base de données de la boutique
     await connectToDatabase()
     
