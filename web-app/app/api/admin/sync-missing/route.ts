@@ -6,6 +6,21 @@ import mongoose from 'mongoose'
 // Configuration pour la connexion au bot
 const BOT_MONGODB_URI = process.env.MONGODB_URI || process.env.BOT_MONGODB_URI
 
+// Type pour les utilisateurs du bot
+interface BotUser {
+  telegramId: string | number
+  username?: string
+  firstName?: string
+  lastName?: string
+  referredBy?: string
+  hasBeenCountedAsReferral?: boolean
+  lastLikeAt?: Date
+  likedPlugs?: string[]
+  joinedAt?: Date
+  isAdmin?: boolean
+  referralCount?: number
+}
+
 export async function POST(request: Request) {
   try {
     // Vérifier l'autorisation admin
@@ -38,7 +53,7 @@ export async function POST(request: Request) {
     const botUserCount = await BotUser.countDocuments()
     
     // Récupérer tous les utilisateurs du bot
-    const botUsers = await BotUser.find({})
+    const botUsers = await BotUser.find({}) as unknown as BotUser[]
     
     // Récupérer les IDs des utilisateurs de la boutique
     const webUserIds = new Set(
@@ -50,11 +65,12 @@ export async function POST(request: Request) {
     const missingUsers = []
     
     for (const botUser of botUsers) {
-      if (!webUserIds.has(botUser.telegramId.toString())) {
+      const telegramIdStr = String(botUser.telegramId)
+      if (!webUserIds.has(telegramIdStr)) {
         // Créer l'utilisateur dans la boutique
         try {
           await User.create({
-            telegramId: botUser.telegramId,
+            telegramId: telegramIdStr,
             username: botUser.username,
             firstName: botUser.firstName,
             lastName: botUser.lastName,
@@ -68,11 +84,11 @@ export async function POST(request: Request) {
           })
           synced++
           missingUsers.push({
-            telegramId: botUser.telegramId,
+            telegramId: telegramIdStr,
             username: botUser.username || botUser.firstName || 'Unknown'
           })
         } catch (error) {
-          console.error(`Failed to sync user ${botUser.telegramId}:`, error)
+          console.error(`Failed to sync user ${telegramIdStr}:`, error)
         }
       }
     }
