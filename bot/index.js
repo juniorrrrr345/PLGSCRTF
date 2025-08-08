@@ -235,6 +235,35 @@ app.listen(PORT, () => {
   console.log(`🌐 Server listening on port ${PORT}`);
 });
 
+// Fonction de synchronisation périodique
+async function periodicSync() {
+  try {
+    const { syncAllUsers } = require('./utils/userSync');
+    console.log('🔄 Synchronisation périodique automatique...');
+    
+    // Compter avant
+    const botCount = await User.countDocuments();
+    console.log(`📊 Nombre d'utilisateurs dans le bot: ${botCount}`);
+    
+    // Synchroniser
+    const result = await syncAllUsers();
+    
+    if (result.failed > 0) {
+      console.log(`⚠️ ${result.failed} utilisateurs n'ont pas pu être synchronisés`);
+    } else {
+      console.log('✅ Synchronisation périodique terminée avec succès');
+    }
+  } catch (error) {
+    console.error('❌ Erreur lors de la synchronisation périodique:', error);
+  }
+}
+
+// Lancer la synchronisation périodique toutes les 5 minutes
+setInterval(periodicSync, 5 * 60 * 1000);
+
+// Synchronisation initiale au démarrage
+setTimeout(periodicSync, 10000); // 10 secondes après le démarrage
+
 // Commande /start avec gestion des références
 bot.onText(/\/start(.*)/, async (msg, match) => {
   console.log('🚀 Commande /start reçue');

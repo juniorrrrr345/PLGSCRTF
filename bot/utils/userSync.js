@@ -5,11 +5,12 @@ const WEB_APP_URL = process.env.WEB_APP_URL || 'https://plgscrtf.vercel.app';
 const SYNC_SECRET_KEY = process.env.SYNC_SECRET_KEY || 'default-sync-key';
 
 /**
- * Synchronise un utilisateur avec la boutique web
+ * Synchronise un utilisateur avec la boutique web avec retry automatique
  * @param {Object} user - L'objet utilisateur MongoDB
+ * @param {number} retries - Nombre de tentatives restantes (par défaut 3)
  * @returns {Promise<boolean>} - True si la synchronisation a réussi
  */
-async function syncUserToWebApp(user) {
+async function syncUserToWebApp(user, retries = 3) {
   try {
     const userData = {
       telegramId: user.telegramId,
@@ -24,6 +25,8 @@ async function syncUserToWebApp(user) {
       isAdmin: user.isAdmin
     };
 
+    console.log(`🔄 Synchronisation de ${user.username || user.telegramId} (tentative ${4 - retries}/3)...`);
+
     const response = await axios.post(
       `${WEB_APP_URL}/api/users/sync`,
       userData,
@@ -32,18 +35,26 @@ async function syncUserToWebApp(user) {
           'Authorization': `Bearer ${SYNC_SECRET_KEY}`,
           'Content-Type': 'application/json'
         },
-        timeout: 5000 // 5 secondes de timeout
+        timeout: 10000 // 10 secondes de timeout
       }
     );
 
     if (response.data.success) {
-      console.log(`✅ Utilisateur ${user.username || user.telegramId} synchronisé avec la boutique`);
+      console.log(`✅ Utilisateur ${user.username || user.telegramId} synchronisé avec succès!`);
       return true;
     }
 
-    return false;
+    throw new Error('Réponse invalide de l\'API');
   } catch (error) {
     console.error(`❌ Erreur sync utilisateur ${user.username || user.telegramId}:`, error.message);
+    
+    if (retries > 1) {
+      console.log(`🔁 Nouvelle tentative dans 2 secondes...`);
+      await new Promise(resolve => setTimeout(resolve, 2000));
+      return syncUserToWebApp(user, retries - 1);
+    }
+    
+    console.error(`❌ Échec définitif de la synchronisation après 3 tentatives`);
     return false;
   }
 }

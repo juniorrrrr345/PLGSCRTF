@@ -65,10 +65,12 @@ async function handleStart(bot, msg, param) {
       
       await user.save();
       
-      // Synchroniser le nouvel utilisateur avec la boutique web
-      syncUserToWebApp(user).catch(err => {
-        console.error('Erreur sync nouvel utilisateur:', err);
-      });
+      // Synchroniser le nouvel utilisateur avec la boutique web et attendre le résultat
+      console.log('🔄 Synchronisation du nouvel utilisateur...');
+      const syncSuccess = await syncUserToWebApp(user);
+      if (!syncSuccess) {
+        console.error('⚠️ La synchronisation a échoué mais l\'utilisateur a été créé localement');
+      }
     } else {
       // Mettre à jour les informations si elles ont changé
       let needsUpdate = false;
@@ -89,9 +91,11 @@ async function handleStart(bot, msg, param) {
       if (needsUpdate) {
         await user.save();
         // Synchroniser les mises à jour avec la boutique web
-        syncUserToWebApp(user).catch(err => {
-          console.error('Erreur sync mise à jour utilisateur:', err);
-        });
+        console.log('🔄 Synchronisation des mises à jour utilisateur...');
+        const syncSuccess = await syncUserToWebApp(user);
+        if (!syncSuccess) {
+          console.error('⚠️ La synchronisation des mises à jour a échoué');
+        }
       }
     }
     
