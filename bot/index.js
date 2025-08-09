@@ -278,6 +278,72 @@ bot.onText(/\/start(.*)/, async (msg, match) => {
   }
 });
 
+// Commande /broadcast pour les admins
+bot.onText(/\/broadcast (.+)/, async (msg, match) => {
+  const chatId = msg.chat.id;
+  const message = match[1];
+  
+  try {
+    // Vérifier si l'utilisateur est admin
+    const settings = await Settings.findOne();
+    if (!settings || !settings.adminChatIds || !settings.adminChatIds.includes(chatId.toString())) {
+      await bot.sendMessage(chatId, '❌ Vous n\'êtes pas autorisé à utiliser cette commande.', { parse_mode: 'HTML' });
+      return;
+    }
+    
+    // Récupérer tous les utilisateurs actifs
+    const users = await User.find({ isActive: { $ne: false } });
+    
+    if (users.length === 0) {
+      await bot.sendMessage(chatId, '❌ Aucun utilisateur actif trouvé.', { parse_mode: 'HTML' });
+      return;
+    }
+    
+    // Envoyer un message de confirmation à l'admin
+    await bot.sendMessage(chatId, 
+      `📢 <b>Envoi du message à ${users.length} utilisateurs...</b>\n\n` +
+      `Message : ${message}`,
+      { parse_mode: 'HTML' }
+    );
+    
+    let sent = 0;
+    let failed = 0;
+    
+    // Envoyer le message à tous les utilisateurs
+    for (const user of users) {
+      try {
+        await bot.sendMessage(user.telegramId, 
+          `📢 <b>Message de l'administration :</b>\n\n${message}`,
+          { parse_mode: 'HTML' }
+        );
+        sent++;
+      } catch (error) {
+        console.error(`Erreur envoi à ${user.username || user.telegramId}:`, error.message);
+        failed++;
+      }
+      
+      // Petite pause pour éviter le flood
+      if (sent % 30 === 0) {
+        await new Promise(resolve => setTimeout(resolve, 1000));
+      }
+    }
+    
+    // Envoyer le rapport à l'admin
+    await bot.sendMessage(chatId,
+      `✅ <b>Envoi terminé !</b>\n\n` +
+      `📊 Statistiques :\n` +
+      `• Messages envoyés : ${sent}\n` +
+      `• Échecs : ${failed}\n` +
+      `• Total : ${users.length}`,
+      { parse_mode: 'HTML' }
+    );
+    
+  } catch (error) {
+    console.error('Erreur /broadcast:', error);
+    await bot.sendMessage(chatId, '❌ Erreur lors de l\'envoi du message.', { parse_mode: 'HTML' });
+  }
+});
+
 // Gestion des callback queries (IMPORTANT: éviter les doublons)
 bot.on('callback_query', async (callbackQuery) => {
   const chatId = callbackQuery.message.chat.id;
