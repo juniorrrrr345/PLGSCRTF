@@ -344,7 +344,7 @@ bot.on('callback_query', async (callbackQuery) => {
             caption: `ℹ️ <b>Informations</b>\n\n${message}`,
             parse_mode: 'HTML',
             reply_markup: {
-              inline_keyboard: [[{ text: '⬅️ Retour', callback_data: 'main_menu' }]]
+              inline_keyboard: [[{ text: '⬅️ RETOUR', callback_data: 'main_menu' }]]
             }
           });
         } catch (error) {
@@ -353,7 +353,7 @@ bot.on('callback_query', async (callbackQuery) => {
           await bot.sendMessage(chatId, `ℹ️ <b>Informations</b>\n\n${message}`, {
             parse_mode: 'HTML',
             reply_markup: {
-              inline_keyboard: [[{ text: '⬅️ Retour', callback_data: 'main_menu' }]]
+              inline_keyboard: [[{ text: '⬅️ RETOUR', callback_data: 'main_menu' }]]
             }
           });
         }
@@ -361,7 +361,7 @@ bot.on('callback_query', async (callbackQuery) => {
         await bot.sendMessage(chatId, `ℹ️ <b>Informations</b>\n\n${message}`, {
           parse_mode: 'HTML',
           reply_markup: {
-            inline_keyboard: [[{ text: '⬅️ Retour', callback_data: 'main_menu' }]]
+            inline_keyboard: [[{ text: '⬅️ RETOUR', callback_data: 'main_menu' }]]
           }
         });
       }
@@ -424,6 +424,24 @@ bot.on('callback_query', async (callbackQuery) => {
           { parse_mode: 'HTML' }
         );
       }
+    }
+    
+    // Afficher le lien de parrainage
+    else if (data.startsWith('show_referral_')) {
+      const parts = data.split('_');
+      const plugId = parts[2];
+      const referrerId = parts[3];
+      
+      const referralLink = `https://t.me/${process.env.TELEGRAM_BOT_USERNAME}?start=plug_${plugId}_${referrerId}`;
+      
+      await bot.sendMessage(chatId, 
+        `🔗 <b>Lien de parrainage :</b>\n\n<code>${referralLink}</code>\n\n` +
+        `📋 <i>Cliquez sur le lien pour le copier</i>`,
+        { 
+          parse_mode: 'HTML',
+          disable_web_page_preview: true
+        }
+      );
     }
     
     // Callback pour le séparateur (ne rien faire)

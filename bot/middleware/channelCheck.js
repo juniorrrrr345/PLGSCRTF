@@ -27,8 +27,8 @@ async function requireChannelMembership(bot, chatId, userId) {
     const { channelLink } = await getChannelConfig();
     const keyboard = {
       inline_keyboard: [
-        [{ text: '📢 Rejoindre le canal', url: channelLink }],
-        [{ text: '✅ J\'ai rejoint', callback_data: 'check_membership' }]
+        [{ text: '📢 REJOINDRE LE CANAL', url: channelLink }],
+        [{ text: '✅ J\'AI REJOINT', callback_data: 'check_membership' }]
       ]
     };
     

@@ -86,7 +86,7 @@ async function handleReferralMenu(bot, chatId) {
 
     
     keyboard.inline_keyboard.push([{ 
-      text: '⬅️ Retour au menu', 
+      text: '⬅️ RETOUR AU MENU', 
       callback_data: 'main_menu' 
     }]);
     
