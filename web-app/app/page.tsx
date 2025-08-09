@@ -3,18 +3,11 @@
 import { useEffect, useState } from 'react'
 import { motion } from 'framer-motion'
 import Link from 'next/link'
-import useSWR from 'swr'
 import { ArrowRightIcon } from '@heroicons/react/24/outline'
 
 import { useTelegram } from '@/components/TelegramProvider'
 
-const fetcher = (url: string) => fetch(url).then(res => res.json())
-
 export default function Home() {
-  const { data: stats } = useSWR('/api/stats', fetcher, {
-    refreshInterval: 5000
-  })
-
   const { isTelegram } = useTelegram()
 
   // Classes adaptées pour Telegram
@@ -83,28 +76,6 @@ export default function Home() {
             >
               Recherche Avancée
             </Link>
-          </motion.div>
-
-          {/* Stats Section */}
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.6, delay: 0.4 }}
-            className="flex justify-center mt-8 sm:mt-12"
-          >
-            <motion.div 
-              className="bg-gray-800/60 backdrop-blur-sm border-2 border-gray-700 rounded-xl p-3 sm:p-4 shadow-xl"
-              key={stats?.plugCount}
-              initial={{ scale: 1 }}
-              animate={{ scale: [1, 1.1, 1] }}
-              transition={{ duration: 0.3 }}
-            >
-              <div className={`${isTelegram ? 'text-2xl' : 'text-2xl sm:text-3xl'} font-bold text-white`}>
-                {stats?.plugCount || 0}
-              </div>
-              <div className={`${isTelegram ? 'text-xs' : 'text-sm sm:text-base'} text-gray-300 font-medium`}>Plugs Actifs</div>
-              <div className="text-xs text-green-400 mt-1">🟢 En temps réel</div>
-            </motion.div>
           </motion.div>
 
           {/* CTA Section avec meilleur espacement */}
