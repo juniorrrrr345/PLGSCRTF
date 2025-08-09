@@ -58,6 +58,7 @@ export default function ConfigPage() {
   
   // Form states
   const [welcomeMessage, setWelcomeMessage] = useState('')
+  const [infoText, setInfoText] = useState('')
   const [globalMessage, setGlobalMessage] = useState('')
   const [miniAppButtonText, setMiniAppButtonText] = useState('MINI APP PLGS CRTFS 🔌')
   const [socialNetworks, setSocialNetworks] = useState<any>({})
@@ -145,6 +146,7 @@ export default function ConfigPage() {
   useEffect(() => {
     if (settings) {
       setWelcomeMessage(settings.welcomeMessage || '')
+      setInfoText(settings.infoText || '')
       setMiniAppButtonText(settings.miniAppButtonText || 'MINI APP PLGS CRTFS 🔌')
       
       // Charger les réseaux sociaux du bot
@@ -261,7 +263,7 @@ export default function ConfigPage() {
       const res = await fetch('/api/settings', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ welcomeMessage, miniAppButtonText })
+        body: JSON.stringify({ welcomeMessage, infoText, miniAppButtonText })
       })
       
       if (res.ok) {
@@ -1661,6 +1663,27 @@ export default function ConfigPage() {
                       className="w-full px-4 py-3 bg-white/10 border border-white/20 rounded-lg focus:border-primary focus:outline-none transition-colors"
                       rows={4}
                       placeholder="Message d'accueil..."
+                    />
+                    <button
+                      onClick={handleSaveSettings}
+                      className="btn-primary mt-4"
+                    >
+                      Enregistrer
+                    </button>
+                  </div>
+                  
+                  {/* Info Text */}
+                  <div className="glass-card p-6">
+                    <h2 className="text-xl font-bold mb-4">ℹ️ Texte d'informations</h2>
+                    <p className="text-gray-400 mb-4">
+                      Ce texte s'affiche quand les utilisateurs cliquent sur "ℹ️ Informations" dans le menu du bot.
+                    </p>
+                    <textarea
+                      value={infoText}
+                      onChange={(e) => setInfoText(e.target.value)}
+                      className="w-full px-4 py-3 bg-white/10 border border-white/20 rounded-lg focus:border-primary focus:outline-none transition-colors"
+                      rows={6}
+                      placeholder="Entrez le texte d'informations..."
                     />
                     <button
                       onClick={handleSaveSettings}

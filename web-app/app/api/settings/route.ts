@@ -36,6 +36,7 @@ export async function POST(request: NextRequest) {
     if (data.welcomeMessage !== undefined) settings.welcomeMessage = data.welcomeMessage
     if (data.welcomeImage !== undefined) settings.welcomeImage = data.welcomeImage
     if (data.infoText !== undefined) settings.infoText = data.infoText
+    if (data.miniAppButtonText !== undefined) settings.miniAppButtonText = data.miniAppButtonText
     if (data.backgroundImage !== undefined) settings.backgroundImage = data.backgroundImage
     if (data.socialNetworks !== undefined) settings.socialNetworks = data.socialNetworks
     if (data.botSocialNetworks !== undefined) settings.botSocialNetworks = data.botSocialNetworks

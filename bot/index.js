@@ -335,7 +335,7 @@ bot.on('callback_query', async (callbackQuery) => {
     else if (data === 'info') {
       await bot.deleteMessage(chatId, messageId);
       const settings = await Settings.findOne();
-      const message = settings?.welcomeMessage || 'Bienvenue sur PLUGS CRTFS !';
+      const message = settings?.infoText || 'Bienvenue sur PLUGS CRTFS !';
       
       // Envoyer avec l'image d'accueil si elle existe
       if (settings?.welcomeImage) {
