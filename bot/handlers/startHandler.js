@@ -188,6 +188,9 @@ async function showMainMenu(bot, chatId, userId = null) {
   
   const settings = await Settings.findOne();
   
+  // Compter le nombre d'utilisateurs
+  const userCount = await User.countDocuments() || 0;
+  
   // Compter le nombre de plugs disponibles
   const Plug = require('../models/Plug');
   const plugCount = await Plug.countDocuments() || 0;
@@ -195,8 +198,8 @@ async function showMainMenu(bot, chatId, userId = null) {
   const welcomeMessage = settings?.welcomeMessage || 
     '🔌 <b>Bienvenue sur PLUGS CRTFS !</b>\n\nLa marketplace exclusive des vendeurs certifiés.';
   
-  // Ajouter le nombre de plugs au message
-  const messageWithPlugCount = `${welcomeMessage}\n\n🔌 <b>${plugCount} Plugs Disponibles</b> ✅`;
+  // Ajouter le nombre de plugs et d'utilisateurs au message
+  const messageWithStats = `${welcomeMessage}\n\n🔌 <b>${plugCount} Plugs Disponibles</b> ✅\n\n👥 <b>${userCount} utilisateurs</b> nous font déjà confiance !`;
   
   // Utiliser le texte personnalisé pour le bouton Mini App
   const miniAppButtonText = settings?.miniAppButtonText || '🔌 MINI APP PLGS CRTFS';
@@ -248,20 +251,20 @@ async function showMainMenu(bot, chatId, userId = null) {
   if (settings?.welcomeImage) {
     try {
       await bot.sendPhoto(chatId, settings.welcomeImage, {
-        caption: messageWithPlugCount,
+        caption: messageWithStats,
         parse_mode: 'HTML',
         reply_markup: keyboard
       });
     } catch (error) {
       console.error('Erreur envoi image:', error);
       // Si l'image échoue, envoyer juste le message
-      await bot.sendMessage(chatId, messageWithPlugCount, {
+      await bot.sendMessage(chatId, messageWithStats, {
         parse_mode: 'HTML',
         reply_markup: keyboard
       });
     }
   } else {
-    await bot.sendMessage(chatId, messageWithPlugCount, {
+    await bot.sendMessage(chatId, messageWithStats, {
       parse_mode: 'HTML',
       reply_markup: keyboard
     });
