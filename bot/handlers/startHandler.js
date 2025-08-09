@@ -32,7 +32,7 @@ async function handleStart(bot, msg, param) {
   
   try {
     // Supprimer les anciens messages du bot
-    await clearOldMessages(bot, chatId, msg.message_id);
+    // await clearOldMessages(bot, chatId, msg.message_id);
     
     // Créer ou mettre à jour l'utilisateur
     let user = await User.findOne({ telegramId: userId });
