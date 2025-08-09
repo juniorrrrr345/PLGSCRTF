@@ -417,6 +417,15 @@ async function handlePlugDetails(bot, chatId, plugId, fromMenu = 'plugs', userId
       keyboard.inline_keyboard.push([{ text: '━━━━━━━━━━━━━━━━', callback_data: 'separator' }]);
     }
     
+    // Ajouter le lien de parrainage pour tous les utilisateurs
+    const referralLink = plug.referralLink || `https://t.me/${process.env.TELEGRAM_BOT_USERNAME}?start=plug_${plug._id}`;
+    keyboard.inline_keyboard.push([
+      { text: '🔗 Lien de parrainage', url: referralLink }
+    ]);
+    
+    // Ajouter un autre séparateur après le lien de parrainage
+    keyboard.inline_keyboard.push([{ text: '━━━━━━━━━━━━━━━━', callback_data: 'separator' }]);
+    
     // Boutons d'action - Vérifier le temps restant pour le like
     const User = require('../models/User');
     const Vote = require('../models/Vote');
@@ -461,15 +470,6 @@ async function handlePlugDetails(bot, chatId, plugId, fromMenu = 'plugs', userId
         callback_data: isInCooldown ? `cooldown_${plug._id}` : `like_${plug._id}` 
       }
     ]);
-    
-    // Lien de parrainage (visible uniquement pour les admins)
-    const settings = await Settings.findOne();
-    if (settings && settings.adminChatIds && settings.adminChatIds.includes(chatId.toString())) {
-      const referralLink = plug.referralLink || `https://t.me/${process.env.TELEGRAM_BOT_USERNAME}?start=plug_${plug._id}`;
-      keyboard.inline_keyboard.push([
-        { text: '🔗 Lien de parrainage (Admin)', url: referralLink }
-      ]);
-    }
     
     // Navigation
     const backButton = fromMenu === 'top_referrals' 
