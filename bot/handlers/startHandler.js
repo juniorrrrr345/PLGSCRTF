@@ -4,18 +4,20 @@ const { requireChannelMembership } = require('../middleware/channelCheck');
 const { checkMaintenanceMode } = require('../middleware/maintenanceCheck');
 const { syncUserToWebApp } = require('../utils/userSync');
 
-// Fonction pour supprimer les anciens messages du bot
+// Fonction pour supprimer les anciens messages du bot uniquement
 async function clearOldMessages(bot, chatId, currentMessageId) {
   try {
-    // Essayer de supprimer les 10 derniers messages
-    // On commence par le message actuel et on remonte
-    for (let i = 0; i < 10; i++) {
+    // Essayer de supprimer les messages précédents du bot
+    // On commence à partir du message précédent (currentMessageId - 1)
+    for (let i = 1; i <= 10; i++) {
       const messageIdToDelete = currentMessageId - i;
       if (messageIdToDelete > 0) {
         try {
+          // Tenter de supprimer le message
+          // Si c'est un message de l'utilisateur, cela échouera silencieusement
           await bot.deleteMessage(chatId, messageIdToDelete);
         } catch (e) {
-          // Ignorer les erreurs (message déjà supprimé, pas un message du bot, etc.)
+          // Ignorer les erreurs (message de l'utilisateur, déjà supprimé, etc.)
         }
       }
     }
@@ -31,8 +33,8 @@ async function handleStart(bot, msg, param) {
   const username = msg.from.username || msg.from.first_name;
   
   try {
-    // Supprimer les anciens messages du bot
-    // await clearOldMessages(bot, chatId, msg.message_id);
+    // Supprimer les anciens messages du bot (mais pas la commande /start de l'utilisateur)
+    await clearOldMessages(bot, chatId, msg.message_id);
     
     // Créer ou mettre à jour l'utilisateur
     let user = await User.findOne({ telegramId: userId });
