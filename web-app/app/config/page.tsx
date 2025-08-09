@@ -306,8 +306,12 @@ export default function ConfigPage() {
       })
       
       if (res.ok) {
-        toast.success('Message envoyé à tous les utilisateurs !')
+        const result = await res.json()
+        toast.success(`Message envoyé ! ✅ ${result.sent} réussis, ❌ ${result.failed} échoués`)
         setGlobalMessage('')
+      } else {
+        const error = await res.json()
+        toast.error(error.error || 'Erreur lors de l\'envoi')
       }
     } catch (error) {
       toast.error('Erreur lors de l\'envoi')
