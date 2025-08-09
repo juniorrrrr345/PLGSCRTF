@@ -177,7 +177,7 @@ async function handlePlugsMenu(bot, chatId, filters = {}) {
     // Bouton pour réinitialiser les filtres (si des filtres sont actifs)
     if (filters.country || filters.method) {
       keyboard.inline_keyboard.push([{
-        text: '🔄 Réinitialiser les filtres',
+        text: '🔄 RÉINITIALISER LES FILTRES',
         callback_data: 'plugs'
       }]);
     }
@@ -215,7 +215,7 @@ async function handlePlugsMenu(bot, chatId, filters = {}) {
     
     // Bouton retour au menu principal
     keyboard.inline_keyboard.push([{
-      text: '⬅️ Retour au menu',
+      text: '⬅️ RETOUR AU MENU',
       callback_data: 'main_menu'
     }]);
     
@@ -418,9 +418,10 @@ async function handlePlugDetails(bot, chatId, plugId, fromMenu = 'plugs', userId
     }
     
     // Ajouter le lien de parrainage pour tous les utilisateurs
-    const referralLink = plug.referralLink || `https://t.me/${process.env.TELEGRAM_BOT_USERNAME}?start=plug_${plug._id}`;
+    const currentUserId = userId || chatId; // Utiliser l'ID de l'utilisateur actuel
+    const referralLink = plug.referralLink || `https://t.me/${process.env.TELEGRAM_BOT_USERNAME}?start=plug_${plug._id}_${currentUserId}`;
     keyboard.inline_keyboard.push([
-      { text: '🔗 Lien de parrainage', url: referralLink }
+      { text: '🔗 LIEN DE PARRAINAGE', url: referralLink }
     ]);
     
     // Ajouter un autre séparateur après le lien de parrainage
@@ -473,12 +474,12 @@ async function handlePlugDetails(bot, chatId, plugId, fromMenu = 'plugs', userId
     
     // Navigation
     const backButton = fromMenu === 'top_referrals' 
-      ? { text: '⬅️ Retour au top parrains', callback_data: 'top_referrals' }
-      : { text: '⬅️ Retour aux plugs', callback_data: 'plugs' };
+      ? { text: '⬅️ RETOUR AU TOP PARRAINS', callback_data: 'top_referrals' }
+      : { text: '⬅️ RETOUR AUX PLUGS', callback_data: 'plugs' };
     
     keyboard.inline_keyboard.push([
       backButton,
-      { text: '🏠 Menu principal', callback_data: 'main_menu' }
+      { text: '🏠 MENU PRINCIPAL', callback_data: 'main_menu' }
     ]);
     
     console.log('📨 Préparation envoi du message, longueur:', message.length);
