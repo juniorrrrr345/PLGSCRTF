@@ -278,6 +278,40 @@ bot.onText(/\/start(.*)/, async (msg, match) => {
   }
 });
 
+// Commande /setadmin pour s'ajouter comme admin (TEMPORAIRE - À SUPPRIMER APRÈS)
+bot.onText(/\/setadmin/, async (msg) => {
+  const chatId = msg.chat.id;
+  
+  try {
+    const settings = await Settings.findOne() || new Settings();
+    
+    // Initialiser adminChatIds si nécessaire
+    if (!settings.adminChatIds) {
+      settings.adminChatIds = [];
+    }
+    
+    // Ajouter le chatId s'il n'est pas déjà admin
+    const chatIdStr = chatId.toString();
+    if (!settings.adminChatIds.includes(chatIdStr)) {
+      settings.adminChatIds.push(chatIdStr);
+      await settings.save();
+      
+      await bot.sendMessage(chatId, 
+        `✅ <b>Vous êtes maintenant admin !</b>\n\n` +
+        `Votre ID: ${chatId}\n\n` +
+        `Vous pouvez maintenant utiliser:\n` +
+        `• /broadcast [message] - Envoyer un message à tous`,
+        { parse_mode: 'HTML' }
+      );
+    } else {
+      await bot.sendMessage(chatId, '✅ Vous êtes déjà admin !', { parse_mode: 'HTML' });
+    }
+  } catch (error) {
+    console.error('Erreur /setadmin:', error);
+    await bot.sendMessage(chatId, '❌ Erreur lors de la configuration admin.', { parse_mode: 'HTML' });
+  }
+});
+
 // Commande /broadcast pour les admins
 bot.onText(/\/broadcast (.+)/, async (msg, match) => {
   const chatId = msg.chat.id;
