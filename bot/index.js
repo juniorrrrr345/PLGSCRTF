@@ -318,9 +318,15 @@ bot.onText(/\/broadcast (.+)/, async (msg, match) => {
   const message = match[1];
   
   try {
-    // Vérifier si l'utilisateur est admin
+    // Vérifier si l'utilisateur est admin via ADMIN_IDS ou Settings
+    const adminIds = process.env.ADMIN_IDS ? process.env.ADMIN_IDS.split(',').map(id => id.trim()) : [];
     const settings = await Settings.findOne();
-    if (!settings || !settings.adminChatIds || !settings.adminChatIds.includes(chatId.toString())) {
+    const settingsAdminIds = settings?.adminChatIds || [];
+    
+    // Combiner les deux sources d'admin IDs
+    const allAdminIds = [...new Set([...adminIds, ...settingsAdminIds])];
+    
+    if (!allAdminIds.includes(chatId.toString())) {
       await bot.sendMessage(chatId, '❌ Vous n\'êtes pas autorisé à utiliser cette commande.', { parse_mode: 'HTML' });
       return;
     }

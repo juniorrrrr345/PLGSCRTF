@@ -1697,7 +1697,7 @@ export default function ConfigPage() {
                     </button>
                   </div>
                   
-                  {/* Global Message */}
+                  {/* Global Message - Désactivé, utiliser /broadcast dans le bot 
                   <div className="glass-card p-6">
                     <h2 className="text-xl font-bold mb-4">Envoyer un message global</h2>
                     <textarea
@@ -1715,6 +1715,7 @@ export default function ConfigPage() {
                       Envoyer à tous
                     </button>
                   </div>
+                  */}
                   
                   {/* Image Management */}
                   <div className="glass-card p-6">
