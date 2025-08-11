@@ -279,9 +279,11 @@ bot.onText(/\/start(.*)/, async (msg, match) => {
 });
 
 // Commande /broadcast pour les admins
-bot.onText(/\/broadcast (.+)/, async (msg, match) => {
+bot.onText(/\/broadcast (.+)/s, async (msg, match) => {
   const chatId = msg.chat.id;
-  const message = match[1];
+  // Récupérer tout le message après /broadcast, y compris les sauts de ligne
+  const fullText = msg.text || '';
+  const message = fullText.replace(/^\/broadcast\s+/s, '');
   
   try {
     // Vérifier si l'utilisateur est admin via ADMIN_ID ou Settings
@@ -305,23 +307,24 @@ bot.onText(/\/broadcast (.+)/, async (msg, match) => {
       return;
     }
     
-    // Envoyer un message de confirmation à l'admin
+    // Envoyer un message de confirmation à l'admin avec le message complet
     await bot.sendMessage(chatId, 
       `📢 <b>Envoi du message à ${users.length} utilisateurs...</b>\n\n` +
-      `Message : ${message}`,
+      `<b>Message à envoyer :</b>\n${message}`,
       { parse_mode: 'HTML' }
     );
     
     let sent = 0;
     let failed = 0;
     
-    // Envoyer le message à tous les utilisateurs
+    // Envoyer le message à tous les utilisateurs sans modification
     for (const user of users) {
       try {
-        await bot.sendMessage(user.telegramId, 
-          `📢 <b>Message de l'administration :</b>\n\n${message}`,
-          { parse_mode: 'HTML' }
-        );
+        // Envoyer le message tel quel, sans préfixe
+        await bot.sendMessage(user.telegramId, message, { 
+          parse_mode: 'HTML',
+          disable_web_page_preview: true 
+        });
         sent++;
       } catch (error) {
         console.error(`Erreur envoi à ${user.username || user.telegramId}:`, error.message);
@@ -725,6 +728,78 @@ bot.on('callback_query', async (callbackQuery) => {
   }
 });
 
+// Commande /broadcastraw pour envoyer un message sans formatage HTML
+bot.onText(/\/broadcastraw (.+)/s, async (msg, match) => {
+  const chatId = msg.chat.id;
+  // Récupérer tout le message après /broadcastraw, y compris les sauts de ligne
+  const fullText = msg.text || '';
+  const message = fullText.replace(/^\/broadcastraw\s+/s, '');
+  
+  try {
+    // Vérifier si l'utilisateur est admin via ADMIN_ID ou Settings
+    const adminId = process.env.ADMIN_ID ? process.env.ADMIN_ID.trim() : null;
+    const settings = await Settings.findOne();
+    const settingsAdminIds = settings?.adminChatIds || [];
+    
+    // Vérifier si l'utilisateur est admin
+    const isAdmin = (adminId && chatId.toString() === adminId) || settingsAdminIds.includes(chatId.toString());
+    
+    if (!isAdmin) {
+      await bot.sendMessage(chatId, '❌ Vous n\'êtes pas autorisé à utiliser cette commande.');
+      return;
+    }
+    
+    // Récupérer tous les utilisateurs actifs
+    const users = await User.find({ isActive: { $ne: false } });
+    
+    if (users.length === 0) {
+      await bot.sendMessage(chatId, '❌ Aucun utilisateur actif trouvé.');
+      return;
+    }
+    
+    // Envoyer un message de confirmation à l'admin
+    await bot.sendMessage(chatId, 
+      `📢 Envoi du message BRUT (sans formatage) à ${users.length} utilisateurs...\n\n` +
+      `Message à envoyer :\n${message}`
+    );
+    
+    let sent = 0;
+    let failed = 0;
+    
+    // Envoyer le message à tous les utilisateurs sans formatage
+    for (const user of users) {
+      try {
+        // Envoyer le message tel quel, sans parse_mode
+        await bot.sendMessage(user.telegramId, message, { 
+          disable_web_page_preview: true 
+        });
+        sent++;
+      } catch (error) {
+        console.error(`Erreur envoi à ${user.username || user.telegramId}:`, error.message);
+        failed++;
+      }
+      
+      // Petite pause pour éviter le flood
+      if (sent % 30 === 0) {
+        await new Promise(resolve => setTimeout(resolve, 1000));
+      }
+    }
+    
+    // Envoyer le rapport à l'admin
+    await bot.sendMessage(chatId,
+      `✅ Envoi terminé !\n\n` +
+      `📊 Statistiques :\n` +
+      `• Messages envoyés : ${sent}\n` +
+      `• Échecs : ${failed}\n` +
+      `• Total : ${users.length}`
+    );
+    
+  } catch (error) {
+    console.error('Erreur /broadcastraw:', error);
+    await bot.sendMessage(chatId, '❌ Erreur lors de l\'envoi du message.');
+  }
+});
+
 // Commande /config pour l'admin
 bot.onText(/\/config/, async (msg) => {
   await handleAdminCommand(bot, msg);
@@ -732,7 +807,7 @@ bot.onText(/\/config/, async (msg) => {
 
 // Gestion des messages texte
 bot.on('message', async (msg) => {
-  if (msg.text && (msg.text.startsWith('/start') || msg.text === '/config')) return;
+  if (msg.text && (msg.text.startsWith('/start') || msg.text === '/config' || msg.text.startsWith('/broadcast') || msg.text.startsWith('/broadcastraw'))) return;
   
   const chatId = msg.chat.id;
   const userState = userStates.get(chatId);
