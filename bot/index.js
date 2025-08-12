@@ -517,7 +517,8 @@ bot.on('callback_query', async (callbackQuery) => {
         referrerId: referrerId
       });
       
-      await bot.sendMessage(chatId, 
+      // Envoyer le message et stocker son ID
+      const sentMessage = await bot.sendMessage(chatId, 
         `🔗 <b>Votre lien de parrainage pour ${plug.name} :</b>\n\n` +
         `<code>${referralLink}</code>\n\n` +
         `📋 <i>Cliquez sur le lien pour le copier</i>\n\n` +
@@ -528,12 +529,32 @@ bot.on('callback_query', async (callbackQuery) => {
         `• Partagez ce lien avec vos contacts\n` +
         `• Quand quelqu'un rejoint via votre lien, il devient votre filleul\n` +
         `• Vous recevez une notification à chaque nouveau filleul\n` +
-        `• Vos filleuls apparaissent dans vos statistiques`,
+        `• Vos filleuls apparaissent dans vos statistiques\n\n` +
+        `⏱️ <i>Ce message sera supprimé dans 2 minutes</i>`,
         { 
           parse_mode: 'HTML',
           disable_web_page_preview: true
         }
       );
+      
+      // Supprimer le message après 2 minutes (120000 ms)
+      setTimeout(async () => {
+        try {
+          await bot.deleteMessage(chatId, sentMessage.message_id);
+        } catch (error) {
+          // Ignorer l'erreur si le message a déjà été supprimé
+          console.log('Message déjà supprimé ou erreur:', error.message);
+        }
+      }, 120000); // 2 minutes
+      
+      // Stocker l'ID du message pour pouvoir le supprimer quand un filleul rejoint
+      if (!global.referralMessages) {
+        global.referralMessages = new Map();
+      }
+      global.referralMessages.set(`${referrerId}_${plugId}`, {
+        messageId: sentMessage.message_id,
+        chatId: chatId
+      });
     }
     
     // Callback pour le séparateur (ne rien faire)
