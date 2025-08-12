@@ -223,7 +223,7 @@ async function showMainMenu(bot, chatId, userId = null) {
     inline_keyboard: [
       [{ text: miniAppButtonText, url: 'https://t.me/PLGSCRTF_BOT/miniapp' }],
       [{ text: '🔌 PLUGS CRTFS', callback_data: 'plugs' }],
-      [{ text: '🏆 MES PARRAINAGES', callback_data: 'referrals' }],
+      [{ text: '🏆 TOP PARRAINS', callback_data: 'referrals' }],
       [{ text: '✅ DEVENIR CERTIFIÉ', callback_data: 'apply' }],
       [{ text: 'ℹ️ INFORMATIONS', callback_data: 'info' }]
     ]
