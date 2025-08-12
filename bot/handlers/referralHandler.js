@@ -1,6 +1,7 @@
 const Plug = require('../models/Plug');
 const User = require('../models/User');
 const Settings = require('../models/Settings');
+const PlugReferral = require('../models/PlugReferral');
 const { checkMaintenanceMode } = require('../middleware/maintenanceCheck');
 
 async function handleReferralMenu(bot, chatId) {
@@ -14,29 +15,28 @@ async function handleReferralMenu(bot, chatId) {
     // Récupérer les paramètres pour l'image d'accueil
     const settings = await Settings.findOne();
     
-    // Récupérer les plugs triés par nombre de parrainages
-    const plugs = await Plug.find({ isActive: true })
-      .populate('referralStats.userId', 'username');
+    // Récupérer tous les plugs actifs
+    const plugs = await Plug.find({ isActive: true });
     
-    // Calculer et trier par nombre de filleuls
-    const plugsWithStats = plugs.map(plug => {
-      let totalClicks = 0;
-      if (plug.referralStats && plug.referralStats.length > 0) {
-        plug.referralStats.forEach(stat => {
-          totalClicks += stat.clicks || 0;
-        });
-      }
+    // Pour chaque plug, compter le nombre total de filleuls
+    const plugsWithStats = await Promise.all(plugs.map(async (plug) => {
+      // Utiliser le nouveau système PlugReferral pour compter les filleuls
+      const referralCount = await PlugReferral.countDocuments({ plugId: plug._id });
+      
       return {
         plug,
-        totalClicks
+        referralCount
       };
-    });
+    }));
     
     // Trier par nombre de filleuls décroissant
-    plugsWithStats.sort((a, b) => b.totalClicks - a.totalClicks);
+    plugsWithStats.sort((a, b) => b.referralCount - a.referralCount);
     
-    // Limiter à 20 plugs
-    const sortedPlugs = plugsWithStats.slice(0, 20).map(item => item.plug);
+    // Limiter à 20 plugs et filtrer ceux qui ont au moins 1 parrainage
+    const sortedPlugs = plugsWithStats
+      .filter(item => item.referralCount > 0)
+      .slice(0, 20)
+      .map(item => ({ plug: item.plug, referralCount: item.referralCount }));
     
     if (sortedPlugs.length === 0) {
       await bot.sendMessage(chatId, '📊 Aucun plug disponible pour le moment.', {
@@ -58,7 +58,8 @@ async function handleReferralMenu(bot, chatId) {
     };
     
     // Créer les boutons pour chaque plug
-    sortedPlugs.forEach((plug, index) => {
+    sortedPlugs.forEach((item, index) => {
+      const { plug, referralCount } = item;
       let emoji = '';
       
       if (index === 0) emoji = '👑';
@@ -66,17 +67,7 @@ async function handleReferralMenu(bot, chatId) {
       else if (index === 2) emoji = '🥉';
       else emoji = `${index + 1}.`;
       
-      // Calculer le total des clics et votes de parrainage
-      let totalClicks = 0;
-      let totalVotes = 0;
-      if (plug.referralStats && plug.referralStats.length > 0) {
-        plug.referralStats.forEach(stat => {
-          totalClicks += stat.clicks || 0;
-          totalVotes += stat.votes || 0;
-        });
-      }
-      
-      const buttonText = `${emoji} ${plug.name} (${totalClicks} filleul${totalClicks > 1 ? 's' : ''})`;
+      const buttonText = `${emoji} ${plug.name} (${referralCount} filleul${referralCount > 1 ? 's' : ''})`;
       keyboard.inline_keyboard.push([{
         text: buttonText,
         callback_data: `plug_from_referral_${plug._id}`

@@ -1,5 +1,6 @@
 const Plug = require('../models/Plug');
 const User = require('../models/User');
+const PlugReferral = require('../models/PlugReferral');
 
 // Fonction pour obtenir le drapeau d'un pays
 function getCountryFlag(countryCode) {
@@ -204,8 +205,12 @@ async function handlePlugsMenu(bot, chatId, filters = {}) {
       // Nom du plug
       buttonText += plug.name;
       
-      // Nombre de likes
-      buttonText += ` (${plug.likes || 0}) ❤️`;
+      // Nombre de likes et parrainages
+      buttonText += ` (${plug.likes || 0}❤️`;
+      if (plug.referralCount > 0) {
+        buttonText += ` ${plug.referralCount}👥`;
+      }
+      buttonText += ')';
       
       keyboard.inline_keyboard.push([{
         text: buttonText,
@@ -325,7 +330,16 @@ async function handlePlugDetails(bot, chatId, plugId, fromMenu = 'plugs', userId
     
     // Stats
     message += `❤️ <b>Likes:</b> ${plug.likes || 0}\n`;
-    message += `🔗 <b>Parrainages:</b> ${plug.referralCount || 0}\n`;
+    
+    // Compter les filleuls de l'utilisateur actuel pour ce plug
+    const currentUserId = userId || chatId;
+    const userReferralCount = await PlugReferral.countDocuments({
+      plugId: plug._id,
+      referrerId: currentUserId.toString()
+    });
+    
+    message += `👥 <b>Vos filleuls:</b> ${userReferralCount}\n`;
+    message += `🔗 <b>Total parrainages:</b> ${plug.referralCount || 0}\n`;
     
     // Créer le clavier avec les réseaux sociaux
     const keyboard = {

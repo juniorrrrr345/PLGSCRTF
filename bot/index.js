@@ -509,9 +509,26 @@ bot.on('callback_query', async (callbackQuery) => {
       
       const referralLink = `https://t.me/${process.env.TELEGRAM_BOT_USERNAME}?start=plug_${plugId}_${referrerId}`;
       
+      // Récupérer les infos du plug et le nombre de filleuls
+      const PlugReferral = require('./models/PlugReferral');
+      const plug = await Plug.findById(plugId);
+      const userReferralCount = await PlugReferral.countDocuments({
+        plugId: plugId,
+        referrerId: referrerId
+      });
+      
       await bot.sendMessage(chatId, 
-        `🔗 <b>Lien de parrainage :</b>\n\n<code>${referralLink}</code>\n\n` +
-        `📋 <i>Cliquez sur le lien pour le copier</i>`,
+        `🔗 <b>Votre lien de parrainage pour ${plug.name} :</b>\n\n` +
+        `<code>${referralLink}</code>\n\n` +
+        `📋 <i>Cliquez sur le lien pour le copier</i>\n\n` +
+        `━━━━━━━━━━━━━━━━\n` +
+        `📊 <b>Vos statistiques :</b>\n` +
+        `👥 Filleuls invités : ${userReferralCount}\n\n` +
+        `💡 <b>Comment ça marche :</b>\n` +
+        `• Partagez ce lien avec vos contacts\n` +
+        `• Quand quelqu'un rejoint via votre lien, il devient votre filleul\n` +
+        `• Vous recevez une notification à chaque nouveau filleul\n` +
+        `• Vos filleuls apparaissent dans vos statistiques`,
         { 
           parse_mode: 'HTML',
           disable_web_page_preview: true

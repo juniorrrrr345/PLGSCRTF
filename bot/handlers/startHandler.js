@@ -115,47 +115,60 @@ async function handleStart(bot, msg, param) {
       // Format: plug_PLUGID_REFERRERID
       const parts = param.split('_');
       const plugId = parts[1];
-      const referrerId = parts[2]; // ID de l'admin qui a partagé
+      const referrerId = parts[2]; // ID Telegram de celui qui a partagé
       
       console.log(`🔗 Deep link vers le plug: ${plugId} partagé par: ${referrerId}`);
       
       // Importer les modèles nécessaires
       const { handlePlugDetails } = require('./plugsHandler');
-      const ReferralClick = require('../models/ReferralClick');
+      const PlugReferral = require('../models/PlugReferral');
       const Plug = require('../models/Plug');
       
-      if (referrerId) {
+      if (referrerId && referrerId !== userId.toString()) {
         try {
-          // Enregistrer le clic
-          await ReferralClick.create({
+          // Vérifier si ce n'est pas déjà un filleul existant
+          const existingReferral = await PlugReferral.findOne({
             plugId: plugId,
             referrerId: referrerId,
-            visitorId: user._id
+            referredUserId: userId.toString()
           });
           
-          // Mettre à jour les stats du plug
-          const plug = await Plug.findById(plugId);
-          if (plug) {
-            const statIndex = plug.referralStats.findIndex(stat => 
-              stat.userId.toString() === referrerId
+          if (!existingReferral) {
+            // Créer le parrainage
+            await PlugReferral.create({
+              plugId: plugId,
+              referrerId: referrerId,
+              referredUserId: userId.toString()
+            });
+            
+            // Mettre à jour le compteur de parrainages du plug
+            const plug = await Plug.findByIdAndUpdate(
+              plugId,
+              { $inc: { referralCount: 1 } },
+              { new: true }
             );
             
-            if (statIndex >= 0) {
-              plug.referralStats[statIndex].clicks += 1;
-            } else {
-              plug.referralStats.push({
-                userId: referrerId,
-                clicks: 1,
-                votes: 0
-              });
-            }
+            console.log(`✅ Nouveau filleul enregistré pour le plug ${plug.name}`);
             
-            await plug.save();
+            // Notifier le parrain
+            try {
+              const referrerUser = await User.findOne({ telegramId: referrerId });
+              if (referrerUser) {
+                await bot.sendMessage(referrerId, 
+                  `🎉 <b>Nouveau filleul !</b>\n\n` +
+                  `Un utilisateur a rejoint via votre lien de parrainage pour le plug <b>${plug.name}</b> !\n\n` +
+                  `📊 Total de vos filleuls pour ce plug : ${await PlugReferral.countDocuments({ plugId: plugId, referrerId: referrerId })}`,
+                  { parse_mode: 'HTML' }
+                );
+              }
+            } catch (notifError) {
+              console.log('⚠️ Impossible de notifier le parrain:', notifError.message);
+            }
+          } else {
+            console.log('ℹ️ Cet utilisateur est déjà un filleul pour ce plug');
           }
-          
-          console.log('✅ Clic de parrainage enregistré');
         } catch (error) {
-          console.log('⚠️ Erreur enregistrement clic:', error.message);
+          console.log('⚠️ Erreur enregistrement parrainage:', error.message);
         }
       }
       
