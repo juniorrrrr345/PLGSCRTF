@@ -484,7 +484,7 @@ async function handlePlugDetails(bot, chatId, plugId, fromMenu = 'plugs', userId
     
     // Navigation
     const backButton = fromMenu === 'top_referrals' 
-      ? { text: '⬅️ RETOUR À MES PARRAINAGES', callback_data: 'top_referrals' }
+      ? { text: '⬅️ RETOUR AU TOP PARRAINS', callback_data: 'top_referrals' }
       : { text: '⬅️ RETOUR AUX PLUGS', callback_data: 'plugs' };
     
     keyboard.inline_keyboard.push([

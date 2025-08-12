@@ -56,9 +56,9 @@ async function handleReferralMenu(bot, chatId, userId = null) {
       return;
     }
     
-    let message = '🏆 <b>VOS PARRAINAGES</b>\n';
+    let message = '🏆 <b>TOP PARRAINS</b>\n';
     message += '━━━━━━━━━━━━━━━━\n\n';
-    message += '📊 Plugs où vous avez invité des filleuls :\n\n';
+    message += '📊 Vos parrainages personnels :\n\n';
     
     const keyboard = {
       inline_keyboard: []
