@@ -427,15 +427,23 @@ async function handlePlugDetails(bot, chatId, plugId, fromMenu = 'plugs', userId
       keyboard.inline_keyboard.push([{ text: '━━━━━━━━━━━━━━━━', callback_data: 'separator' }]);
     }
     
-    // Ajouter le lien de parrainage pour tous les utilisateurs
+    // Ajouter le lien de parrainage UNIQUEMENT pour l'admin
     // currentUserId est déjà défini plus haut (ligne 335)
-    const referralLink = plug.referralLink || `https://t.me/${process.env.TELEGRAM_BOT_USERNAME}?start=plug_${plug._id}_${currentUserId}`;
-    keyboard.inline_keyboard.push([
-      { text: '🔗 LIEN DE PARRAINAGE', callback_data: `show_referral_${plug._id}_${currentUserId}` }
-    ]);
+    const adminId = process.env.ADMIN_ID ? process.env.ADMIN_ID.trim() : null;
+    const Settings = require('../models/Settings');
+    const settings = await Settings.findOne();
+    const settingsAdminIds = settings?.adminChatIds || [];
+    const isAdmin = (adminId && currentUserId.toString() === adminId) || settingsAdminIds.includes(currentUserId.toString());
     
-    // Ajouter un autre séparateur après le lien de parrainage
-    keyboard.inline_keyboard.push([{ text: '━━━━━━━━━━━━━━━━', callback_data: 'separator' }]);
+    if (isAdmin) {
+      const referralLink = plug.referralLink || `https://t.me/${process.env.TELEGRAM_BOT_USERNAME}?start=plug_${plug._id}_${currentUserId}`;
+      keyboard.inline_keyboard.push([
+        { text: '🔗 LIEN DE PARRAINAGE (ADMIN)', callback_data: `show_referral_${plug._id}_${currentUserId}` }
+      ]);
+      
+      // Ajouter un autre séparateur après le lien de parrainage
+      keyboard.inline_keyboard.push([{ text: '━━━━━━━━━━━━━━━━', callback_data: 'separator' }]);
+    }
     
     // Boutons d'action - Vérifier le temps restant pour le like
     const User = require('../models/User');

@@ -150,16 +150,46 @@ async function handleStart(bot, msg, param) {
             
             console.log(`✅ Nouveau filleul enregistré pour le plug ${plug.name}`);
             
-            // Notifier le parrain
+            // Notifier le parrain (admin)
             try {
               const referrerUser = await User.findOne({ telegramId: referrerId });
               if (referrerUser) {
-                await bot.sendMessage(referrerId, 
-                  `🎉 <b>Nouveau filleul !</b>\n\n` +
-                  `Un utilisateur a rejoint via votre lien de parrainage pour le plug <b>${plug.name}</b> !\n\n` +
-                  `📊 Total de vos filleuls pour ce plug : ${await PlugReferral.countDocuments({ plugId: plugId, referrerId: referrerId })}`,
+                // Obtenir les infos du nouveau filleul
+                const newUserInfo = msg.from.username ? `@${msg.from.username}` : msg.from.first_name;
+                
+                const notificationMessage = await bot.sendMessage(referrerId, 
+                  `🎉 <b>Nouveau filleul pour ${plug.name} !</b>\n\n` +
+                  `👤 <b>Filleul :</b> ${newUserInfo}\n` +
+                  `🔌 <b>Plug :</b> ${plug.name}\n` +
+                  `📍 <b>Localisation :</b> ${plug.country ? `${plug.country}` : 'Non spécifiée'}\n\n` +
+                  `📊 <b>Statistiques pour ce plug :</b>\n` +
+                  `• Total de vos filleuls : ${await PlugReferral.countDocuments({ plugId: plugId, referrerId: referrerId })}\n` +
+                  `• Total parrainages du plug : ${plug.referralCount}\n\n` +
+                  `⏱️ <i>Cette notification sera supprimée dans 30 secondes</i>`,
                   { parse_mode: 'HTML' }
                 );
+                
+                // Supprimer la notification après 30 secondes pour éviter le spam
+                setTimeout(async () => {
+                  try {
+                    await bot.deleteMessage(referrerId, notificationMessage.message_id);
+                  } catch (error) {
+                    console.log('Notification déjà supprimée ou erreur:', error.message);
+                  }
+                }, 30000); // 30 secondes
+                
+                // Supprimer aussi le message du lien de parrainage s'il existe
+                if (global.referralMessages) {
+                  const messageInfo = global.referralMessages.get(`${referrerId}_${plugId}`);
+                  if (messageInfo) {
+                    try {
+                      await bot.deleteMessage(messageInfo.chatId, messageInfo.messageId);
+                      global.referralMessages.delete(`${referrerId}_${plugId}`);
+                    } catch (error) {
+                      console.log('Message de parrainage déjà supprimé ou erreur:', error.message);
+                    }
+                  }
+                }
               }
             } catch (notifError) {
               console.log('⚠️ Impossible de notifier le parrain:', notifError.message);

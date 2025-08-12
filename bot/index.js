@@ -519,25 +519,29 @@ bot.on('callback_query', async (callbackQuery) => {
       
       // Envoyer le message et stocker son ID
       const sentMessage = await bot.sendMessage(chatId, 
-        `🔗 <b>Votre lien de parrainage pour ${plug.name} :</b>\n\n` +
+        `🔗 <b>Lien de parrainage ADMIN pour ${plug.name} :</b>\n\n` +
         `<code>${referralLink}</code>\n\n` +
         `📋 <i>Cliquez sur le lien pour le copier</i>\n\n` +
         `━━━━━━━━━━━━━━━━\n` +
-        `📊 <b>Vos statistiques :</b>\n` +
-        `👥 Filleuls invités : ${userReferralCount}\n\n` +
-        `💡 <b>Comment ça marche :</b>\n` +
-        `• Partagez ce lien avec vos contacts\n` +
-        `• Quand quelqu'un rejoint via votre lien, il devient votre filleul\n` +
-        `• Vous recevez une notification à chaque nouveau filleul\n` +
-        `• Vos filleuls apparaissent dans vos statistiques\n\n` +
-        `⏱️ <i>Ce message sera supprimé dans 2 minutes</i>`,
+        `🔌 <b>Détails du plug :</b>\n` +
+        `• Nom : ${plug.name}\n` +
+        `• Localisation : ${plug.country || 'Non spécifiée'}\n` +
+        `• Likes : ${plug.likes || 0}\n` +
+        `• Total parrainages : ${plug.referralCount || 0}\n\n` +
+        `📊 <b>Vos statistiques pour ce plug :</b>\n` +
+        `• Filleuls invités par vous : ${userReferralCount}\n\n` +
+        `💡 <b>Fonctionnement :</b>\n` +
+        `• Partagez ce lien pour inviter des filleuls\n` +
+        `• Vous serez notifié avec le nom du plug et du filleul\n` +
+        `• Les notifications se suppriment automatiquement\n\n` +
+        `⏱️ <i>Ce message sera supprimé dans 1 minute</i>`,
         { 
           parse_mode: 'HTML',
           disable_web_page_preview: true
         }
       );
       
-      // Supprimer le message après 2 minutes (120000 ms)
+      // Supprimer le message après 1 minute (60000 ms)
       setTimeout(async () => {
         try {
           await bot.deleteMessage(chatId, sentMessage.message_id);
@@ -545,7 +549,7 @@ bot.on('callback_query', async (callbackQuery) => {
           // Ignorer l'erreur si le message a déjà été supprimé
           console.log('Message déjà supprimé ou erreur:', error.message);
         }
-      }, 120000); // 2 minutes
+      }, 60000); // 1 minute
       
       // Stocker l'ID du message pour pouvoir le supprimer quand un filleul rejoint
       if (!global.referralMessages) {
