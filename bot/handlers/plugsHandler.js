@@ -432,7 +432,7 @@ async function handlePlugDetails(bot, chatId, plugId, fromMenu = 'plugs', userId
     }
     
     // Ajouter le lien de parrainage pour tous les utilisateurs
-    const currentUserId = userId || chatId; // Utiliser l'ID de l'utilisateur actuel
+    // currentUserId est déjà défini plus haut (ligne 335)
     const referralLink = plug.referralLink || `https://t.me/${process.env.TELEGRAM_BOT_USERNAME}?start=plug_${plug._id}_${currentUserId}`;
     keyboard.inline_keyboard.push([
       { text: '🔗 LIEN DE PARRAINAGE', callback_data: `show_referral_${plug._id}_${currentUserId}` }
