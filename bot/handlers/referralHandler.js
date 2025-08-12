@@ -4,7 +4,7 @@ const Settings = require('../models/Settings');
 const PlugReferral = require('../models/PlugReferral');
 const { checkMaintenanceMode } = require('../middleware/maintenanceCheck');
 
-async function handleReferralMenu(bot, chatId) {
+async function handleReferralMenu(bot, chatId, userId = null) {
   try {
     // Vérifier d'abord si on est en maintenance
     const inMaintenance = await checkMaintenanceMode(bot, chatId);
@@ -15,33 +15,40 @@ async function handleReferralMenu(bot, chatId) {
     // Récupérer les paramètres pour l'image d'accueil
     const settings = await Settings.findOne();
     
+    // Utiliser l'ID de l'utilisateur actuel
+    const currentUserId = (userId || chatId).toString();
+    
     // Récupérer tous les plugs actifs
     const plugs = await Plug.find({ isActive: true });
     
-    // Pour chaque plug, compter le nombre total de filleuls
+    // Pour chaque plug, compter le nombre de filleuls DE L'UTILISATEUR ACTUEL
     const plugsWithStats = await Promise.all(plugs.map(async (plug) => {
-      // Utiliser le nouveau système PlugReferral pour compter les filleuls
-      const referralCount = await PlugReferral.countDocuments({ plugId: plug._id });
+      // Compter les filleuls que CET utilisateur a invités pour ce plug
+      const userReferralCount = await PlugReferral.countDocuments({ 
+        plugId: plug._id,
+        referrerId: currentUserId
+      });
       
       return {
         plug,
-        referralCount
+        referralCount: userReferralCount
       };
     }));
     
     // Trier par nombre de filleuls décroissant
     plugsWithStats.sort((a, b) => b.referralCount - a.referralCount);
     
-    // Limiter à 20 plugs et filtrer ceux qui ont au moins 1 parrainage
+    // Limiter à 20 plugs et filtrer ceux où l'utilisateur a au moins 1 parrainage
     const sortedPlugs = plugsWithStats
       .filter(item => item.referralCount > 0)
       .slice(0, 20)
       .map(item => ({ plug: item.plug, referralCount: item.referralCount }));
     
     if (sortedPlugs.length === 0) {
-      await bot.sendMessage(chatId, '📊 Aucun plug disponible pour le moment.', {
+      await bot.sendMessage(chatId, '📊 Vous n\'avez pas encore invité de filleuls.\n\nPartagez les liens de parrainage des plugs pour apparaître dans ce classement !', {
         reply_markup: {
           inline_keyboard: [
+            [{ text: '🔌 Voir les plugs', callback_data: 'plugs' }],
             [{ text: '⬅️ Retour', callback_data: 'main_menu' }]
           ]
         }
@@ -49,9 +56,9 @@ async function handleReferralMenu(bot, chatId) {
       return;
     }
     
-    let message = '🏆 <b>TOP PARRAINS</b>\n';
+    let message = '🏆 <b>VOS PARRAINAGES</b>\n';
     message += '━━━━━━━━━━━━━━━━\n\n';
-    message += '👇 Cliquez sur un plug pour voir les détails\n\n';
+    message += '📊 Plugs où vous avez invité des filleuls :\n\n';
     
     const keyboard = {
       inline_keyboard: []

@@ -480,7 +480,7 @@ bot.on('callback_query', async (callbackQuery) => {
     // Top Parrains
     else if (data === 'referrals' || data === 'top_referrals') {
       await bot.deleteMessage(chatId, messageId);
-      await handleReferralMenu(bot, chatId);
+      await handleReferralMenu(bot, chatId, callbackQuery.from.id);
     }
     
     // Mon lien de parrainage

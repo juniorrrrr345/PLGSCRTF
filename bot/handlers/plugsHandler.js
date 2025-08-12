@@ -331,14 +331,10 @@ async function handlePlugDetails(bot, chatId, plugId, fromMenu = 'plugs', userId
     // Stats
     message += `❤️ <b>Likes:</b> ${plug.likes || 0}\n`;
     
-    // Compter les filleuls de l'utilisateur actuel pour ce plug
+    // Compter les filleuls de l'utilisateur actuel pour ce plug (pour le lien de parrainage)
     const currentUserId = userId || chatId;
-    const userReferralCount = await PlugReferral.countDocuments({
-      plugId: plug._id,
-      referrerId: currentUserId.toString()
-    });
     
-    message += `👥 <b>Vos filleuls:</b> ${userReferralCount}\n`;
+    // Afficher seulement le total des parrainages
     message += `🔗 <b>Total parrainages:</b> ${plug.referralCount || 0}\n`;
     
     // Créer le clavier avec les réseaux sociaux
@@ -488,7 +484,7 @@ async function handlePlugDetails(bot, chatId, plugId, fromMenu = 'plugs', userId
     
     // Navigation
     const backButton = fromMenu === 'top_referrals' 
-      ? { text: '⬅️ RETOUR AU TOP PARRAINS', callback_data: 'top_referrals' }
+      ? { text: '⬅️ RETOUR À MES PARRAINAGES', callback_data: 'top_referrals' }
       : { text: '⬅️ RETOUR AUX PLUGS', callback_data: 'plugs' };
     
     keyboard.inline_keyboard.push([
