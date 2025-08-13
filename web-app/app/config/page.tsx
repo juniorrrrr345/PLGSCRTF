@@ -177,9 +177,7 @@ export default function ConfigPage() {
       }
       
       // Charger les réseaux sociaux de la boutique
-      console.log('Settings reçus:', settings)
       if (settings.shopSocialNetworks && settings.shopSocialNetworks.length > 0) {
-        console.log('shopSocialNetworks trouvés:', settings.shopSocialNetworks)
         // S'assurer que chaque réseau a un ID
         const networksWithIds = settings.shopSocialNetworks.map((network: any, index: number) => ({
           ...network,
@@ -1075,7 +1073,7 @@ export default function ConfigPage() {
                               <div className="mb-4">
                                 <p className="text-gray-400 mb-2">📸 Photo de la boutique:</p>
                                 <div className="bg-gray-800 p-2 rounded-lg inline-block">
-                                  <p className="text-xs text-gray-500 mb-1">Photo ID: {safeApp.photo || safeApp.shopPhoto}</p>
+                                  <p className="text-xs text-gray-400 mb-1">Photo ID: {safeApp.photo || safeApp.shopPhoto}</p>
                                   <p className="text-xs text-gray-400">La photo est stockée sur Telegram</p>
                                 </div>
                               </div>
@@ -1099,7 +1097,7 @@ export default function ConfigPage() {
                                     const link = safeApp.socialNetworks?.links?.[network] || 'Pas de lien';
                                     return (
                                       <div key={`${network}-${idx}`} className="flex items-center justify-between bg-gray-800/50 p-2 rounded-lg">
-                                        <span className="text-sm font-medium">
+                                        <span className="text-sm font-medium text-white">
                                           {networkNames[network] || network}
                                         </span>
                                         <span className="text-xs text-gray-400 ml-2 truncate max-w-[200px]">
@@ -1114,10 +1112,10 @@ export default function ConfigPage() {
                               )}
                               {safeApp.socialNetworks?.others && (
                                 <div className="mt-3 pt-3 border-t border-gray-700">
-                                  <p className="text-sm">
+                                  <p className="text-sm text-white">
                                     <span className="text-gray-400 font-medium">Autres réseaux:</span>
                                   </p>
-                                  <p className="text-sm text-gray-300 mt-1">{safeApp.socialNetworks.others}</p>
+                                  <p className="text-sm text-white mt-1">{safeApp.socialNetworks.others}</p>
                                 </div>
                               )}
                             </div>
@@ -1167,15 +1165,15 @@ export default function ConfigPage() {
                               <p className="text-gray-400 font-semibold mb-2">📍 Localisation:</p>
                               <div className="grid grid-cols-3 gap-2 text-sm">
                                 <div>
-                                  <p className="text-gray-500">Pays:</p>
+                                  <p className="text-gray-400">Pays:</p>
                                   <p className="text-white">{safeApp.country || 'Non spécifié'}</p>
                                 </div>
                                 <div>
-                                  <p className="text-gray-500">Département:</p>
+                                  <p className="text-gray-400">Département:</p>
                                   <p className="text-white">{safeApp.department || 'Non spécifié'}</p>
                                 </div>
                                 <div>
-                                  <p className="text-gray-500">Code postal:</p>
+                                  <p className="text-gray-400">Code postal:</p>
                                   <p className="text-white">{safeApp.postalCode || 'Non spécifié'}</p>
                                 </div>
                               </div>
@@ -1184,7 +1182,7 @@ export default function ConfigPage() {
                             {/* Description */}
                             <div className="bg-white/5 p-3 rounded-lg">
                               <p className="text-gray-400 font-semibold mb-2">📝 Description:</p>
-                              <p className="text-sm">{safeApp.description || <span className="text-gray-500 italic">Non spécifié</span>}</p>
+                              <p className="text-sm text-white">{safeApp.description || <span className="text-gray-400 italic">Non spécifié</span>}</p>
                             </div>
                           </div>
                         </motion.div>
