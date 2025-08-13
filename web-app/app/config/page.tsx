@@ -792,7 +792,7 @@ export default function ConfigPage() {
               {/* Dashboard */}
               {activeTab === 'dashboard' && (
                 <div className="space-y-4 sm:space-y-6">
-                  <h1 className="text-2xl sm:text-3xl font-bold">Tableau de bord</h1>
+                  <h1 className="text-2xl sm:text-3xl font-bold text-white">Tableau de bord</h1>
                   
                   {/* Stats Grid - Responsive */}
                   <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
@@ -801,7 +801,7 @@ export default function ConfigPage() {
                   >
                     <UserGroupIcon className="w-6 sm:w-8 h-6 sm:h-8 text-primary mb-2" />
                     <p className="text-gray-400 text-xs sm:text-sm">Utilisateurs</p>
-                    <p className="text-2xl sm:text-3xl font-bold">{stats?.userCount || 0}</p>
+                    <p className="text-2xl sm:text-3xl font-bold text-white">{stats?.userCount || 0}</p>
                   </div>
                   
                   <div
@@ -809,7 +809,7 @@ export default function ConfigPage() {
                   >
                     <BoltIcon className="w-6 sm:w-8 h-6 sm:h-8 text-green-500 mb-2" />
                     <p className="text-gray-400 text-xs sm:text-sm">Plugs actifs</p>
-                    <p className="text-2xl sm:text-3xl font-bold">{stats?.plugCount || 0}</p>
+                    <p className="text-2xl sm:text-3xl font-bold text-white">{stats?.plugCount || 0}</p>
                   </div>
                   
                   <div
@@ -817,21 +817,20 @@ export default function ConfigPage() {
                   >
                     <HeartIcon className="w-6 sm:w-8 h-6 sm:h-8 text-red-500 mb-2" />
                     <p className="text-gray-400 text-xs sm:text-sm">Total likes</p>
-                    <p className="text-2xl sm:text-3xl font-bold">
+                    <p className="text-2xl sm:text-3xl font-bold text-white">
                       {plugs?.reduce((acc: number, plug: any) => acc + plug.likes, 0) || 0}
                     </p>
                   </div>
                   
-                  <motion.div
-                    whileHover={{ scale: 1.02 }}
-                    className="glass-card p-4 sm:p-6"
+                  <div
+                    className="glass-card p-4 sm:p-6 hover:shadow-lg transition-shadow duration-200"
                   >
                     <DocumentTextIcon className="w-6 sm:w-8 h-6 sm:h-8 text-yellow-500 mb-2" />
                     <p className="text-gray-400 text-xs sm:text-sm">Candidatures</p>
-                    <p className="text-2xl sm:text-3xl font-bold">
+                    <p className="text-2xl sm:text-3xl font-bold text-white">
                       {applications?.filter((a: any) => a.status === 'pending').length || 0}
                     </p>
-                  </motion.div>
+                  </div>
                   </div>
                   
                   {/* Top Plugs */}
@@ -898,7 +897,7 @@ export default function ConfigPage() {
               {activeTab === 'plugs' && (
                 <div className="space-y-6">
                   <div className="flex flex-col sm:flex-row gap-4 sm:justify-between sm:items-center">
-                    <h1 className="text-2xl sm:text-3xl font-bold">Gestion des Plugs</h1>
+                    <h1 className="text-2xl sm:text-3xl font-bold text-white">Gestion des Plugs</h1>
                     <button
                       onClick={() => setShowAddPlug(true)}
                       className="w-full sm:w-auto btn-primary flex items-center justify-center gap-2 py-3"
@@ -1005,7 +1004,7 @@ export default function ConfigPage() {
               {/* Applications */}
               {activeTab === 'applications' && (
                 <div className="space-y-6">
-                  <h1 className="text-3xl font-bold">Candidatures Vendeurs</h1>
+                  <h1 className="text-3xl font-bold text-white">Candidatures Vendeurs</h1>
                   
                   {!applications ? (
                     <div className="glass-card p-8 text-center">
@@ -1208,7 +1207,7 @@ export default function ConfigPage() {
               {activeTab === 'products' && (
                 <div className="space-y-6">
                   <div className="flex flex-col sm:flex-row gap-4 sm:justify-between sm:items-center">
-                    <h1 className="text-2xl sm:text-3xl font-bold">Produits</h1>
+                    <h1 className="text-2xl sm:text-3xl font-bold text-white">Produits</h1>
                     <button
                       onClick={() => setShowAddProduct(true)}
                       className="w-full sm:w-auto btn-primary flex items-center justify-center gap-2 py-3"
@@ -1292,7 +1291,7 @@ export default function ConfigPage() {
               {activeTab === 'social' && (
                 <div className="space-y-6 max-w-4xl">
                   <div className="flex justify-between items-center">
-                    <h1 className="text-3xl font-bold">Réseaux Sociaux de la Boutique</h1>
+                    <h1 className="text-3xl font-bold text-white">Réseaux Sociaux de la Boutique</h1>
                   </div>
                   
                   <div className="glass-card p-6">
@@ -1322,7 +1321,7 @@ export default function ConfigPage() {
               {/* Telegram Configuration */}
               {activeTab === 'telegram' && (
                 <div className="space-y-6 max-w-4xl">
-                  <h1 className="text-3xl font-bold">Configuration Telegram</h1>
+                  <h1 className="text-3xl font-bold text-white">Configuration Telegram</h1>
                   
                   <div className="glass-card p-6">
                     <h2 className="text-xl font-bold mb-6">Canal de vérification</h2>
@@ -1388,7 +1387,7 @@ export default function ConfigPage() {
               {/* Maintenance */}
               {activeTab === 'maintenance' && (
                 <div className="space-y-6 max-w-4xl">
-                  <h1 className="text-3xl font-bold">Mode Maintenance</h1>
+                  <h1 className="text-3xl font-bold text-white">Mode Maintenance</h1>
                   
                   <div className="glass-card p-6">
                     <h2 className="text-xl font-bold mb-6">Contrôle de la maintenance</h2>
@@ -1670,7 +1669,7 @@ export default function ConfigPage() {
               {/* Settings */}
               {activeTab === 'settings' && (
                 <div className="space-y-6 max-w-4xl">
-                  <h1 className="text-3xl font-bold">Paramètres</h1>
+                  <h1 className="text-3xl font-bold text-white">Paramètres</h1>
                   
                   {/* Mini App Button Text */}
                   <div className="glass-card p-6">
@@ -2050,39 +2049,7 @@ export default function ConfigPage() {
                       showDepartments={false}
                     />
                     
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-6">
-                      <div>
-                        <label className="block text-sm font-semibold text-gray-300 mb-2">
-                          Département principal du vendeur
-                        </label>
-                        <input
-                          type="text"
-                          placeholder="Ex: 75 ou Paris"
-                          value={editingPlug?.location?.department || editingPlug?.department || newPlug.location.department}
-                          onChange={(e) => editingPlug
-                            ? setEditingPlug({...editingPlug, location: {...(editingPlug.location || {}), department: e.target.value}})
-                            : setNewPlug({...newPlug, location: {...newPlug.location, department: e.target.value}})
-                          }
-                          className="w-full px-4 py-3 bg-gray-800 border-2 border-gray-600 rounded-xl text-white placeholder-gray-400 focus:border-blue-500 focus:outline-none transition-all"
-                        />
-                      </div>
-                      
-                      <div>
-                        <label className="block text-sm font-semibold text-gray-300 mb-2">
-                          Code postal
-                        </label>
-                        <input
-                          type="text"
-                          placeholder="Ex: 75001"
-                          value={editingPlug?.location?.postalCode || editingPlug?.postalCode || newPlug.location.postalCode}
-                          onChange={(e) => editingPlug
-                            ? setEditingPlug({...editingPlug, location: {...(editingPlug.location || {}), postalCode: e.target.value}})
-                            : setNewPlug({...newPlug, location: {...newPlug.location, postalCode: e.target.value}})
-                          }
-                          className="w-full px-4 py-3 bg-gray-800 border-2 border-gray-600 rounded-xl text-white placeholder-gray-400 focus:border-blue-500 focus:outline-none transition-all"
-                        />
-                      </div>
-                    </div>
+
                   </div>
 
                   {/* Section 3: Méthodes de livraison */}
