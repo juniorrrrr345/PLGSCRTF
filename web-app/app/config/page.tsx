@@ -753,7 +753,7 @@ export default function ConfigPage() {
                       `}
                     >
                       <tab.icon className="w-5 h-5 flex-shrink-0" />
-                      <span className="truncate">{tab.label}</span>
+                      <span className="truncate text-white">{tab.label}</span>
                     </button>
                   ))}
                 </nav>
@@ -835,7 +835,7 @@ export default function ConfigPage() {
                   
                   {/* Top Plugs */}
                   <div className="glass-card p-6">
-                    <h2 className="text-xl font-bold mb-4">🏆 Top Plugs</h2>
+                    <h2 className="text-xl font-bold text-white text-white mb-4">🏆 Top Plugs</h2>
                     <div className="space-y-3">
                       {plugs?.slice(0, 5).map((plug: any, index: number) => (
                         <div key={plug._id} className="flex items-center justify-between p-3 bg-white/5 rounded-lg">
@@ -847,7 +847,7 @@ export default function ConfigPage() {
                               {index > 2 && `${index + 1}.`}
                             </span>
                             <div>
-                              <p className="font-semibold">{plug.name}</p>
+                              <p className="font-semibold text-white">{plug.name}</p>
                               <p className="text-sm text-gray-400">
                                 {plug.location?.department || plug.department || ''} • {plug.likes || 0} likes
                               </p>
@@ -863,7 +863,7 @@ export default function ConfigPage() {
                   
                   {/* Top Parrains */}
                   <div className="glass-card p-6">
-                    <h2 className="text-xl font-bold mb-4">👥 Top Parrains</h2>
+                    <h2 className="text-xl font-bold text-white mb-4">👥 Top Parrains</h2>
                     <div className="space-y-3">
                       {plugs?.sort((a: any, b: any) => (b.referralCount || 0) - (a.referralCount || 0))
                         .slice(0, 5)
@@ -877,7 +877,7 @@ export default function ConfigPage() {
                                 {index > 2 && `${index + 1}.`}
                               </span>
                               <div>
-                                <p className="font-semibold">{plug.name}</p>
+                                <p className="font-semibold text-white">{plug.name}</p>
                                 <p className="text-sm text-gray-400">
                                   {plug.location?.department || plug.department || ''}
                                 </p>
@@ -923,7 +923,7 @@ export default function ConfigPage() {
                             />
                           )}
                           <div>
-                            <h3 className="font-bold text-lg">{plug.name}</h3>
+                            <h3 className="font-bold text-white text-lg">{plug.name}</h3>
                             <p className="text-sm text-gray-400">
                               {plug.location?.country || plug.country || 'FR'} - {plug.location?.department || plug.department || ''} • 
                               ❤️ {plug.likes || 0} • 🔗 {plug.referralCount || 0}
@@ -1036,7 +1036,7 @@ export default function ConfigPage() {
                           >
                             <div className="flex justify-between items-start mb-4">
                               <div>
-                                <h3 className="font-bold text-lg">@{app.username || 'Utilisateur'}</h3>
+                                <h3 className="font-bold text-white text-lg">@{app.username || 'Utilisateur'}</h3>
                                 <p className="text-sm text-gray-400">
                                   Candidature du {app.createdAt ? new Date(app.createdAt).toLocaleDateString() : 'Date inconnue'}
                                 </p>
@@ -1110,7 +1110,7 @@ export default function ConfigPage() {
                                   })}
                                 </div>
                               ) : (
-                                <p className="text-gray-500 italic">Non spécifié</p>
+                                <p className="text-gray-400 italic">Non spécifié</p>
                               )}
                               {safeApp.socialNetworks?.others && (
                                 <div className="mt-3 pt-3 border-t border-gray-700">
@@ -1132,7 +1132,7 @@ export default function ConfigPage() {
                                       🚚 Livraison
                                     </span>
                                     {safeApp.deliveryZones && (
-                                      <p className="text-sm mt-1 ml-2">Zones: {safeApp.deliveryZones || 'Non spécifié'}</p>
+                                      <p className="text-sm text-white mt-1 ml-2">Zones: {safeApp.deliveryZones || 'Non spécifié'}</p>
                                     )}
                                   </div>
                                 )}
@@ -1142,7 +1142,7 @@ export default function ConfigPage() {
                                       📮 Envoi
                                     </span>
                                     {safeApp.shippingZones && (
-                                      <p className="text-sm mt-1 ml-2">Zones: {safeApp.shippingZones || 'Non spécifié'}</p>
+                                      <p className="text-sm text-white mt-1 ml-2">Zones: {safeApp.shippingZones || 'Non spécifié'}</p>
                                     )}
                                   </div>
                                 )}
@@ -1152,12 +1152,12 @@ export default function ConfigPage() {
                                       🤝 Meetup
                                     </span>
                                     {safeApp.meetupZones && (
-                                      <p className="text-sm mt-1 ml-2">Zones: {safeApp.meetupZones || 'Non spécifié'}</p>
+                                      <p className="text-sm text-white mt-1 ml-2">Zones: {safeApp.meetupZones || 'Non spécifié'}</p>
                                     )}
                                   </div>
                                 )}
                                 {!safeApp.methods?.delivery && !safeApp.methods?.shipping && !safeApp.methods?.meetup && (
-                                  <p className="text-gray-500 italic">Aucune méthode sélectionnée</p>
+                                  <p className="text-gray-400 italic">Aucune méthode sélectionnée</p>
                                 )}
                               </div>
                             </div>
@@ -1168,15 +1168,15 @@ export default function ConfigPage() {
                               <div className="grid grid-cols-3 gap-2 text-sm">
                                 <div>
                                   <p className="text-gray-500">Pays:</p>
-                                  <p>{safeApp.country || 'Non spécifié'}</p>
+                                  <p className="text-white">{safeApp.country || 'Non spécifié'}</p>
                                 </div>
                                 <div>
                                   <p className="text-gray-500">Département:</p>
-                                  <p>{safeApp.department || 'Non spécifié'}</p>
+                                  <p className="text-white">{safeApp.department || 'Non spécifié'}</p>
                                 </div>
                                 <div>
                                   <p className="text-gray-500">Code postal:</p>
-                                  <p>{safeApp.postalCode || 'Non spécifié'}</p>
+                                  <p className="text-white">{safeApp.postalCode || 'Non spécifié'}</p>
                                 </div>
                               </div>
                             </div>
@@ -1239,7 +1239,7 @@ export default function ConfigPage() {
                         </div>
                         
                         {/* Product Info */}
-                        <h3 className="font-bold text-lg mb-2">{product.title}</h3>
+                        <h3 className="font-bold text-white text-lg mb-2">{product.title}</h3>
                         <p className="text-gray-400 text-sm mb-3 line-clamp-2">{product.description}</p>
                         
                         {/* Social Link */}
@@ -1249,7 +1249,7 @@ export default function ConfigPage() {
                           rel="noopener noreferrer"
                           className="text-blue-400 hover:text-blue-300 text-sm flex items-center gap-2 mb-4"
                         >
-                          <span className="text-lg">{product.socialEmoji || '🔗'}</span>
+                          <span className="text-lg text-white">{product.socialEmoji || '🔗'}</span>
                           {product.socialNetwork}
                         </a>
                         
@@ -1281,7 +1281,7 @@ export default function ConfigPage() {
                   {products?.length === 0 && (
                     <div className="text-center py-12 text-gray-400">
                       <ShoppingBagIcon className="w-16 h-16 mx-auto mb-4 opacity-50" />
-                      <p>Aucun produit pour le moment</p>
+                      <p className="text-white">Aucun produit pour le moment</p>
                     </div>
                   )}
                 </div>
@@ -1295,7 +1295,7 @@ export default function ConfigPage() {
                   </div>
                   
                   <div className="glass-card p-6">
-                    <h2 className="text-xl font-bold mb-6">Gérer les réseaux sociaux de la boutique</h2>
+                    <h2 className="text-xl font-bold text-white mb-6">Gérer les réseaux sociaux de la boutique</h2>
                     <p className="text-gray-400 mb-6">
                       Configurez les liens vers vos réseaux sociaux qui seront affichés sur la page publique.
                     </p>
@@ -1324,7 +1324,7 @@ export default function ConfigPage() {
                   <h1 className="text-3xl font-bold text-white">Configuration Telegram</h1>
                   
                   <div className="glass-card p-6">
-                    <h2 className="text-xl font-bold mb-6">Canal de vérification</h2>
+                    <h2 className="text-xl font-bold text-white mb-6">Canal de vérification</h2>
                     <p className="text-gray-400 mb-6">
                       Configurez le canal Telegram que les utilisateurs doivent rejoindre pour accéder au bot.
                     </p>
@@ -1373,7 +1373,7 @@ export default function ConfigPage() {
                   </div>
                   
                   <div className="glass-card p-6">
-                    <h2 className="text-xl font-bold mb-4">Comment obtenir l'ID du canal ?</h2>
+                    <h2 className="text-xl font-bold text-white mb-4">Comment obtenir l'ID du canal ?</h2>
                     <ol className="list-decimal list-inside space-y-2 text-gray-400">
                       <li>Ajoutez votre bot comme administrateur du canal</li>
                       <li>Envoyez un message dans le canal</li>
@@ -1390,7 +1390,7 @@ export default function ConfigPage() {
                   <h1 className="text-3xl font-bold text-white">Mode Maintenance</h1>
                   
                   <div className="glass-card p-6">
-                    <h2 className="text-xl font-bold mb-6">Contrôle de la maintenance</h2>
+                    <h2 className="text-xl font-bold text-white mb-6">Contrôle de la maintenance</h2>
                     <p className="text-gray-400 mb-6">
                       Activez le mode maintenance pour afficher un message aux utilisateurs du bot et du site web.
                     </p>
@@ -1398,7 +1398,7 @@ export default function ConfigPage() {
                     <div className="bg-gray-800 rounded-lg p-6 mb-6">
                       <div className="flex items-center justify-between mb-4">
                         <div>
-                          <h3 className="text-lg font-semibold">État actuel</h3>
+                          <h3 className="text-lg font-semibold text-white text-white">État actuel</h3>
                           <p className="text-gray-400">
                             Le système est actuellement {maintenanceMode ? 
                               <span className="text-red-500 font-bold">en maintenance</span> : 
@@ -1530,7 +1530,7 @@ export default function ConfigPage() {
                     
                     {/* Configuration des images de maintenance */}
                     <div className="space-y-6 mt-6">
-                      <h3 className="text-lg font-semibold mb-4">🖼️ Personnalisation de la page de maintenance</h3>
+                      <h3 className="text-lg font-semibold text-white text-white mb-4">🖼️ Personnalisation de la page de maintenance</h3>
                       
                       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                         {/* Logo de maintenance */}
@@ -1673,7 +1673,7 @@ export default function ConfigPage() {
                   
                   {/* Mini App Button Text */}
                   <div className="glass-card p-6">
-                    <h2 className="text-xl font-bold mb-4">🔌 Texte du bouton Mini App</h2>
+                    <h2 className="text-xl font-bold text-white mb-4">🔌 Texte du bouton Mini App</h2>
                     <p className="text-gray-400 mb-4">
                       Personnalisez le texte affiché sur le bouton Mini App en haut du bot Telegram.
                     </p>
@@ -1694,7 +1694,7 @@ export default function ConfigPage() {
                   
                   {/* Welcome Message */}
                   <div className="glass-card p-6">
-                    <h2 className="text-xl font-bold mb-4">Message d'accueil du bot</h2>
+                    <h2 className="text-xl font-bold text-white mb-4">Message d'accueil du bot</h2>
                     <textarea
                       value={welcomeMessage}
                       onChange={(e) => setWelcomeMessage(e.target.value)}
@@ -1712,7 +1712,7 @@ export default function ConfigPage() {
                   
                   {/* Info Text */}
                   <div className="glass-card p-6">
-                    <h2 className="text-xl font-bold mb-4">ℹ️ Texte d'informations</h2>
+                    <h2 className="text-xl font-bold text-white mb-4">ℹ️ Texte d'informations</h2>
                     <p className="text-gray-400 mb-4">
                       Ce texte s'affiche quand les utilisateurs cliquent sur "ℹ️ Informations" dans le menu du bot.
                     </p>
@@ -1733,7 +1733,7 @@ export default function ConfigPage() {
                   
                   {/* Global Message - Désactivé, utiliser /broadcast dans le bot 
                   <div className="glass-card p-6">
-                    <h2 className="text-xl font-bold mb-4">Envoyer un message global</h2>
+                    <h2 className="text-xl font-bold text-white mb-4">Envoyer un message global</h2>
                     <textarea
                       value={globalMessage}
                       onChange={(e) => setGlobalMessage(e.target.value)}
@@ -1753,14 +1753,14 @@ export default function ConfigPage() {
                   
                   {/* Image Management */}
                   <div className="glass-card p-6">
-                    <h2 className="text-xl font-bold mb-6">Personnalisation visuelle</h2>
+                    <h2 className="text-xl font-bold text-white mb-6">Personnalisation visuelle</h2>
                     
                     <div className="space-y-6">
 
 
                       {/* Fond de la boutique */}
                       <div>
-                        <h3 className="text-lg font-semibold mb-3 flex items-center gap-2">
+                        <h3 className="text-lg font-semibold text-white mb-3 flex items-center gap-2">
                           <span className="text-2xl">🎨</span> Fond de la boutique
                         </h3>
                         <div className="bg-gray-800 border-2 border-gray-600 rounded-xl p-4">
@@ -1805,7 +1805,7 @@ export default function ConfigPage() {
 
                       {/* Image d'accueil du bot */}
                       <div>
-                        <h3 className="text-lg font-semibold mb-3 flex items-center gap-2">
+                        <h3 className="text-lg font-semibold text-white mb-3 flex items-center gap-2">
                           <span className="text-2xl">🤖</span> Image d'accueil du bot
                         </h3>
                         <div className="bg-gray-800 border-2 border-gray-600 rounded-xl p-4">
@@ -1835,7 +1835,7 @@ export default function ConfigPage() {
 
                   {/* Bot Social Networks */}
                   <div className="glass-card p-6">
-                    <h2 className="text-xl font-bold mb-4">Réseaux sociaux du bot</h2>
+                    <h2 className="text-xl font-bold text-white mb-4">Réseaux sociaux du bot</h2>
                     <p className="text-gray-400 mb-4">Ces liens apparaîtront en bas du menu principal du bot Telegram</p>
                     
                     <div className="space-y-4">
@@ -2070,7 +2070,7 @@ export default function ConfigPage() {
                             }
                             className="w-5 h-5 text-blue-600"
                           />
-                          <span className="text-lg">🚚 Livraison</span>
+                          <span className="text-lg text-white">🚚 Livraison</span>
                         </label>
                         
                         <label className="flex items-center gap-3 p-4 bg-gray-800 border-2 border-gray-600 rounded-xl cursor-pointer hover:border-green-500 transition-all">
@@ -2083,7 +2083,7 @@ export default function ConfigPage() {
                             }
                             className="w-5 h-5 text-green-600"
                           />
-                          <span className="text-lg">📦 Envoi postal</span>
+                          <span className="text-lg text-white">📦 Envoi postal</span>
                         </label>
                         
                         <label className="flex items-center gap-3 p-4 bg-gray-800 border-2 border-gray-600 rounded-xl cursor-pointer hover:border-purple-500 transition-all">
@@ -2096,7 +2096,7 @@ export default function ConfigPage() {
                             }
                             className="w-5 h-5 text-purple-600"
                           />
-                          <span className="text-lg">🤝 Meetup</span>
+                          <span className="text-lg text-white">🤝 Meetup</span>
                         </label>
                       </div>
 
