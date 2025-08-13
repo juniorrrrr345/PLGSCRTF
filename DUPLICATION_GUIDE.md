@@ -1,5 +1,14 @@
 # 🚀 GUIDE COMPLET DE DUPLICATION - BOT TELEGRAM & BOUTIQUE
 
+## ⚠️ AVERTISSEMENT SÉCURITÉ ⚠️
+**AVANT DE COMMENCER, LISEZ ABSOLUMENT LE [GUIDE DE SÉCURITÉ](IMPORTANT_SECURITY.md)**
+
+> ⛔ **NE JAMAIS réutiliser les credentials de la boutique principale !**
+> 
+> ✅ **TOUJOURS créer de nouveaux comptes et tokens pour votre duplication !**
+
+---
+
 ## 📋 Table des matières
 1. [Prérequis](#prérequis)
 2. [Étape 1 : Dupliquer le code](#étape-1--dupliquer-le-code)
