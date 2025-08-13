@@ -98,15 +98,15 @@ export default function PlugsPage() {
     <div className="min-h-screen pt-20 px-4">
       <div className="max-w-7xl mx-auto">
         {/* Header */}
-        <div className="text-center mb-8">
-          <h1 className="text-4xl md:text-5xl font-black mb-3">
+        <div className="text-center mb-8 bg-black/60 backdrop-blur-sm rounded-2xl p-6">
+          <h1 className="text-4xl md:text-5xl font-black mb-3 text-white drop-shadow-2xl">
             🔌 Nos <span className="gradient-text">Plugs Certifiés</span>
           </h1>
-          <p className="text-gray-400 text-lg">
+          <p className="text-white/90 text-lg drop-shadow-lg">
             Vendeurs vérifiés et classés par popularité
           </p>
           {plugs && (
-            <p className="text-sm text-gray-500 mt-2">
+            <p className="text-sm text-white/70 mt-2 drop-shadow">
               {filteredPlugs.length} plug{filteredPlugs.length > 1 ? 's' : ''} trouvé{filteredPlugs.length > 1 ? 's' : ''}
             </p>
           )}
@@ -122,7 +122,7 @@ export default function PlugsPage() {
             <input
               type="text"
               placeholder="Rechercher un plug..."
-              className="w-full pl-12 pr-4 py-3 bg-gray-800/50 backdrop-blur-sm border border-gray-700 rounded-xl text-white placeholder-gray-400 focus:outline-none focus:border-primary transition-all"
+              className="w-full pl-12 pr-4 py-3 bg-black/80 backdrop-blur-md border-2 border-white/30 rounded-xl text-white placeholder-white/60 focus:outline-none focus:border-primary transition-all shadow-xl"
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
             />

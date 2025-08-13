@@ -57,7 +57,7 @@ export default function Navbar() {
   const navPadding = isTelegram ? 'px-3' : 'px-4 sm:px-6 lg:px-8'
 
   return (
-    <nav className={`fixed top-0 w-full z-50 bg-black/90 backdrop-blur-lg border-b border-white/10 ${isTelegram ? 'navbar' : ''}`}>
+    <nav className={`fixed top-0 w-full z-50 bg-black/95 backdrop-blur-xl border-b border-white/20 shadow-2xl ${isTelegram ? 'navbar' : ''}`}>
       <div className={`max-w-7xl mx-auto ${navPadding}`}>
         <div className={`flex items-center justify-between ${navHeight}`}>
           {/* Logo */}
@@ -65,8 +65,8 @@ export default function Navbar() {
             <div
               className={`${logoSize} font-bold navbar-title ${
                 isHomePage && !scrolled 
-                  ? 'text-gray-400 opacity-60' 
-                  : 'text-white'
+                  ? 'text-white/80 drop-shadow-xl' 
+                  : 'text-white drop-shadow-xl'
               }`}
             >
               CERTIF2PLUG

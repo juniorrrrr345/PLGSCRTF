@@ -49,11 +49,15 @@ export default function Home() {
             transition={{ duration: 0.6 }}
             className={isTelegram ? "mb-6" : "mb-8"}
           >
-            <h1 className={`${heroTitle} font-black mb-4 sm:mb-6 text-white`}>
-              PLUGS <span className="gradient-text">CRTFS</span>
+            <h1 className={`${heroTitle} font-black mb-4 sm:mb-6 text-white drop-shadow-2xl`}>
+              <span className="bg-black/50 px-4 py-2 rounded-xl inline-block">
+                CERTIF<span className="gradient-text">2</span>PLUG
+              </span>
             </h1>
-            <p className={`${heroSubtitle} text-gray-300 font-medium max-w-3xl mx-auto px-4`}>
-              La marketplace exclusive des vendeurs certifiés
+            <p className={`${heroSubtitle} text-white font-medium max-w-3xl mx-auto px-4 drop-shadow-xl`}>
+              <span className="bg-black/60 px-4 py-2 rounded-lg inline-block">
+                La marketplace exclusive des vendeurs certifiés
+              </span>
             </p>
           </motion.div>
 
@@ -65,14 +69,14 @@ export default function Home() {
           >
             <Link 
               href="/plugs" 
-              className={`btn-primary ${buttonSize} flex items-center justify-center gap-2 bg-blue-600 hover:bg-blue-700 shadow-xl rounded-xl font-semibold transition-all ${!isTelegram ? 'transform hover:scale-105' : ''}`}
+              className={`btn-primary ${buttonSize} flex items-center justify-center gap-2 bg-blue-600 hover:bg-blue-700 shadow-2xl rounded-xl font-bold text-white transition-all ${!isTelegram ? 'transform hover:scale-105' : ''} drop-shadow-xl`}
             >
               Explorer les Plugs
               <ArrowRightIcon className={isTelegram ? "w-4 h-4" : "w-4 h-4 sm:w-5 sm:h-5"} />
             </Link>
             <Link 
               href="/search" 
-              className={`btn-secondary ${buttonSize} flex items-center justify-center gap-2 bg-gray-800 hover:bg-gray-700 border-2 border-gray-700 rounded-xl font-semibold transition-all ${!isTelegram ? 'transform hover:scale-105' : ''}`}
+              className={`btn-secondary ${buttonSize} flex items-center justify-center gap-2 bg-gray-900/90 hover:bg-gray-800 border-2 border-white/30 rounded-xl font-bold text-white transition-all ${!isTelegram ? 'transform hover:scale-105' : ''} backdrop-blur-sm drop-shadow-xl`}
             >
               Recherche Avancée
             </Link>
@@ -85,11 +89,11 @@ export default function Home() {
             transition={{ duration: 0.6, delay: 0.6 }}
             className={`${isTelegram ? 'mt-12' : 'mt-16 sm:mt-20 md:mt-24'} px-4`}
           >
-            <div className={`bg-gradient-to-r from-blue-600/20 to-purple-600/20 backdrop-blur-sm rounded-2xl ${isTelegram ? 'p-6' : 'p-6 sm:p-8 md:p-10'} border border-white/10 max-w-3xl mx-auto`}>
-              <h2 className={`${isTelegram ? 'text-xl' : 'text-2xl sm:text-3xl md:text-4xl'} font-bold mb-3 sm:mb-4 text-white`}>
+            <div className={`bg-black/80 backdrop-blur-md rounded-2xl ${isTelegram ? 'p-6' : 'p-6 sm:p-8 md:p-10'} border-2 border-white/20 max-w-3xl mx-auto shadow-2xl`}>
+              <h2 className={`${isTelegram ? 'text-xl' : 'text-2xl sm:text-3xl md:text-4xl'} font-bold mb-3 sm:mb-4 text-white drop-shadow-xl`}>
                 Prêt à rejoindre l'aventure ?
               </h2>
-              <p className={`${isTelegram ? 'text-sm' : 'text-base sm:text-lg md:text-xl'} text-gray-300 mb-4 sm:mb-6`}>
+              <p className={`${isTelegram ? 'text-sm' : 'text-base sm:text-lg md:text-xl'} text-white/90 mb-4 sm:mb-6 drop-shadow-lg`}>
                 Découvrez les meilleurs vendeurs certifiés de votre région
               </p>
               <Link 

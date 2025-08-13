@@ -52,7 +52,7 @@ export default function BackgroundProvider({ children }: { children: React.React
         overlay.style.left = '0'
         overlay.style.right = '0'
         overlay.style.bottom = '0'
-        overlay.style.backgroundColor = 'rgba(0, 0, 0, 0.7)'
+        overlay.style.backgroundColor = 'rgba(0, 0, 0, 0.85)'
         overlay.style.zIndex = '-1'
         overlay.style.pointerEvents = 'none'
         document.body.appendChild(overlay)
