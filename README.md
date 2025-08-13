@@ -27,6 +27,7 @@ Bot Telegram complet avec boutique web intégrée, panel d'administration et sys
 - 🚨 [**GUIDE DE SÉCURITÉ CRITIQUE**](IMPORTANT_SECURITY.md) - **OBLIGATOIRE avant duplication**
 
 ### 📖 Guides de duplication
+- 🤖 [**GUIDE CURSOR AI & CLAUDE**](CURSOR_AI_DUPLICATION_GUIDE.md) - **NOUVEAU** Guide spécial pour Cursor
 - 📖 [**GUIDE DE DUPLICATION COMPLET**](DUPLICATION_GUIDE.md) - Guide étape par étape détaillé
 - ⚡ [**DÉMARRAGE RAPIDE**](QUICK_START.md) - Version condensée en 10 minutes
 - 🔧 [**VARIABLES D'ENVIRONNEMENT**](.env.example) - Fichier exemple avec toutes les variables
