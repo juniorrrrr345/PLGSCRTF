@@ -712,13 +712,9 @@ export default function ConfigPage() {
       
       <div className="flex relative">
         {/* Sidebar - Responsive */}
-        <AnimatePresence>
-          {(mobileMenuOpen || isDesktop) && (
-            <motion.aside
-              initial={{ x: -300 }}
-              animate={{ x: 0 }}
-              exit={{ x: -300 }}
-              className={`
+        {(mobileMenuOpen || isDesktop) && (
+          <aside
+            className={`
                 fixed lg:sticky top-0 left-0 h-screen 
                 w-72 sm:w-80 lg:w-64 xl:w-72
                 bg-gray-900/95 backdrop-blur-md 
@@ -780,9 +776,8 @@ export default function ConfigPage() {
                   Déconnexion
                 </button>
               </div>
-            </motion.aside>
+            </aside>
           )}
-        </AnimatePresence>
         
         {/* Main Content - Responsive padding */}
         <main className="
@@ -793,14 +788,7 @@ export default function ConfigPage() {
           pt-20 lg:pt-8
           overflow-x-hidden
         ">
-          <AnimatePresence mode="wait">
-            <motion.div
-              key={activeTab}
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              exit={{ opacity: 0, y: -20 }}
-              transition={{ duration: 0.2 }}
-            >
+          <div>
               {/* Dashboard */}
               {activeTab === 'dashboard' && (
                 <div className="space-y-4 sm:space-y-6">
@@ -808,34 +796,31 @@ export default function ConfigPage() {
                   
                   {/* Stats Grid - Responsive */}
                   <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
-                                      <motion.div
-                    whileHover={{ scale: 1.02 }}
-                    className="glass-card p-4 sm:p-6"
+                                      <div
+                    className="glass-card p-4 sm:p-6 hover:shadow-lg transition-shadow duration-200"
                   >
                     <UserGroupIcon className="w-6 sm:w-8 h-6 sm:h-8 text-primary mb-2" />
                     <p className="text-gray-400 text-xs sm:text-sm">Utilisateurs</p>
                     <p className="text-2xl sm:text-3xl font-bold">{stats?.userCount || 0}</p>
-                  </motion.div>
+                  </div>
                   
-                  <motion.div
-                    whileHover={{ scale: 1.02 }}
-                    className="glass-card p-4 sm:p-6"
+                  <div
+                    className="glass-card p-4 sm:p-6 hover:shadow-lg transition-shadow duration-200"
                   >
                     <BoltIcon className="w-6 sm:w-8 h-6 sm:h-8 text-green-500 mb-2" />
                     <p className="text-gray-400 text-xs sm:text-sm">Plugs actifs</p>
                     <p className="text-2xl sm:text-3xl font-bold">{stats?.plugCount || 0}</p>
-                  </motion.div>
+                  </div>
                   
-                  <motion.div
-                    whileHover={{ scale: 1.02 }}
-                    className="glass-card p-4 sm:p-6"
+                  <div
+                    className="glass-card p-4 sm:p-6 hover:shadow-lg transition-shadow duration-200"
                   >
                     <HeartIcon className="w-6 sm:w-8 h-6 sm:h-8 text-red-500 mb-2" />
                     <p className="text-gray-400 text-xs sm:text-sm">Total likes</p>
                     <p className="text-2xl sm:text-3xl font-bold">
                       {plugs?.reduce((acc: number, plug: any) => acc + plug.likes, 0) || 0}
                     </p>
-                  </motion.div>
+                  </div>
                   
                   <motion.div
                     whileHover={{ scale: 1.02 }}
@@ -1940,8 +1925,7 @@ export default function ConfigPage() {
                   </div>
                 </div>
               )}
-            </motion.div>
-          </AnimatePresence>
+            </div>
         </main>
       </div>
       
