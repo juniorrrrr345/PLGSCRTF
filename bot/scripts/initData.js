@@ -12,8 +12,8 @@ async function initializeData() {
     const existingSettings = await Settings.findOne();
     if (!existingSettings) {
       await Settings.create({
-        welcomeMessage: 'Bienvenue sur PLUGS CRTFS ! 🔌',
-        infoText: `<b>À propos de PLUGS CRTFS</b>\n\n` +
+        welcomeMessage: 'Bienvenue sur CERTIF2PLUG ! 🔌',
+        infoText: `<b>À propos de CERTIF2PLUG</b>\n\n` +
                   `🔌 Plateforme de mise en relation sécurisée\n` +
                   `✅ Vendeurs certifiés\n` +
                   `🔒 Transactions sécurisées\n` +

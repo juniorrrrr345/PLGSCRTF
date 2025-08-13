@@ -40,7 +40,7 @@ export default function ProductPage() {
     
     if (navigator.share) {
       navigator.share({
-        title: `${product.name} - PLUGS CRTFS`,
+        title: `${product.name} - CERTIF2PLUG`,
         text: product.description,
         url: shareUrl
       })

@@ -99,7 +99,7 @@ export default function MaintenancePage() {
             animate={{ opacity: 1, scale: 1 }}
             transition={{ duration: 0.5 }}
             src={maintenanceLogo}
-            alt="PLUGS CRTFS"
+            alt="CERTIF2PLUG"
             className={`${logoSize} mx-auto mb-4 rounded-2xl object-cover`}
           />
         )}
@@ -185,7 +185,7 @@ export default function MaintenancePage() {
         
         <p className={`${isTelegram ? 'text-xs' : 'text-sm'} text-gray-500`}>
           Cordialement,<br />
-          <span className="font-semibold">PLUGS CRTFS</span>
+          <span className="font-semibold">CERTIF2PLUG</span>
         </p>
       </motion.div>
     </div>

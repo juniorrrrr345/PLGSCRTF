@@ -241,18 +241,18 @@ async function showMainMenu(bot, chatId, userId = null) {
   const plugCount = await Plug.countDocuments() || 0;
   
   const welcomeMessage = settings?.welcomeMessage || 
-    '🔌 <b>Bienvenue sur PLUGS CRTFS !</b>\n\nLa marketplace exclusive des vendeurs certifiés.';
+    '🔌 <b>Bienvenue sur CERTIF2PLUG !</b>\n\nLa marketplace exclusive des vendeurs certifiés.';
   
   // Ajouter le nombre de plugs et d'utilisateurs au message
   const messageWithStats = `${welcomeMessage}\n\n🔌 <b>${plugCount} Plugs Disponibles</b> ✅\n\n👥 <b>${userCount} utilisateurs</b> nous font déjà confiance !`;
   
   // Utiliser le texte personnalisé pour le bouton Mini App
-  const miniAppButtonText = settings?.miniAppButtonText || '🔌 MINI APP PLGS CRTFS';
+  const miniAppButtonText = settings?.miniAppButtonText || '🔌 MINI APP CERTIF2PLUG';
   
   const keyboard = {
     inline_keyboard: [
       [{ text: miniAppButtonText, url: 'https://t.me/PLGSCRTF_BOT/miniapp' }],
-      [{ text: '🔌 PLUGS CRTFS', callback_data: 'plugs' }],
+      [{ text: '🔌 CERTIF2PLUG', callback_data: 'plugs' }],
       [{ text: '🏆 TOP PARRAINS', callback_data: 'referrals' }],
       [{ text: '✅ DEVENIR CERTIFIÉ', callback_data: 'apply' }],
       [{ text: 'ℹ️ INFORMATIONS', callback_data: 'info' }]

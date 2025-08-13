@@ -69,7 +69,7 @@ export default function Navbar() {
                   : 'text-white'
               }`}
             >
-              PLUGS CRTFS
+              CERTIF2PLUG
             </div>
           </Link>
 

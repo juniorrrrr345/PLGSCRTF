@@ -60,7 +60,7 @@ export default function ConfigPage() {
   const [welcomeMessage, setWelcomeMessage] = useState('')
   const [infoText, setInfoText] = useState('')
   const [globalMessage, setGlobalMessage] = useState('')
-  const [miniAppButtonText, setMiniAppButtonText] = useState('MINI APP PLGS CRTFS 🔌')
+  const [miniAppButtonText, setMiniAppButtonText] = useState('MINI APP CERTIF2PLUG 🔌')
   const [socialNetworks, setSocialNetworks] = useState<any>({})
   const [shopSocialNetworks, setShopSocialNetworks] = useState<any[]>([])
 
@@ -147,7 +147,7 @@ export default function ConfigPage() {
     if (settings) {
       setWelcomeMessage(settings.welcomeMessage || '')
       setInfoText(settings.infoText || '')
-      setMiniAppButtonText(settings.miniAppButtonText || 'MINI APP PLGS CRTFS 🔌')
+      setMiniAppButtonText(settings.miniAppButtonText || 'MINI APP CERTIF2PLUG 🔌')
       
       // Charger les réseaux sociaux du bot
       if (settings.botSocialNetworks) {
@@ -1628,7 +1628,7 @@ export default function ConfigPage() {
                           Nous sommes bientôt de retour !<br/>
                           <br/>
                           Cordialement,<br/>
-                          PLUGS CRTFS
+                          CERTIF2PLUG
                         </p>
                         <p className="text-xs text-gray-500 mt-2">
                           Affiché avec l'image d'accueil configurée
@@ -1680,7 +1680,7 @@ export default function ConfigPage() {
                       value={miniAppButtonText}
                       onChange={(e) => setMiniAppButtonText(e.target.value)}
                       className="w-full px-4 py-3 bg-white/10 border border-white/20 rounded-lg focus:border-primary focus:outline-none transition-colors"
-                      placeholder="Ex: MINI APP PLGS CRTFS 🔌"
+                      placeholder="Ex: MINI APP CERTIF2PLUG 🔌"
                     />
                     <button
                       onClick={handleSaveSettings}

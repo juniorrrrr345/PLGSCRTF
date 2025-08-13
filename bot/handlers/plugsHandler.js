@@ -80,7 +80,7 @@ async function handlePlugsMenu(bot, chatId, filters = {}) {
     const countries = Array.from(countriesSet).sort();
     
     // Construire le message
-    let message = '🔌 <b>PLUGS CRTFS</b>\n';
+    let message = '🔌 <b>CERTIF2PLUG</b>\n';
     message += '━━━━━━━━━━━━━━━━\n\n';
     
     // Afficher les filtres actifs

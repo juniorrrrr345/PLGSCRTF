@@ -178,11 +178,11 @@ app.post('/api/webhook/update', async (req, res) => {
           message = `🎉 <b>Nouveau PLUG disponible !</b>\n\n` +
                    `🔌 <b>${data.name}</b>\n` +
                    `📍 ${data.countryFlag} ${data.department || 'National'}\n\n` +
-                   `Découvrez-le maintenant dans /start → PLUGS CRTFS`;
+                   `Découvrez-le maintenant dans /start → CERTIF2PLUG`;
         } else if (action === 'update') {
           message = `📢 <b>PLUG mis à jour !</b>\n\n` +
                    `🔌 <b>${data.name}</b> a été modifié\n` +
-                   `Consultez les nouveautés dans /start → PLUGS CRTFS`;
+                   `Consultez les nouveautés dans /start → CERTIF2PLUG`;
         } else if (action === 'delete') {
           message = `⚠️ <b>PLUG retiré</b>\n\n` +
                    `Le PLUG "${data.name}" n'est plus disponible.`;
@@ -390,7 +390,7 @@ bot.on('callback_query', async (callbackQuery) => {
         await showMainMenu(bot, chatId);
       } else {
         await bot.answerCallbackQuery(callbackQuery.id, {
-          text: '‼️ IMPORTANT DE REJOINDRE POUR VOIR LES MENUS ‼️\n\nCORDIALEMENT PLUGS CRTFS',
+          text: '‼️ IMPORTANT DE REJOINDRE POUR VOIR LES MENUS ‼️\n\nCORDIALEMENT CERTIF2PLUG',
           show_alert: true
         });
         
@@ -410,7 +410,7 @@ bot.on('callback_query', async (callbackQuery) => {
     else if (data === 'info') {
       await bot.deleteMessage(chatId, messageId);
       const settings = await Settings.findOne();
-      const message = settings?.infoText || 'Bienvenue sur PLUGS CRTFS !';
+      const message = settings?.infoText || 'Bienvenue sur CERTIF2PLUG !';
       
       // Envoyer avec l'image d'accueil si elle existe
       if (settings?.welcomeImage) {
@@ -448,7 +448,7 @@ bot.on('callback_query', async (callbackQuery) => {
       await handleVendorApplication(bot, chatId, userStates);
     }
     
-    // PLUGS CRTFS
+    // CERTIF2PLUG
     else if (data === 'plugs') {
       const { requireChannelMembership } = require('./middleware/channelCheck');
       const userId = callbackQuery.from.id;
