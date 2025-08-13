@@ -430,7 +430,7 @@ async function handlePlugDetails(bot, chatId, plugId, fromMenu = 'plugs', userId
     // Ajouter le lien de parrainage UNIQUEMENT pour l'admin
     // currentUserId est déjà défini plus haut (ligne 335)
     const adminId = process.env.ADMIN_ID ? process.env.ADMIN_ID.trim() : null;
-    const Settings = require('../models/Settings');
+    // Settings est déjà importé en haut du fichier (ligne 26)
     const settings = await Settings.findOne();
     const settingsAdminIds = settings?.adminChatIds || [];
     const isAdmin = (adminId && currentUserId.toString() === adminId) || settingsAdminIds.includes(currentUserId.toString());

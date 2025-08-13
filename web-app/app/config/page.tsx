@@ -686,30 +686,57 @@ export default function ConfigPage() {
   ]
   
   return (
-    <div className="min-h-screen">
-      {/* Mobile Menu Button */}
-      <button
-        onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-        className="lg:hidden fixed top-20 left-4 z-50 p-2 bg-darker rounded-lg border border-white/10"
-      >
-        <Bars3Icon className="w-6 h-6" />
-      </button>
+    <div className="min-h-screen bg-gray-950">
+      {/* Mobile Header with Menu Button */}
+      <div className="lg:hidden fixed top-0 left-0 right-0 z-50 bg-gray-900/95 backdrop-blur-md border-b border-gray-800">
+        <div className="flex items-center justify-between p-4">
+          <button
+            onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
+            className="p-2 rounded-lg bg-gray-800 hover:bg-gray-700 transition-colors"
+            aria-label="Menu"
+          >
+            <Bars3Icon className="w-6 h-6 text-white" />
+          </button>
+          <h1 className="text-lg font-bold text-white">Admin Panel</h1>
+          <div className="w-10" /> {/* Spacer for centering */}
+        </div>
+      </div>
       
-      <div className="flex">
-        {/* Sidebar */}
+      {/* Mobile Menu Overlay */}
+      {mobileMenuOpen && (
+        <div 
+          className="lg:hidden fixed inset-0 bg-black/50 z-30"
+          onClick={() => setMobileMenuOpen(false)}
+        />
+      )}
+      
+      <div className="flex relative">
+        {/* Sidebar - Responsive */}
         <AnimatePresence>
           {(mobileMenuOpen || isDesktop) && (
             <motion.aside
               initial={{ x: -300 }}
               animate={{ x: 0 }}
               exit={{ x: -300 }}
-              className="fixed lg:relative w-64 h-screen bg-gray-900 border-r border-gray-700 z-40 shadow-2xl"
+              className={`
+                fixed lg:sticky top-0 left-0 h-screen 
+                w-72 sm:w-80 lg:w-64 xl:w-72
+                bg-gray-900/95 backdrop-blur-md 
+                border-r border-gray-800 
+                z-40 shadow-2xl
+                overflow-y-auto
+                ${mobileMenuOpen ? 'pt-20 lg:pt-0' : ''}
+              `}
             >
-              <div className="p-6">
-                <h2 className="text-3xl font-black text-white mb-2">Admin Panel</h2>
-                <p className="text-gray-400 text-sm mb-8">Gestion de la boutique</p>
+              <div className="p-4 sm:p-6">
+                {/* Desktop Header */}
+                <div className="hidden lg:block mb-8">
+                  <h2 className="text-2xl xl:text-3xl font-black text-white mb-2">Admin Panel</h2>
+                  <p className="text-gray-400 text-sm">Gestion de la boutique</p>
+                </div>
                 
-                <nav className="space-y-2">
+                {/* Navigation */}
+                <nav className="space-y-1 sm:space-y-2">
                   {tabs.map(tab => (
                     <button
                       key={tab.id}
@@ -717,23 +744,39 @@ export default function ConfigPage() {
                         setActiveTab(tab.id)
                         setMobileMenuOpen(false)
                       }}
-                      className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl transition-all font-medium ${
-                        activeTab === tab.id 
-                          ? 'bg-gradient-to-r from-blue-600 to-purple-600 text-white shadow-lg transform scale-105' 
-                          : 'bg-gray-800 hover:bg-gray-700 text-gray-300 hover:text-white border border-gray-700'
-                      }`}
+                      className={`
+                        w-full flex items-center gap-3 
+                        px-3 sm:px-4 py-2.5 sm:py-3 
+                        rounded-lg sm:rounded-xl 
+                        transition-all duration-200 
+                        text-sm sm:text-base font-medium
+                        ${activeTab === tab.id 
+                          ? 'bg-gradient-to-r from-blue-600 to-purple-600 text-white shadow-lg scale-[1.02]' 
+                          : 'bg-gray-800/50 hover:bg-gray-800 text-gray-300 hover:text-white border border-gray-700/50'
+                        }
+                      `}
                     >
-                      <tab.icon className="w-5 h-5" />
-                      {tab.label}
+                      <tab.icon className="w-5 h-5 flex-shrink-0" />
+                      <span className="truncate">{tab.label}</span>
                     </button>
                   ))}
                 </nav>
                 
+                {/* Logout Button */}
                 <button
                   onClick={handleLogout}
-                  className="w-full mt-8 px-4 py-3 bg-red-600 hover:bg-red-700 text-white rounded-xl font-medium transition-all flex items-center justify-center gap-2 shadow-lg"
+                  className="
+                    w-full mt-6 sm:mt-8 
+                    px-3 sm:px-4 py-2.5 sm:py-3 
+                    bg-red-600/90 hover:bg-red-600 
+                    text-white rounded-lg sm:rounded-xl 
+                    text-sm sm:text-base font-medium 
+                    transition-all duration-200
+                    flex items-center justify-center gap-2 
+                    shadow-lg hover:shadow-red-500/20
+                  "
                 >
-                  <ArrowLeftIcon className="w-5 h-5" />
+                  <ArrowLeftIcon className="w-4 sm:w-5 h-4 sm:h-5" />
                   Déconnexion
                 </button>
               </div>
@@ -741,8 +784,15 @@ export default function ConfigPage() {
           )}
         </AnimatePresence>
         
-        {/* Main Content */}
-        <main className="flex-1 p-4 lg:p-8 lg:ml-0">
+        {/* Main Content - Responsive padding */}
+        <main className="
+          flex-1 
+          w-full
+          min-h-screen
+          p-4 sm:p-6 lg:p-8 
+          pt-20 lg:pt-8
+          overflow-x-hidden
+        ">
           <AnimatePresence mode="wait">
             <motion.div
               key={activeTab}
@@ -753,50 +803,50 @@ export default function ConfigPage() {
             >
               {/* Dashboard */}
               {activeTab === 'dashboard' && (
-                <div className="space-y-6">
-                  <h1 className="text-3xl font-bold">Tableau de bord</h1>
+                <div className="space-y-4 sm:space-y-6">
+                  <h1 className="text-2xl sm:text-3xl font-bold">Tableau de bord</h1>
                   
-                  {/* Stats Grid */}
-                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-                    <motion.div
-                      whileHover={{ scale: 1.02 }}
-                      className="glass-card p-6"
-                    >
-                      <UserGroupIcon className="w-8 h-8 text-primary mb-2" />
-                      <p className="text-gray-400 text-sm">Utilisateurs</p>
-                      <p className="text-3xl font-bold">{stats?.userCount || 0}</p>
-                    </motion.div>
-                    
-                    <motion.div
-                      whileHover={{ scale: 1.02 }}
-                      className="glass-card p-6"
-                    >
-                      <BoltIcon className="w-8 h-8 text-green-500 mb-2" />
-                      <p className="text-gray-400 text-sm">Plugs actifs</p>
-                      <p className="text-3xl font-bold">{stats?.plugCount || 0}</p>
-                    </motion.div>
-                    
-                    <motion.div
-                      whileHover={{ scale: 1.02 }}
-                      className="glass-card p-6"
-                    >
-                      <HeartIcon className="w-8 h-8 text-red-500 mb-2" />
-                      <p className="text-gray-400 text-sm">Total likes</p>
-                      <p className="text-3xl font-bold">
-                        {plugs?.reduce((acc: number, plug: any) => acc + plug.likes, 0) || 0}
-                      </p>
-                    </motion.div>
-                    
-                    <motion.div
-                      whileHover={{ scale: 1.02 }}
-                      className="glass-card p-6"
-                    >
-                      <DocumentTextIcon className="w-8 h-8 text-yellow-500 mb-2" />
-                      <p className="text-gray-400 text-sm">Candidatures</p>
-                      <p className="text-3xl font-bold">
-                        {applications?.filter((a: any) => a.status === 'pending').length || 0}
-                      </p>
-                    </motion.div>
+                  {/* Stats Grid - Responsive */}
+                  <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
+                                      <motion.div
+                    whileHover={{ scale: 1.02 }}
+                    className="glass-card p-4 sm:p-6"
+                  >
+                    <UserGroupIcon className="w-6 sm:w-8 h-6 sm:h-8 text-primary mb-2" />
+                    <p className="text-gray-400 text-xs sm:text-sm">Utilisateurs</p>
+                    <p className="text-2xl sm:text-3xl font-bold">{stats?.userCount || 0}</p>
+                  </motion.div>
+                  
+                  <motion.div
+                    whileHover={{ scale: 1.02 }}
+                    className="glass-card p-4 sm:p-6"
+                  >
+                    <BoltIcon className="w-6 sm:w-8 h-6 sm:h-8 text-green-500 mb-2" />
+                    <p className="text-gray-400 text-xs sm:text-sm">Plugs actifs</p>
+                    <p className="text-2xl sm:text-3xl font-bold">{stats?.plugCount || 0}</p>
+                  </motion.div>
+                  
+                  <motion.div
+                    whileHover={{ scale: 1.02 }}
+                    className="glass-card p-4 sm:p-6"
+                  >
+                    <HeartIcon className="w-6 sm:w-8 h-6 sm:h-8 text-red-500 mb-2" />
+                    <p className="text-gray-400 text-xs sm:text-sm">Total likes</p>
+                    <p className="text-2xl sm:text-3xl font-bold">
+                      {plugs?.reduce((acc: number, plug: any) => acc + plug.likes, 0) || 0}
+                    </p>
+                  </motion.div>
+                  
+                  <motion.div
+                    whileHover={{ scale: 1.02 }}
+                    className="glass-card p-4 sm:p-6"
+                  >
+                    <DocumentTextIcon className="w-6 sm:w-8 h-6 sm:h-8 text-yellow-500 mb-2" />
+                    <p className="text-gray-400 text-xs sm:text-sm">Candidatures</p>
+                    <p className="text-2xl sm:text-3xl font-bold">
+                      {applications?.filter((a: any) => a.status === 'pending').length || 0}
+                    </p>
+                  </motion.div>
                   </div>
                   
                   {/* Top Plugs */}
