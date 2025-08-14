@@ -249,9 +249,13 @@ async function showMainMenu(bot, chatId, userId = null) {
   // Utiliser le texte personnalisé pour le bouton Mini App
   const miniAppButtonText = settings?.miniAppButtonText || '🔌 MINI APP CERTIF2PLUG';
   
+  // Construire l'URL de la mini app dynamiquement
+  const botUsername = process.env.TELEGRAM_BOT_USERNAME || 'PLGSCRTF_BOT';
+  const miniAppUrl = `https://t.me/${botUsername}/miniapp`;
+  
   const keyboard = {
     inline_keyboard: [
-      [{ text: miniAppButtonText, url: 'https://t.me/PLGSCRTF_BOT/miniapp' }],
+      [{ text: miniAppButtonText, url: miniAppUrl }],
       [{ text: '🔌 CERTIF2PLUG', callback_data: 'plugs' }],
       [{ text: '🏆 TOP PARRAINS', callback_data: 'referrals' }],
       [{ text: '✅ DEVENIR CERTIFIÉ', callback_data: 'apply' }],
