@@ -12,6 +12,7 @@ import CountryDepartmentSelector from '../../components/CountryDepartmentSelecto
 import PostalCodeManager from '../../components/PostalCodeManager'
 import CustomDepartmentManager from '../../components/CustomDepartmentManager'
 import MaintenanceCountdown from '../../components/MaintenanceCountdown'
+import ProductModal from '../../components/ProductModal'
 import { countriesData, getCountryDepartments } from '../../lib/countries-data'
 import { 
   ChartBarIcon, 
@@ -34,10 +35,11 @@ import {
   ShoppingBagIcon,
   ChevronUpIcon,
       ChevronDownIcon,
-    CubeIcon,
-    ShareIcon,
-    ChatBubbleLeftIcon,
-    WrenchIcon
+      CubeIcon,
+  ShareIcon,
+  ChatBubbleLeftIcon,
+  WrenchIcon,
+  ShoppingCartIcon
 } from '@heroicons/react/24/outline'
 
 const fetcher = (url: string) => fetch(url).then(res => res.json())
@@ -71,6 +73,8 @@ export default function ConfigPage() {
   const [maintenanceDuration, setMaintenanceDuration] = useState({ days: 0, hours: 1, minutes: 0 })
   const [editingApplication, setEditingApplication] = useState<any>(null)
   const [showEditApplication, setShowEditApplication] = useState(false)
+  const [showAddProduct, setShowAddProduct] = useState(false)
+  const [editingProduct, setEditingProduct] = useState<any>(null)
   const [newPlug, setNewPlug] = useState<{
     name: string
     photo: string
@@ -105,6 +109,7 @@ export default function ConfigPage() {
   const { data: stats } = useSWR(isAuthenticated ? '/api/stats' : null, fetcher)
   const { data: settings } = useSWR(isAuthenticated ? '/api/settings' : null, fetcher)
   const { data: plugs } = useSWR(isAuthenticated ? '/api/plugs?all=true' : null, fetcher)
+  const { data: products } = useSWR(isAuthenticated ? '/api/products' : null, fetcher)
   const { data: applications } = useSWR(isAuthenticated ? '/api/applications' : null, fetcher)
   
   useEffect(() => {
@@ -495,6 +500,23 @@ export default function ConfigPage() {
       toast.error('Erreur lors de la suppression')
     }
   }
+
+  const handleDeleteProduct = async (productId: string) => {
+    if (!confirm('Êtes-vous sûr de vouloir supprimer ce produit ?')) return
+    
+    try {
+      const res = await fetch(`/api/products/${productId}`, {
+        method: 'DELETE'
+      })
+      
+      if (res.ok) {
+        toast.success('Produit supprimé !')
+        mutate('/api/products')
+      }
+    } catch (error) {
+      toast.error('Erreur lors de la suppression')
+    }
+  }
   
   const handleApproveApplication = async (applicationId: string) => {
     try {
@@ -571,6 +593,7 @@ export default function ConfigPage() {
   
   const tabs = [
     { id: 'plugs', label: 'Plugs', icon: BoltIcon },
+    { id: 'products', label: 'Produits', icon: ShoppingCartIcon },
     { id: 'applications', label: 'Candidatures', icon: DocumentTextIcon },
                 { id: 'social', label: 'Réseaux Sociaux', icon: ShareIcon },
             { id: 'telegram', label: 'Telegram', icon: ChatBubbleLeftIcon },
@@ -891,6 +914,78 @@ export default function ConfigPage() {
                       </motion.div>
                     ))}
                   </div>
+                </div>
+              )}
+              
+              {/* Products */}
+              {activeTab === 'products' && (
+                <div className="space-y-6">
+                  <div className="flex flex-col sm:flex-row gap-4 sm:justify-between sm:items-center">
+                    <h1 className="text-2xl sm:text-3xl font-bold text-white">Produits</h1>
+                    <button
+                      onClick={() => setShowAddProduct(true)}
+                      className="w-full sm:w-auto btn-primary flex items-center justify-center gap-2 py-3"
+                    >
+                      <PlusIcon className="w-5 h-5" />
+                      Ajouter un produit
+                    </button>
+                  </div>
+                  
+                  {!products ? (
+                    <div className="glass-card p-8 text-center">
+                      <p className="text-gray-400">Chargement des produits...</p>
+                    </div>
+                  ) : products.length === 0 ? (
+                    <div className="glass-card p-8 text-center">
+                      <p className="text-gray-400">Aucun produit pour le moment</p>
+                    </div>
+                  ) : (
+                    <div className="grid gap-4">
+                      {products.map((product: any) => (
+                        <div
+                          key={product._id}
+                          className="glass-card p-6 hover:border-primary/50 transition-all"
+                        >
+                          <div className="flex justify-between items-start">
+                            <div className="flex-1">
+                              <h3 className="font-bold text-white text-lg">{product.name}</h3>
+                              <p className="text-gray-400 mt-1">{product.description}</p>
+                              <div className="flex items-center gap-4 mt-3">
+                                <span className="text-primary font-bold">{product.price}€</span>
+                                <span className={`px-2 py-1 rounded-full text-xs ${
+                                  product.inStock ? 'bg-green-500/20 text-green-500' : 'bg-red-500/20 text-red-500'
+                                }`}>
+                                  {product.inStock ? 'En stock' : 'Rupture'}
+                                </span>
+                                {product.featured && (
+                                  <span className="px-2 py-1 bg-yellow-500/20 text-yellow-500 rounded-full text-xs">
+                                    Vedette
+                                  </span>
+                                )}
+                              </div>
+                            </div>
+                            <div className="flex gap-2">
+                              <button
+                                onClick={() => {
+                                  setEditingProduct(product)
+                                  setShowAddProduct(true)
+                                }}
+                                className="p-2 bg-blue-500/20 text-blue-500 rounded-lg hover:bg-blue-500/30"
+                              >
+                                <PencilIcon className="w-5 h-5" />
+                              </button>
+                              <button
+                                onClick={() => handleDeleteProduct(product._id)}
+                                className="p-2 bg-red-500/20 text-red-500 rounded-lg hover:bg-red-500/30"
+                              >
+                                <TrashIcon className="w-5 h-5" />
+                              </button>
+                            </div>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  )}
                 </div>
               )}
               
@@ -2404,6 +2499,21 @@ export default function ConfigPage() {
           </motion.div>
         )}
       </AnimatePresence>
+
+      {/* Product Modal */}
+      <ProductModal
+        isOpen={showAddProduct}
+        onClose={() => {
+          setShowAddProduct(false)
+          setEditingProduct(null)
+        }}
+        product={editingProduct}
+        onSuccess={() => {
+          mutate('/api/products')
+          setShowAddProduct(false)
+          setEditingProduct(null)
+        }}
+      />
     </div>
   )
 }
