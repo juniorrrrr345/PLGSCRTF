@@ -1,4 +1,4 @@
-# 🔌 CERTIF2PLUG - Bot Telegram & Boutique
+# 🔌 PLGSCRTF - Bot Telegram & Boutique
 
 > **La marketplace exclusive des vendeurs certifiés** 
 
@@ -43,7 +43,7 @@ Bot Telegram complet avec boutique web intégrée, panel d'administration et sys
 ## 🏗️ Structure du Projet
 
 ```
-CERTIF2PLUG/
+PLGSCRTF/
 ├── bot/                    # 🤖 Bot Telegram (Node.js)
 │   ├── handlers/          # Gestionnaires de commandes
 │   ├── models/            # Modèles MongoDB
@@ -111,7 +111,7 @@ CERTIF2PLUG/
 ```bash
 # 1. Cloner le repository
 git clone https://github.com/juniorrrrr345/PLGSCRTF.git
-cd CERTIF2PLUG
+cd PLGSCRTF
 
 # 2. Installer les dépendances du bot
 cd bot && npm install
@@ -207,7 +207,7 @@ Ce projet est open source et disponible pour duplication.
 
 ## 🙏 Crédits
 
-**Créé avec ❤️ pour CERTIF2PLUG**
+**Créé avec ❤️ pour PLGSCRTF**
 
 Bot original : [@PLGSCRTF_BOT](https://t.me/PLGSCRTF_BOT)
 

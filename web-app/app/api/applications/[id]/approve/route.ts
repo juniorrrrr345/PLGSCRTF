@@ -55,7 +55,7 @@ export async function POST(
     if (application.telegramId) {
       const message = `✅ <b>Félicitations !</b>\n\n` +
         `Votre candidature a été approuvée ! 🎉\n\n` +
-        `Vous êtes maintenant un vendeur certifié CERTIF2PLUG.\n` +
+                  `Vous êtes maintenant un vendeur certifié PLUGS CRTFS.\n` +
         `Les utilisateurs peuvent désormais vous trouver dans la liste des plugs.\n\n` +
         `Bienvenue dans la communauté ! 🔌`
       

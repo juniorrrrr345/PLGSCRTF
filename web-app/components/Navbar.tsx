@@ -68,7 +68,7 @@ export default function Navbar() {
                   : 'text-white drop-shadow-xl'
               }`}
             >
-              CERTIF2PLUG
+              PLUGS CRTFS
             </div>
           </Link>
 

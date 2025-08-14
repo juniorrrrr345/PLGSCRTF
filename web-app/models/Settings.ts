@@ -3,7 +3,7 @@ import mongoose from 'mongoose'
 const settingsSchema = new mongoose.Schema({
   welcomeMessage: {
     type: String,
-    default: '🔌 Bienvenue sur CERTIF2PLUG !\n\nLa marketplace exclusive des vendeurs certifiés.'
+    default: '🔌 Bienvenue sur PLUGS CRTFS !\n\nLa marketplace exclusive des vendeurs certifiés.'
   },
   welcomeImage: {
     type: String,
@@ -15,7 +15,7 @@ const settingsSchema = new mongoose.Schema({
   },
   miniAppButtonText: {
     type: String,
-    default: '🔌 MINI APP CERTIF2PLUG'
+    default: '🔌 MINI APP PLGS CRTFS'
   },
   backgroundImage: {
     type: String,
