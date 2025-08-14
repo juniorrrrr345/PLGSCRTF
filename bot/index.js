@@ -16,6 +16,10 @@ const { handlePlugsMenu, handlePlugDetails, handleLike } = require('./handlers/p
 const { handleReferralMenu } = require('./handlers/referralHandler');
 const { handleVendorApplication } = require('./handlers/vendorHandler');
 const { handleAdminCommand, handleAdminCallbacks } = require('./handlers/adminHandler');
+const { handleNotificationCallbacks, handleNotificationsCommand, getUsersForNotification } = require('./handlers/notificationHandler');
+
+// Utils
+const MessageQueue = require('./utils/messageQueue');
 
 // Configuration du bot avec gestion des conflits
 let bot;
@@ -105,6 +109,9 @@ if (!isRender) {
 // État des utilisateurs pour les formulaires
 const userStates = new Map();
 
+// Initialiser la queue de messages
+const messageQueue = new MessageQueue(bot);
+
 // Connexion à MongoDB
 mongoose.connect(process.env.MONGODB_URI)
   .then(() => console.log('✅ Connected to MongoDB'))
@@ -120,10 +127,10 @@ app.get('/', (req, res) => {
   res.send('Bot is running! 🤖');
 });
 
-// API pour envoyer des messages broadcast
+// API pour envoyer des messages broadcast (VERSION SÉCURISÉE)
 app.post('/api/broadcast', async (req, res) => {
   try {
-    const { message, userIds } = req.body;
+    const { message, userIds, type = 'all' } = req.body;
     const apiKey = req.headers['x-api-key'];
     
     // Vérifier la clé API
@@ -131,32 +138,72 @@ app.post('/api/broadcast', async (req, res) => {
       return res.status(401).json({ error: 'Unauthorized' });
     }
     
-    if (!message || !userIds || !Array.isArray(userIds)) {
-      return res.status(400).json({ error: 'Invalid request' });
+    if (!message) {
+      return res.status(400).json({ error: 'Message is required' });
     }
     
-    let sent = 0;
-    let failed = 0;
+    let targetUsers = [];
     
-    // Envoyer le message à chaque utilisateur
-    for (const telegramId of userIds) {
-      try {
-        await bot.sendMessage(telegramId, message, { parse_mode: 'HTML' });
-        sent++;
-      } catch (error) {
-        console.error(`Failed to send to ${telegramId}:`, error.message);
-        failed++;
+    // Si des userIds spécifiques sont fournis
+    if (userIds && Array.isArray(userIds)) {
+      // Vérifier que ces utilisateurs ont accepté les notifications
+      const users = await User.find({
+        telegramId: { $in: userIds },
+        'notificationPreferences.acceptsNotifications': true,
+        isActive: true,
+        isBlocked: { $ne: true }
+      });
+      targetUsers = users.map(u => u.telegramId);
+    } else {
+      // Sinon, obtenir tous les utilisateurs qui acceptent ce type de notification
+      const users = await getUsersForNotification(type);
+      targetUsers = users.map(u => u.telegramId);
+    }
+    
+    if (targetUsers.length === 0) {
+      return res.json({ 
+        success: true, 
+        sent: 0, 
+        failed: 0,
+        message: 'No users with notification consent found'
+      });
+    }
+    
+    // Préparer les messages pour la queue
+    const messages = targetUsers.map(telegramId => ({
+      chatId: telegramId,
+      message: message,
+      options: { 
+        parse_mode: 'HTML',
+        disable_web_page_preview: true
       }
-    }
+    }));
     
-    res.json({ success: true, sent, failed });
+    // Ajouter à la queue
+    const queued = await messageQueue.addBatch(messages);
+    
+    // Mise à jour des stats utilisateurs
+    await User.updateMany(
+      { telegramId: { $in: targetUsers } },
+      { 
+        $set: { lastBroadcastReceived: new Date() },
+        $inc: { broadcastsReceived: 1 }
+      }
+    );
+    
+    res.json({ 
+      success: true, 
+      queued: queued,
+      message: 'Messages added to queue for processing'
+    });
+    
   } catch (error) {
-    console.error('Broadcast error:', error);
+    console.error('Broadcast API error:', error);
     res.status(500).json({ error: 'Internal server error' });
   }
 });
 
-// API webhook pour les notifications de changements
+// API webhook pour les notifications de changements (VERSION SÉCURISÉE)
 app.post('/api/webhook/update', async (req, res) => {
   try {
     const { type, action, data } = req.body;
@@ -167,10 +214,8 @@ app.post('/api/webhook/update', async (req, res) => {
       return res.status(401).json({ error: 'Unauthorized' });
     }
     
-    // Récupérer tous les utilisateurs actifs
-    const users = await User.find({ isActive: { $ne: false } });
-    
     let message = '';
+    let notificationType = 'update'; // Type de notification par défaut
     
     switch (type) {
       case 'plug':
@@ -179,13 +224,16 @@ app.post('/api/webhook/update', async (req, res) => {
                    `🔌 <b>${data.name}</b>\n` +
                    `📍 ${data.countryFlag} ${data.department || 'National'}\n\n` +
                    `Découvrez-le maintenant dans /start → PLUGS CRTFS`;
+          notificationType = 'promotion';
         } else if (action === 'update') {
           message = `📢 <b>PLUG mis à jour !</b>\n\n` +
                    `🔌 <b>${data.name}</b> a été modifié\n` +
                    `Consultez les nouveautés dans /start → PLUGS CRTFS`;
+          notificationType = 'update';
         } else if (action === 'delete') {
           message = `⚠️ <b>PLUG retiré</b>\n\n` +
                    `Le PLUG "${data.name}" n'est plus disponible.`;
+          notificationType = 'update';
         }
         break;
         
@@ -198,21 +246,37 @@ app.post('/api/webhook/update', async (req, res) => {
     }
     
     if (message) {
-      let sent = 0;
-      let failed = 0;
+      // Récupérer SEULEMENT les utilisateurs qui acceptent ce type de notification
+      const users = await getUsersForNotification(notificationType);
       
-      // Envoyer la notification à tous les utilisateurs
-      for (const user of users) {
-        try {
-          await bot.sendMessage(user.telegramId, message, { parse_mode: 'HTML' });
-          sent++;
-        } catch (error) {
-          console.error(`Failed to notify ${user.telegramId}:`, error.message);
-          failed++;
-        }
+      if (users.length === 0) {
+        return res.json({ 
+          success: true, 
+          notified: false,
+          message: 'No users with notification consent for this type'
+        });
       }
       
-      res.json({ success: true, sent, failed });
+      // Préparer les messages pour la queue
+      const messages = users.map(user => ({
+        chatId: user.telegramId,
+        message: message,
+        options: { 
+          parse_mode: 'HTML',
+          disable_web_page_preview: true,
+          priority: 5 // Priorité moyenne pour les notifications automatiques
+        }
+      }));
+      
+      // Ajouter à la queue
+      const queued = await messageQueue.addBatch(messages);
+      
+      res.json({ 
+        success: true, 
+        queued: queued,
+        targetUsers: users.length,
+        message: 'Notifications added to queue'
+      });
     } else {
       res.json({ success: true, notified: false });
     }
@@ -278,7 +342,54 @@ bot.onText(/\/start(.*)/, async (msg, match) => {
   }
 });
 
-// Commande /broadcast pour les admins
+// Commande /notifications pour gérer les préférences
+bot.onText(/\/notifications/, async (msg) => {
+  await handleNotificationsCommand(bot, msg);
+});
+
+// Commande /stats pour voir les statistiques de broadcast (admin uniquement)
+bot.onText(/\/stats/, async (msg) => {
+  const chatId = msg.chat.id;
+  
+  try {
+    // Vérifier si admin
+    const adminId = process.env.ADMIN_ID ? process.env.ADMIN_ID.trim() : null;
+    const settings = await Settings.findOne();
+    const settingsAdminIds = settings?.adminChatIds || [];
+    const isAdmin = (adminId && chatId.toString() === adminId) || settingsAdminIds.includes(chatId.toString());
+    
+    if (!isAdmin) {
+      return;
+    }
+    
+    const stats = messageQueue.getStats();
+    const totalUsers = await User.countDocuments({ isActive: true });
+    const optedInUsers = await User.countDocuments({ 
+      'notificationPreferences.acceptsNotifications': true,
+      isActive: true 
+    });
+    const optInRate = totalUsers > 0 ? ((optedInUsers / totalUsers) * 100).toFixed(1) : 0;
+    
+    await bot.sendMessage(chatId,
+      `📊 <b>Statistiques du bot</b>\n\n` +
+      `<b>Utilisateurs :</b>\n` +
+      `• Total actifs : ${totalUsers}\n` +
+      `• Notifications activées : ${optedInUsers} (${optInRate}%)\n\n` +
+      `<b>Queue de messages :</b>\n` +
+      `• En attente : ${stats.queueLength}\n` +
+      `• Envoyés : ${stats.totalSent}\n` +
+      `• Échecs : ${stats.totalFailed}\n` +
+      `• Vitesse : ${stats.messagesPerMinute} msg/min\n` +
+      `• Taux de succès : ${stats.successRate}\n` +
+      `• Temps d'exécution : ${stats.runtime}s`,
+      { parse_mode: 'HTML' }
+    );
+  } catch (error) {
+    console.error('Erreur /stats:', error);
+  }
+});
+
+// Commande /broadcast pour les admins (VERSION SÉCURISÉE)
 bot.onText(/\/broadcast (.+)/s, async (msg, match) => {
   const chatId = msg.chat.id;
   // Récupérer tout le message après /broadcast, y compris les sauts de ligne
@@ -299,53 +410,69 @@ bot.onText(/\/broadcast (.+)/s, async (msg, match) => {
       return;
     }
     
-    // Récupérer tous les utilisateurs actifs
-    const users = await User.find({ isActive: { $ne: false } });
+    // IMPORTANT: Récupérer SEULEMENT les utilisateurs qui ont accepté les notifications
+    const users = await getUsersForNotification('all');
     
     if (users.length === 0) {
-      await bot.sendMessage(chatId, '❌ Aucun utilisateur actif trouvé.', { parse_mode: 'HTML' });
+      await bot.sendMessage(chatId, 
+        '❌ <b>Aucun utilisateur n\'a activé les notifications.</b>\n\n' +
+        'Les utilisateurs doivent utiliser /notifications pour activer la réception de messages.',
+        { parse_mode: 'HTML' }
+      );
       return;
     }
     
-    // Envoyer un message de confirmation à l'admin avec le message complet
+    // Avertissement si peu d'utilisateurs ont opté
+    const totalUsers = await User.countDocuments({ isActive: true });
+    const optInRate = ((users.length / totalUsers) * 100).toFixed(1);
+    
+    // Envoyer un message de confirmation à l'admin
     await bot.sendMessage(chatId, 
-      `📢 <b>Envoi du message à ${users.length} utilisateurs...</b>\n\n` +
-      `<b>Message à envoyer :</b>\n${message}`,
+      `📢 <b>Broadcast sécurisé</b>\n\n` +
+      `👥 Utilisateurs avec notifications : ${users.length}/${totalUsers} (${optInRate}%)\n` +
+      `📝 Message : ${message.substring(0, 100)}${message.length > 100 ? '...' : ''}\n\n` +
+      `⏳ Envoi en cours avec rate limiting...`,
       { parse_mode: 'HTML' }
     );
     
-    let sent = 0;
-    let failed = 0;
+    // Préparer les messages pour la queue
+    const messages = users.map(user => ({
+      chatId: user.telegramId,
+      message: message,
+      options: { 
+        parse_mode: 'HTML',
+        disable_web_page_preview: true 
+      }
+    }));
     
-    // Envoyer le message à tous les utilisateurs sans modification
+    // Ajouter tous les messages à la queue
+    await messageQueue.addBatch(messages);
+    
+    // Attendre un peu pour avoir des stats initiales
+    setTimeout(async () => {
+      const stats = messageQueue.getStats();
+      await bot.sendMessage(chatId,
+        `📊 <b>Statistiques en temps réel :</b>\n\n` +
+        `• En queue : ${stats.queueLength}\n` +
+        `• Envoyés : ${stats.totalSent}\n` +
+        `• Échecs : ${stats.totalFailed}\n` +
+        `• Vitesse : ${stats.messagesPerMinute} msg/min\n` +
+        `• Taux de succès : ${stats.successRate}\n\n` +
+        `<i>Le broadcast continue en arrière-plan...</i>`,
+        { parse_mode: 'HTML' }
+      );
+    }, 5000);
+    
+    // Mise à jour des statistiques utilisateur
     for (const user of users) {
-      try {
-        // Envoyer le message tel quel, sans préfixe
-        await bot.sendMessage(user.telegramId, message, { 
-          parse_mode: 'HTML',
-          disable_web_page_preview: true 
-        });
-        sent++;
-      } catch (error) {
-        console.error(`Erreur envoi à ${user.username || user.telegramId}:`, error.message);
-        failed++;
-      }
-      
-      // Petite pause pour éviter le flood
-      if (sent % 30 === 0) {
-        await new Promise(resolve => setTimeout(resolve, 1000));
-      }
+      await User.updateOne(
+        { telegramId: user.telegramId },
+        { 
+          $set: { lastBroadcastReceived: new Date() },
+          $inc: { broadcastsReceived: 1 }
+        }
+      );
     }
-    
-    // Envoyer le rapport à l'admin
-    await bot.sendMessage(chatId,
-      `✅ <b>Envoi terminé !</b>\n\n` +
-      `📊 Statistiques :\n` +
-      `• Messages envoyés : ${sent}\n` +
-      `• Échecs : ${failed}\n` +
-      `• Total : ${users.length}`,
-      { parse_mode: 'HTML' }
-    );
     
   } catch (error) {
     console.error('Erreur /broadcast:', error);
@@ -366,6 +493,12 @@ bot.on('callback_query', async (callbackQuery) => {
     // Vérifier d'abord si c'est une callback admin
     const isAdminCallback = await handleAdminCallbacks(bot, callbackQuery);
     if (isAdminCallback) return;
+    
+    // Vérifier si c'est une callback de notifications
+    if (data.startsWith('notif_')) {
+      const isNotifCallback = await handleNotificationCallbacks(bot, callbackQuery);
+      if (isNotifCallback) return;
+    }
     
     // Vérifier si on est en maintenance (sauf pour les callbacks admin)
     const { checkMaintenanceMode } = require('./middleware/maintenanceCheck');
@@ -770,7 +903,7 @@ bot.on('callback_query', async (callbackQuery) => {
   }
 });
 
-// Commande /broadcastraw pour envoyer un message sans formatage HTML
+// Commande /broadcastraw pour envoyer un message sans formatage HTML (VERSION SÉCURISÉE)
 bot.onText(/\/broadcastraw (.+)/s, async (msg, match) => {
   const chatId = msg.chat.id;
   // Récupérer tout le message après /broadcastraw, y compris les sauts de ligne
@@ -791,50 +924,64 @@ bot.onText(/\/broadcastraw (.+)/s, async (msg, match) => {
       return;
     }
     
-    // Récupérer tous les utilisateurs actifs
-    const users = await User.find({ isActive: { $ne: false } });
+    // IMPORTANT: Récupérer SEULEMENT les utilisateurs qui ont accepté les notifications
+    const users = await getUsersForNotification('all');
     
     if (users.length === 0) {
-      await bot.sendMessage(chatId, '❌ Aucun utilisateur actif trouvé.');
+      await bot.sendMessage(chatId, 
+        '❌ Aucun utilisateur n\'a activé les notifications.\n\n' +
+        'Les utilisateurs doivent utiliser /notifications pour activer la réception de messages.'
+      );
       return;
     }
     
+    const totalUsers = await User.countDocuments({ isActive: true });
+    const optInRate = ((users.length / totalUsers) * 100).toFixed(1);
+    
     // Envoyer un message de confirmation à l'admin
     await bot.sendMessage(chatId, 
-      `📢 Envoi du message BRUT (sans formatage) à ${users.length} utilisateurs...\n\n` +
-      `Message à envoyer :\n${message}`
+      `📢 Broadcast BRUT sécurisé\n\n` +
+      `👥 Utilisateurs avec notifications : ${users.length}/${totalUsers} (${optInRate}%)\n` +
+      `📝 Message (sans formatage) : ${message.substring(0, 100)}${message.length > 100 ? '...' : ''}\n\n` +
+      `⏳ Envoi en cours avec rate limiting...`
     );
     
-    let sent = 0;
-    let failed = 0;
+    // Préparer les messages pour la queue (sans parse_mode)
+    const messages = users.map(user => ({
+      chatId: user.telegramId,
+      message: message,
+      options: { 
+        disable_web_page_preview: true 
+      }
+    }));
     
-    // Envoyer le message à tous les utilisateurs sans formatage
+    // Ajouter tous les messages à la queue
+    await messageQueue.addBatch(messages);
+    
+    // Attendre un peu pour avoir des stats initiales
+    setTimeout(async () => {
+      const stats = messageQueue.getStats();
+      await bot.sendMessage(chatId,
+        `📊 Statistiques en temps réel :\n\n` +
+        `• En queue : ${stats.queueLength}\n` +
+        `• Envoyés : ${stats.totalSent}\n` +
+        `• Échecs : ${stats.totalFailed}\n` +
+        `• Vitesse : ${stats.messagesPerMinute} msg/min\n` +
+        `• Taux de succès : ${stats.successRate}\n\n` +
+        `Le broadcast continue en arrière-plan...`
+      );
+    }, 5000);
+    
+    // Mise à jour des statistiques utilisateur
     for (const user of users) {
-      try {
-        // Envoyer le message tel quel, sans parse_mode
-        await bot.sendMessage(user.telegramId, message, { 
-          disable_web_page_preview: true 
-        });
-        sent++;
-      } catch (error) {
-        console.error(`Erreur envoi à ${user.username || user.telegramId}:`, error.message);
-        failed++;
-      }
-      
-      // Petite pause pour éviter le flood
-      if (sent % 30 === 0) {
-        await new Promise(resolve => setTimeout(resolve, 1000));
-      }
+      await User.updateOne(
+        { telegramId: user.telegramId },
+        { 
+          $set: { lastBroadcastReceived: new Date() },
+          $inc: { broadcastsReceived: 1 }
+        }
+      );
     }
-    
-    // Envoyer le rapport à l'admin
-    await bot.sendMessage(chatId,
-      `✅ Envoi terminé !\n\n` +
-      `📊 Statistiques :\n` +
-      `• Messages envoyés : ${sent}\n` +
-      `• Échecs : ${failed}\n` +
-      `• Total : ${users.length}`
-    );
     
   } catch (error) {
     console.error('Erreur /broadcastraw:', error);

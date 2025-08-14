@@ -33,6 +33,40 @@ const userSchema = new mongoose.Schema({
   isAdmin: {
     type: Boolean,
     default: false
+  },
+  // Nouveaux champs pour la gestion des notifications
+  notificationPreferences: {
+    acceptsNotifications: {
+      type: Boolean,
+      default: false // Par défaut, pas de notifications (opt-in requis)
+    },
+    acceptsPromotions: {
+      type: Boolean,
+      default: false
+    },
+    acceptsUpdates: {
+      type: Boolean,
+      default: false
+    },
+    lastUpdated: {
+      type: Date,
+      default: Date.now
+    }
+  },
+  // Tracking pour éviter le spam
+  lastBroadcastReceived: Date,
+  broadcastsReceived: {
+    type: Number,
+    default: 0
+  },
+  isBlocked: {
+    type: Boolean,
+    default: false
+  },
+  blockedReason: String,
+  isActive: {
+    type: Boolean,
+    default: true
   }
 });
 

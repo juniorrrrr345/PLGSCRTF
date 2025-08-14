@@ -217,105 +217,77 @@ async function handleStart(bot, msg, param) {
 }
 
 async function showMainMenu(bot, chatId, userId = null) {
-  // Vérifier d'abord si le bot est en maintenance
-  const inMaintenance = await checkMaintenanceMode(bot, chatId);
-  if (inMaintenance) {
-    return; // Le message de maintenance a été envoyé
-  }
-  
-  // Si userId est fourni, vérifier l'appartenance au canal
-  if (userId) {
-    const hasAccess = await requireChannelMembership(bot, chatId, userId);
-    if (!hasAccess) {
-      return; // Le message de rejoindre le canal a déjà été envoyé
-    }
-  }
-  
-  const settings = await Settings.findOne();
-  
-  // Compter le nombre d'utilisateurs
-  const userCount = await User.countDocuments() || 0;
-  
-  // Compter le nombre de plugs disponibles
-  const Plug = require('../models/Plug');
-  const plugCount = await Plug.countDocuments() || 0;
-  
-  const welcomeMessage = settings?.welcomeMessage || 
-          '🔌 <b>Bienvenue sur PLUGS CRTFS !</b>\n\nLa marketplace exclusive des vendeurs certifiés.';
-  
-  // Ajouter le nombre de plugs et d'utilisateurs au message
-  const messageWithStats = `${welcomeMessage}\n\n🔌 <b>${plugCount} Plugs Disponibles</b> ✅\n\n👥 <b>${userCount} utilisateurs</b> nous font déjà confiance !`;
-  
-  // Utiliser le texte personnalisé pour le bouton Mini App
-      const miniAppButtonText = settings?.miniAppButtonText || '🔌 MINI APP PLGS CRTFS';
-  
-  // Construire l'URL de la mini app dynamiquement
-  const botUsername = process.env.TELEGRAM_BOT_USERNAME || 'PLGSCRTF_BOT';
-  const miniAppUrl = `https://t.me/${botUsername}/miniapp`;
-  
-  const keyboard = {
-    inline_keyboard: [
-      [{ text: miniAppButtonText, url: miniAppUrl }],
-      [{ text: '🔌 PLUGS CRTFS', callback_data: 'plugs' }],
-      [{ text: '🏆 TOP PARRAINS', callback_data: 'referrals' }],
-      [{ text: '✅ DEVENIR CERTIFIÉ', callback_data: 'apply' }],
-      [{ text: 'ℹ️ INFORMATIONS', callback_data: 'info' }]
-    ]
-  };
-  
-  // Ajouter les réseaux sociaux du bot s'ils existent
-  if (settings?.botSocialNetworks && settings.botSocialNetworks.length > 0) {
-    // Trier par ordre
-    const sortedNetworks = settings.botSocialNetworks.sort((a, b) => (a.order || 0) - (b.order || 0));
+  try {
+    console.log('📱 Affichage du menu principal pour:', chatId);
     
-    // Créer des lignes de 2 boutons maximum
-    for (let i = 0; i < sortedNetworks.length; i += 2) {
-      const row = [];
-      const network1 = sortedNetworks[i];
-      
-      if (network1.name && network1.url) {
-        row.push({
-          text: `${network1.emoji || '🔗'} ${network1.name}`,
-          url: network1.url
-        });
-      }
-      
-      if (i + 1 < sortedNetworks.length) {
-        const network2 = sortedNetworks[i + 1];
-        if (network2.name && network2.url) {
-          row.push({
-            text: `${network2.emoji || '🔗'} ${network2.name}`,
-            url: network2.url
-          });
-        }
-      }
-      
-      if (row.length > 0) {
-        keyboard.inline_keyboard.push(row);
+    // Récupérer l'utilisateur pour vérifier le statut des notifications
+    const User = require('../models/User');
+    const Plug = require('../models/Plug');
+    let notificationStatus = '';
+    if (userId) {
+      const user = await User.findOne({ telegramId: userId });
+      if (user && user.notificationPreferences) {
+        notificationStatus = user.notificationPreferences.acceptsNotifications ? '🔔' : '🔕';
       }
     }
-  }
+    
+    // Récupérer les paramètres
+    const Settings = require('../models/Settings');
+    const settings = await Settings.findOne();
+    
+    // Statistiques
+    const userCount = await User.countDocuments() || 0;
+    const plugCount = await Plug.countDocuments() || 0;
+    
+    // Message de bienvenue avec stats
+    const welcomeMessage = `🏠 <b>Menu Principal</b>\n\n` +
+      `👥 Utilisateurs actifs : ${userCount}\n` +
+      `🔌 PLUGs disponibles : ${plugCount}\n\n` +
+      `Que souhaitez-vous faire ?`;
+    
+    // Boutons du menu
+    const keyboard = {
+      inline_keyboard: [
+        [{ text: '🔌 PLUGS CRTFS', callback_data: 'plugs_menu' }],
+        [{ text: '📊 Classement Parrainages', callback_data: 'referral_menu' }],
+        [{ text: '📝 Devenir Vendeur', callback_data: 'vendor_application' }],
+        [{ text: `${notificationStatus} Notifications`, callback_data: 'notif_toggle_all' }],
+        [{ text: 'ℹ️ Informations', callback_data: 'info' }]
+      ]
+    };
   
   // Envoyer l'image d'accueil si elle existe
   if (settings?.welcomeImage) {
     try {
       await bot.sendPhoto(chatId, settings.welcomeImage, {
-        caption: messageWithStats,
+        caption: welcomeMessage,
         parse_mode: 'HTML',
         reply_markup: keyboard
       });
     } catch (error) {
       console.error('Erreur envoi image:', error);
       // Si l'image échoue, envoyer juste le message
-      await bot.sendMessage(chatId, messageWithStats, {
+      await bot.sendMessage(chatId, welcomeMessage, {
         parse_mode: 'HTML',
         reply_markup: keyboard
       });
     }
   } else {
-    await bot.sendMessage(chatId, messageWithStats, {
+    await bot.sendMessage(chatId, welcomeMessage, {
       parse_mode: 'HTML',
       reply_markup: keyboard
+    });
+  }
+  } catch (error) {
+    console.error('Erreur showMainMenu:', error);
+    // Fallback simple
+    await bot.sendMessage(chatId, '🏠 Menu Principal', {
+      reply_markup: {
+        inline_keyboard: [
+          [{ text: '🔌 PLUGS CRTFS', callback_data: 'plugs_menu' }],
+          [{ text: '📊 Classement', callback_data: 'referral_menu' }]
+        ]
+      }
     });
   }
 }
