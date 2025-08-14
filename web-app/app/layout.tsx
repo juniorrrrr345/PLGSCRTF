@@ -11,7 +11,7 @@ import InitialSplash from '@/components/InitialSplash'
 const inter = Inter({ subsets: ['latin'] })
 
 export const metadata: Metadata = {
-  title: 'CERTIF2PLUG - Marketplace des vendeurs certifiés',
+      title: 'PLUGS CRTFS - Marketplace des vendeurs certifiés',
   description: 'La plateforme exclusive pour trouver des vendeurs certifiés et de confiance',
   viewport: 'width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no',
 }

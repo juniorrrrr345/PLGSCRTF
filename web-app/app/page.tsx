@@ -51,7 +51,7 @@ export default function Home() {
           >
             <h1 className={`${heroTitle} font-black mb-4 sm:mb-6 text-white drop-shadow-2xl`}>
               <span className="bg-black/50 px-4 py-2 rounded-xl inline-block">
-                CERTIF<span className="gradient-text">2</span>PLUG
+                PLUGS <span className="gradient-text">CRTFS</span>
               </span>
             </h1>
             <p className={`${heroSubtitle} text-white font-medium max-w-3xl mx-auto px-4 drop-shadow-xl`}>
