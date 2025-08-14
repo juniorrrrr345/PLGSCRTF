@@ -4,4 +4,4 @@ node_modules/
 bot/.env
 web-app/.env.local
 .DS_Store
-*.log
+*.log.next
