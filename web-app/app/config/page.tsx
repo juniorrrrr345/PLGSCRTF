@@ -50,9 +50,6 @@ export default function ConfigPage() {
   const [activeTab, setActiveTab] = useState('dashboard')
   const [showAddPlug, setShowAddPlug] = useState(false)
   const [editingPlug, setEditingPlug] = useState<any>(null)
-  const [showAddProduct, setShowAddProduct] = useState(false)
-  const [editingProduct, setEditingProduct] = useState<any>(null)
-  const [products, setProducts] = useState<any[]>([])
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
   const [isDesktop, setIsDesktop] = useState(false)
   
@@ -74,15 +71,6 @@ export default function ConfigPage() {
   const [maintenanceDuration, setMaintenanceDuration] = useState({ days: 0, hours: 1, minutes: 0 })
   const [editingApplication, setEditingApplication] = useState<any>(null)
   const [showEditApplication, setShowEditApplication] = useState(false)
-  const [newProduct, setNewProduct] = useState({
-    title: '',
-    description: '',
-    media: '',
-    mediaType: 'image',
-    socialLink: '',
-    socialNetwork: 'Instagram',
-    socialEmoji: '📷'
-  })
   const [newPlug, setNewPlug] = useState<{
     name: string
     photo: string
@@ -213,15 +201,7 @@ export default function ConfigPage() {
     return emojis[key] || '🔗'
   }
 
-  // Load products
-  useEffect(() => {
-    if (isAuthenticated) {
-      fetch('/api/products')
-        .then(res => res.json())
-        .then(data => setProducts(data || []))
-        .catch(err => console.error('Error loading products:', err))
-    }
-  }, [isAuthenticated])
+
   
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -496,9 +476,6 @@ export default function ConfigPage() {
       toast.error('Erreur lors de la sauvegarde')
     }
   }
-
-  const handleAddProduct = async () => {
-    if (!newProduct.title || !newProduct.description || !newProduct.media || !newProduct.socialLink) {
       toast.error('Veuillez remplir tous les champs obligatoires')
       return
     }
@@ -675,7 +652,6 @@ export default function ConfigPage() {
   
   const tabs = [
     { id: 'plugs', label: 'Plugs', icon: BoltIcon },
-    { id: 'products', label: 'Produits', icon: CubeIcon },
     { id: 'applications', label: 'Candidatures', icon: DocumentTextIcon },
                 { id: 'social', label: 'Réseaux Sociaux', icon: ShareIcon },
             { id: 'telegram', label: 'Telegram', icon: ChatBubbleLeftIcon },
@@ -1201,89 +1177,7 @@ export default function ConfigPage() {
                 </div>
               )}
               
-              {/* Products */}
-              {activeTab === 'products' && (
-                <div className="space-y-6">
-                  <div className="flex flex-col sm:flex-row gap-4 sm:justify-between sm:items-center">
-                    <h1 className="text-2xl sm:text-3xl font-bold text-white">Produits</h1>
-                    <button
-                      onClick={() => setShowAddProduct(true)}
-                      className="w-full sm:w-auto btn-primary flex items-center justify-center gap-2 py-3"
-                    >
-                      <PlusIcon className="w-5 h-5" />
-                      Ajouter un produit
-                    </button>
-                  </div>
-                  
-                  {/* Products Grid */}
-                  <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
-                    {products?.map((product: any) => (
-                      <div key={product._id} className="glass-card p-4">
-                        {/* Product Media */}
-                        <div className="relative aspect-square mb-4 rounded-lg overflow-hidden bg-gray-800">
-                          {product.mediaType === 'video' ? (
-                            <video 
-                              src={product.media} 
-                              controls
-                              className="w-full h-full object-cover"
-                            />
-                          ) : (
-                            <img 
-                              src={product.media} 
-                              alt={product.title}
-                              className="w-full h-full object-cover"
-                            />
-                          )}
-                        </div>
-                        
-                        {/* Product Info */}
-                        <h3 className="font-bold text-white text-lg mb-2">{product.title}</h3>
-                        <p className="text-gray-400 text-sm mb-3 line-clamp-2">{product.description}</p>
-                        
-                        {/* Social Link */}
-                        <a 
-                          href={product.socialLink}
-                          target="_blank"
-                          rel="noopener noreferrer"
-                          className="text-blue-400 hover:text-blue-300 text-sm flex items-center gap-2 mb-4"
-                        >
-                          <span className="text-lg text-white">{product.socialEmoji || '🔗'}</span>
-                          {product.socialNetwork}
-                        </a>
-                        
-                        {/* Actions */}
-                        <div className="flex gap-2">
-                          <button
-                            onClick={() => {
-                              console.log('Editing product:', product)
-                              setEditingProduct(product)
-                              setShowAddProduct(false) // S'assurer que showAddProduct est false
-                            }}
-                            className="flex-1 px-3 py-2 bg-blue-600/20 text-blue-400 rounded-lg hover:bg-blue-600/30 transition-colors flex items-center justify-center gap-2"
-                          >
-                            <PencilIcon className="w-4 h-4" />
-                            Modifier
-                          </button>
-                          <button
-                            onClick={() => handleDeleteProduct(product._id)}
-                            className="flex-1 px-3 py-2 bg-red-600/20 text-red-400 rounded-lg hover:bg-red-600/30 transition-colors flex items-center justify-center gap-2"
-                          >
-                            <TrashIcon className="w-4 h-4" />
-                            Supprimer
-                          </button>
-                        </div>
-                      </div>
-                    ))}
-                  </div>
-                  
-                  {products?.length === 0 && (
-                    <div className="text-center py-12 text-gray-400">
-                      <ShoppingBagIcon className="w-16 h-16 mx-auto mb-4 opacity-50" />
-                      <p className="text-white">Aucun produit pour le moment</p>
-                    </div>
-                  )}
-                </div>
-              )}
+
               
               {/* Social Networks */}
               {activeTab === 'social' && (

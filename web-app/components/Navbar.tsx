@@ -45,7 +45,6 @@ export default function Navbar() {
   const navItems = [
     { href: '/', label: 'Accueil' },
     { href: '/plugs', label: 'Plugs' },
-    { href: '/products', label: 'Produits' },
     { href: '/search', label: 'Rechercher' },
     { href: '/about', label: 'À propos' },
     { href: '/social', label: 'Réseaux' },
