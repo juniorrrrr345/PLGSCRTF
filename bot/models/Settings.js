@@ -12,7 +12,7 @@ const settingsSchema = new mongoose.Schema({
   },
   miniAppButtonText: {
     type: String,
-    default: '🔌 MINI APP PLGS CRTFS'
+    default: 'PLUGS DU MOMENT 🔌'
   },
   backgroundImage: String, // URL pour le fond de la web app
   socialNetworks: {

@@ -59,7 +59,7 @@ export default function ConfigPage() {
   const [welcomeMessage, setWelcomeMessage] = useState('')
   const [infoText, setInfoText] = useState('')
   const [globalMessage, setGlobalMessage] = useState('')
-  const [miniAppButtonText, setMiniAppButtonText] = useState('MINI APP PLGS CRTFS 🔌')
+  const [miniAppButtonText, setMiniAppButtonText] = useState('PLUGS DU MOMENT 🔌')
   const [socialNetworks, setSocialNetworks] = useState<any>({})
   const [shopSocialNetworks, setShopSocialNetworks] = useState<any[]>([])
 
@@ -1588,7 +1588,7 @@ export default function ConfigPage() {
                       value={miniAppButtonText}
                       onChange={(e) => setMiniAppButtonText(e.target.value)}
                       className="w-full px-4 py-3 bg-white/10 border border-white/20 rounded-lg focus:border-primary focus:outline-none transition-colors"
-                      placeholder="Ex: MINI APP PLGS CRTFS 🔌"
+                      placeholder="Ex: PLUGS DU MOMENT 🔌"
                     />
                     <button
                       onClick={handleSaveSettings}
