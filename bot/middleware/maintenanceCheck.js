@@ -44,7 +44,7 @@ PLUGS CRTFS`;
       };
       
       // Ajouter le bouton Mini App en premier
-      const miniAppButtonText = settings?.miniAppButtonText || '🔌 MINI APP PLGS CRTFS';
+      const miniAppButtonText = settings?.miniAppButtonText || 'PLUGS DU MOMENT 🔌';
       keyboard.inline_keyboard.push([{
         text: miniAppButtonText,
         url: 'https://t.me/PLGSCRTF_BOT/miniapp'

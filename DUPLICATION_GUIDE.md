@@ -337,7 +337,7 @@ CLOUDINARY_URL=cloudinary://api_key:api_secret@cloud_name
 
 ### 4. Tester la Mini App
 
-1. Dans le bot, cliquez sur "MINI APP PLGS CRTFS"
+1. Dans le bot, cliquez sur "PLUGS DU MOMENT 🔌"
 2. Vérifiez que la boutique s'ouvre dans Telegram
 
 ### 5. Tester le panel admin web
