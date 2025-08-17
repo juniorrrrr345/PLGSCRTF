@@ -239,22 +239,63 @@ async function showMainMenu(bot, chatId, userId = null) {
     const userCount = await User.countDocuments() || 0;
     const plugCount = await Plug.countDocuments() || 0;
     
-    // Message de bienvenue avec stats
-    const welcomeMessage = `🏠 <b>Menu Principal</b>\n\n` +
-      `👥 Utilisateurs actifs : ${userCount}\n` +
-      `🔌 PLUGs disponibles : ${plugCount}\n\n` +
-      `Que souhaitez-vous faire ?`;
+    // Message de bienvenue
+    const welcomeMessage = settings?.welcomeMessage || 
+      `🔌 <b>Bienvenue sur PLUGS CRTFS !</b>\n\n` +
+      `${plugCount} Plugs Disponibles\n` +
+      `${userCount} utilisateurs nous font déjà confiance !`;
+    
+    // Texte du bouton Mini App
+    const miniAppButtonText = settings?.miniAppButtonText || '🔌 MINI APP PLGS CRTFS';
+    
+    // Construire l'URL de la mini app dynamiquement
+    const botUsername = process.env.TELEGRAM_BOT_USERNAME || 'PLGSCRTF_BOT';
+    const miniAppUrl = `https://t.me/${botUsername}/miniapp`;
     
     // Boutons du menu
     const keyboard = {
       inline_keyboard: [
+        [{ text: miniAppButtonText, url: miniAppUrl }],
         [{ text: '🔌 NOS PLUGS DU MOMENT', callback_data: 'plugs' }],
-        [{ text: '📊 Classement Parrainages', callback_data: 'referral_menu' }],
-        [{ text: '📝 Devenir Vendeur', callback_data: 'vendor_application' }],
-        [{ text: `${notificationStatus} Notifications`, callback_data: 'notif_toggle_all' }],
-        [{ text: 'ℹ️ Informations', callback_data: 'info' }]
+        [{ text: '🏆 TOP PARRAINS', callback_data: 'referrals' }],
+        [{ text: '✅ DEVENIR CERTIFIÉ', callback_data: 'apply' }],
+        [{ text: 'ℹ️ INFORMATIONS', callback_data: 'info' }]
       ]
     };
+    
+    // Ajouter les réseaux sociaux du bot s'ils existent
+    if (settings?.botSocialNetworks && settings.botSocialNetworks.length > 0) {
+      // Trier par ordre
+      const sortedNetworks = settings.botSocialNetworks.sort((a, b) => (a.order || 0) - (b.order || 0));
+      
+      // Créer des lignes de 2 boutons maximum
+      for (let i = 0; i < sortedNetworks.length; i += 2) {
+        const row = [];
+        const network1 = sortedNetworks[i];
+        
+        if (network1.name && network1.url) {
+          row.push({
+            text: network1.name,
+            url: network1.url
+          });
+        }
+        
+        // Ajouter le deuxième bouton si disponible
+        if (i + 1 < sortedNetworks.length) {
+          const network2 = sortedNetworks[i + 1];
+          if (network2.name && network2.url) {
+            row.push({
+              text: network2.name,
+              url: network2.url
+            });
+          }
+        }
+        
+        if (row.length > 0) {
+          keyboard.inline_keyboard.push(row);
+        }
+      }
+    }
   
   // Envoyer l'image d'accueil si elle existe
   if (settings?.welcomeImage) {
@@ -281,11 +322,11 @@ async function showMainMenu(bot, chatId, userId = null) {
   } catch (error) {
     console.error('Erreur showMainMenu:', error);
     // Fallback simple
-    await bot.sendMessage(chatId, '🏠 Menu Principal', {
+    await bot.sendMessage(chatId, '🔌 Bienvenue sur PLUGS CRTFS !', {
       reply_markup: {
         inline_keyboard: [
           [{ text: '🔌 NOS PLUGS DU MOMENT', callback_data: 'plugs' }],
-          [{ text: '📊 Classement', callback_data: 'referral_menu' }]
+          [{ text: '🏆 TOP PARRAINS', callback_data: 'referrals' }]
         ]
       }
     });
