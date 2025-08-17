@@ -248,7 +248,7 @@ async function showMainMenu(bot, chatId, userId = null) {
     // Boutons du menu
     const keyboard = {
       inline_keyboard: [
-        [{ text: '🔌 PLUGS CRTFS', callback_data: 'plugs_menu' }],
+        [{ text: '🔌 PLUGS DU MOMENT', callback_data: 'plugs_menu' }],
         [{ text: '📊 Classement Parrainages', callback_data: 'referral_menu' }],
         [{ text: '📝 Devenir Vendeur', callback_data: 'vendor_application' }],
         [{ text: `${notificationStatus} Notifications`, callback_data: 'notif_toggle_all' }],
@@ -284,7 +284,7 @@ async function showMainMenu(bot, chatId, userId = null) {
     await bot.sendMessage(chatId, '🏠 Menu Principal', {
       reply_markup: {
         inline_keyboard: [
-          [{ text: '🔌 PLUGS CRTFS', callback_data: 'plugs_menu' }],
+          [{ text: '🔌 PLUGS DU MOMENT', callback_data: 'plugs_menu' }],
           [{ text: '📊 Classement', callback_data: 'referral_menu' }]
         ]
       }
