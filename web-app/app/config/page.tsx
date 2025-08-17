@@ -140,7 +140,7 @@ export default function ConfigPage() {
     if (settings) {
       setWelcomeMessage(settings.welcomeMessage || '')
       setInfoText(settings.infoText || '')
-      setMiniAppButtonText(settings.miniAppButtonText || 'MINI APP CERTIF2PLUG 🔌')
+      setMiniAppButtonText(settings.miniAppButtonText || 'NOS PLUGS DU MOMENT 🔌')
       
       // Charger les réseaux sociaux du bot
       if (settings.botSocialNetworks) {
@@ -1536,7 +1536,7 @@ export default function ConfigPage() {
                           Nous sommes bientôt de retour !<br/>
                           <br/>
                           Cordialement,<br/>
-                          CERTIF2PLUG
+                          NOS PLUGS DU MOMENT
                         </p>
                         <p className="text-xs text-gray-500 mt-2">
                           Affiché avec l'image d'accueil configurée
