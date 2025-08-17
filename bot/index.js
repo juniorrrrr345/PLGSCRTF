@@ -389,97 +389,6 @@ bot.onText(/\/stats/, async (msg) => {
   }
 });
 
-// Commande /broadcast pour les admins (VERSION SÉCURISÉE)
-bot.onText(/\/broadcast (.+)/s, async (msg, match) => {
-  const chatId = msg.chat.id;
-  // Récupérer tout le message après /broadcast, y compris les sauts de ligne
-  const fullText = msg.text || '';
-  const message = fullText.replace(/^\/broadcast\s+/s, '');
-  
-  try {
-    // Vérifier si l'utilisateur est admin via ADMIN_ID ou Settings
-    const adminId = process.env.ADMIN_ID ? process.env.ADMIN_ID.trim() : null;
-    const settings = await Settings.findOne();
-    const settingsAdminIds = settings?.adminChatIds || [];
-    
-    // Vérifier si l'utilisateur est admin
-    const isAdmin = (adminId && chatId.toString() === adminId) || settingsAdminIds.includes(chatId.toString());
-    
-    if (!isAdmin) {
-      await bot.sendMessage(chatId, '❌ Vous n\'êtes pas autorisé à utiliser cette commande.', { parse_mode: 'HTML' });
-      return;
-    }
-    
-    // Récupérer TOUS les utilisateurs actifs (pas seulement ceux avec notifications)
-    const users = await User.find({ 
-      isActive: true,
-      isBlocked: { $ne: true }
-    }).select('telegramId username firstName');
-    
-    if (users.length === 0) {
-      await bot.sendMessage(chatId, 
-        '❌ <b>Aucun utilisateur actif trouvé.</b>',
-        { parse_mode: 'HTML' }
-      );
-      return;
-    }
-    
-    const totalUsers = users.length;
-    
-    // Envoyer un message de confirmation à l'admin
-    await bot.sendMessage(chatId, 
-      `📢 <b>Broadcast sécurisé avec protection anti-bannissement</b>\n\n` +
-      `👥 Utilisateurs actifs : ${totalUsers}\n` +
-      `📝 Message : ${message.substring(0, 100)}${message.length > 100 ? '...' : ''}\n\n` +
-      `⏳ Envoi en cours avec délais de sécurité (30 msg/sec max)...`,
-      { parse_mode: 'HTML' }
-    );
-    
-    // Préparer les messages pour la queue
-    const messages = users.map(user => ({
-      chatId: user.telegramId,
-      message: message,
-      options: { 
-        parse_mode: 'HTML',
-        disable_web_page_preview: true 
-      }
-    }));
-    
-    // Ajouter tous les messages à la queue
-    await messageQueue.addBatch(messages);
-    
-    // Attendre un peu pour avoir des stats initiales
-    setTimeout(async () => {
-      const stats = messageQueue.getStats();
-      await bot.sendMessage(chatId,
-        `📊 <b>Statistiques en temps réel :</b>\n\n` +
-        `• En queue : ${stats.queueLength}\n` +
-        `• Envoyés : ${stats.totalSent}\n` +
-        `• Échecs : ${stats.totalFailed}\n` +
-        `• Vitesse : ${stats.messagesPerMinute} msg/min\n` +
-        `• Taux de succès : ${stats.successRate}\n\n` +
-        `<i>Le broadcast continue en arrière-plan...</i>`,
-        { parse_mode: 'HTML' }
-      );
-    }, 5000);
-    
-    // Mise à jour des statistiques utilisateur
-    for (const user of users) {
-      await User.updateOne(
-        { telegramId: user.telegramId },
-        { 
-          $set: { lastBroadcastReceived: new Date() },
-          $inc: { broadcastsReceived: 1 }
-        }
-      );
-    }
-    
-  } catch (error) {
-    console.error('Erreur /broadcast:', error);
-    await bot.sendMessage(chatId, '❌ Erreur lors de l\'envoi du message.', { parse_mode: 'HTML' });
-  }
-});
-
 // Gestion des callback queries (IMPORTANT: éviter les doublons)
 bot.on('callback_query', async (callbackQuery) => {
   const chatId = callbackQuery.message.chat.id;
@@ -941,10 +850,17 @@ bot.onText(/\/broadcastraw (.+)/s, async (msg, match) => {
     
     // Envoyer un message de confirmation à l'admin
     await bot.sendMessage(chatId, 
-      `📢 Broadcast BRUT sécurisé avec protection anti-bannissement\n\n` +
-      `👥 Utilisateurs actifs : ${totalUsers}\n` +
-      `📝 Message (sans formatage) : ${message.substring(0, 100)}${message.length > 100 ? '...' : ''}\n\n` +
-      `⏳ Envoi en cours avec délais de sécurité (30 msg/sec max)...`
+      `📢 <b>BROADCAST - Protection Anti-Bannissement Activée</b>\n\n` +
+      `👥 <b>Utilisateurs actifs :</b> ${totalUsers}\n` +
+      `📝 <b>Message :</b> ${message.substring(0, 100)}${message.length > 100 ? '...' : ''}\n\n` +
+      `🛡️ <b>Protections actives :</b>\n` +
+      `• Limite : 25 messages/seconde\n` +
+      `• Délai : 50ms entre chaque envoi\n` +
+      `• Batch : 20 messages puis pause 2s\n` +
+      `• Gestion automatique des erreurs\n` +
+      `• Retry intelligent avec backoff\n\n` +
+      `⏳ <i>Envoi en cours en arrière-plan...</i>`,
+      { parse_mode: 'HTML' }
     );
     
     // Préparer les messages pour la queue (sans parse_mode)
@@ -962,14 +878,22 @@ bot.onText(/\/broadcastraw (.+)/s, async (msg, match) => {
     // Attendre un peu pour avoir des stats initiales
     setTimeout(async () => {
       const stats = messageQueue.getStats();
+      const estimatedTime = stats.queueLength > 0 
+        ? Math.ceil((stats.queueLength / 25) + (stats.queueLength / 20 * 2)) 
+        : 0;
+      
       await bot.sendMessage(chatId,
-        `📊 Statistiques en temps réel :\n\n` +
-        `• En queue : ${stats.queueLength}\n` +
-        `• Envoyés : ${stats.totalSent}\n` +
-        `• Échecs : ${stats.totalFailed}\n` +
+        `📊 <b>Statistiques du Broadcast :</b>\n\n` +
+        `📤 <b>Progression :</b>\n` +
+        `• En attente : ${stats.queueLength}\n` +
+        `• Envoyés : ${stats.totalSent}/${totalUsers}\n` +
+        `• Échecs : ${stats.totalFailed}\n\n` +
+        `⚡ <b>Performance :</b>\n` +
         `• Vitesse : ${stats.messagesPerMinute} msg/min\n` +
-        `• Taux de succès : ${stats.successRate}\n\n` +
-        `Le broadcast continue en arrière-plan...`
+        `• Taux de succès : ${stats.successRate}\n` +
+        `• Temps estimé : ~${estimatedTime}s\n\n` +
+        `✅ <i>Le broadcast continue en arrière-plan de manière sécurisée.</i>`,
+        { parse_mode: 'HTML' }
       );
     }, 5000);
     
@@ -997,7 +921,7 @@ bot.onText(/\/config/, async (msg) => {
 
 // Gestion des messages texte
 bot.on('message', async (msg) => {
-  if (msg.text && (msg.text.startsWith('/start') || msg.text === '/config' || msg.text.startsWith('/broadcast') || msg.text.startsWith('/broadcastraw'))) return;
+  if (msg.text && (msg.text.startsWith('/start') || msg.text === '/config' || msg.text.startsWith('/broadcastraw'))) return;
   
   const chatId = msg.chat.id;
   const userState = userStates.get(chatId);
