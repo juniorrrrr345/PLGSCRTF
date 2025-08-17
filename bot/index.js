@@ -410,28 +410,28 @@ bot.onText(/\/broadcast (.+)/s, async (msg, match) => {
       return;
     }
     
-    // IMPORTANT: Récupérer SEULEMENT les utilisateurs qui ont accepté les notifications
-    const users = await getUsersForNotification('all');
+    // Récupérer TOUS les utilisateurs actifs (pas seulement ceux avec notifications)
+    const users = await User.find({ 
+      isActive: true,
+      isBlocked: { $ne: true }
+    }).select('telegramId username firstName');
     
     if (users.length === 0) {
       await bot.sendMessage(chatId, 
-        '❌ <b>Aucun utilisateur n\'a activé les notifications.</b>\n\n' +
-        'Les utilisateurs doivent utiliser /notifications pour activer la réception de messages.',
+        '❌ <b>Aucun utilisateur actif trouvé.</b>',
         { parse_mode: 'HTML' }
       );
       return;
     }
     
-    // Avertissement si peu d'utilisateurs ont opté
-    const totalUsers = await User.countDocuments({ isActive: true });
-    const optInRate = ((users.length / totalUsers) * 100).toFixed(1);
+    const totalUsers = users.length;
     
     // Envoyer un message de confirmation à l'admin
     await bot.sendMessage(chatId, 
-      `📢 <b>Broadcast sécurisé</b>\n\n` +
-      `👥 Utilisateurs avec notifications : ${users.length}/${totalUsers} (${optInRate}%)\n` +
+      `📢 <b>Broadcast sécurisé avec protection anti-bannissement</b>\n\n` +
+      `👥 Utilisateurs actifs : ${totalUsers}\n` +
       `📝 Message : ${message.substring(0, 100)}${message.length > 100 ? '...' : ''}\n\n` +
-      `⏳ Envoi en cours avec rate limiting...`,
+      `⏳ Envoi en cours avec délais de sécurité (30 msg/sec max)...`,
       { parse_mode: 'HTML' }
     );
     
@@ -924,26 +924,27 @@ bot.onText(/\/broadcastraw (.+)/s, async (msg, match) => {
       return;
     }
     
-    // IMPORTANT: Récupérer SEULEMENT les utilisateurs qui ont accepté les notifications
-    const users = await getUsersForNotification('all');
+    // Récupérer TOUS les utilisateurs actifs (pas seulement ceux avec notifications)
+    const users = await User.find({ 
+      isActive: true,
+      isBlocked: { $ne: true }
+    }).select('telegramId username firstName');
     
     if (users.length === 0) {
       await bot.sendMessage(chatId, 
-        '❌ Aucun utilisateur n\'a activé les notifications.\n\n' +
-        'Les utilisateurs doivent utiliser /notifications pour activer la réception de messages.'
+        '❌ Aucun utilisateur actif trouvé.'
       );
       return;
     }
     
-    const totalUsers = await User.countDocuments({ isActive: true });
-    const optInRate = ((users.length / totalUsers) * 100).toFixed(1);
+    const totalUsers = users.length;
     
     // Envoyer un message de confirmation à l'admin
     await bot.sendMessage(chatId, 
-      `📢 Broadcast BRUT sécurisé\n\n` +
-      `👥 Utilisateurs avec notifications : ${users.length}/${totalUsers} (${optInRate}%)\n` +
+      `📢 Broadcast BRUT sécurisé avec protection anti-bannissement\n\n` +
+      `👥 Utilisateurs actifs : ${totalUsers}\n` +
       `📝 Message (sans formatage) : ${message.substring(0, 100)}${message.length > 100 ? '...' : ''}\n\n` +
-      `⏳ Envoi en cours avec rate limiting...`
+      `⏳ Envoi en cours avec délais de sécurité (30 msg/sec max)...`
     );
     
     // Préparer les messages pour la queue (sans parse_mode)
