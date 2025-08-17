@@ -36,7 +36,7 @@ Nous sommes bientôt de retour !
 Pour toutes informations, rejoignez nos réseaux sociaux 👇
 
 Cordialement,
-PLUGS CRTFS`;
+PLUGS DU MOMENT`;
       
       // Créer le clavier avec les réseaux sociaux
       const keyboard = {
