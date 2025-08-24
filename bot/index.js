@@ -395,10 +395,10 @@ bot.on('callback_query', async (callbackQuery) => {
   const messageId = callbackQuery.message.message_id;
   const data = callbackQuery.data;
   
-  // Répondre immédiatement à la callback query pour éviter le chargement infini
-  await bot.answerCallbackQuery(callbackQuery.id);
-  
   try {
+    // Répondre immédiatement à la callback query pour éviter le chargement infini
+    // Mais seulement si ce n'est pas déjà fait par un handler spécifique
+    let callbackAnswered = false;
     // Vérifier d'abord si c'est une callback admin
     const isAdminCallback = await handleAdminCallbacks(bot, callbackQuery);
     if (isAdminCallback) return;
@@ -550,11 +550,15 @@ bot.on('callback_query', async (callbackQuery) => {
         text: 'Vous êtes déjà sur cette page',
         show_alert: false
       });
+      callbackAnswered = true;
+      return;
     }
     
     // Séparateur (ne rien faire)
     else if (data === 'separator') {
       await bot.answerCallbackQuery(callbackQuery.id);
+      callbackAnswered = true;
+      return;
     }
     
     // Top Parrains
@@ -649,6 +653,7 @@ bot.on('callback_query', async (callbackQuery) => {
     
     // Callback pour le cooldown (afficher le message de cooldown)
     else if (data.startsWith('cooldown_')) {
+      callbackAnswered = true; // Marquer comme répondu
       const plugId = data.replace('cooldown_', '');
       const userId = callbackQuery.from.id;
       
@@ -775,6 +780,7 @@ bot.on('callback_query', async (callbackQuery) => {
     
     // Like d'un plug
     else if (data.startsWith('like_')) {
+      callbackAnswered = true; // handleLike gère sa propre réponse
       const plugId = data.replace('like_', '');
       await handleLike(bot, callbackQuery, plugId);
     }
@@ -844,9 +850,23 @@ bot.on('callback_query', async (callbackQuery) => {
         await handleVendorApplication(bot, chatId, userStates, data);
       }
     }
+    // Si on arrive ici et que le callback n'a pas été répondu, répondre maintenant
+    if (!callbackAnswered) {
+      await bot.answerCallbackQuery(callbackQuery.id);
+    }
+    
   } catch (error) {
     console.error('Error handling callback query:', error);
-    // Pas de message d'erreur visible pour l'utilisateur
+    // Essayer de répondre au callback en cas d'erreur
+    try {
+      await bot.answerCallbackQuery(callbackQuery.id, {
+        text: 'Une erreur est survenue',
+        show_alert: false
+      });
+    } catch (answerError) {
+      // Ignorer si la réponse échoue aussi
+      console.error('Impossible de répondre au callback:', answerError.message);
+    }
   }
 });
 
