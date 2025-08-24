@@ -26,7 +26,7 @@ function getCountryName(countryCode) {
 const Settings = require('../models/Settings');
 const { checkMaintenanceMode } = require('../middleware/maintenanceCheck');
 
-async function handlePlugsMenu(bot, chatId, filters = {}) {
+async function handlePlugsMenu(bot, chatId, filters = {}, page = 1) {
   try {
     // Vérifier d'abord si on est en maintenance
     const inMaintenance = await checkMaintenanceMode(bot, chatId);
@@ -36,6 +36,10 @@ async function handlePlugsMenu(bot, chatId, filters = {}) {
     
     // Récupérer les paramètres pour l'image d'accueil
     const settings = await Settings.findOne();
+    
+    // Configuration de la pagination
+    const PLUGS_PER_PAGE = 10;
+    const skip = (page - 1) * PLUGS_PER_PAGE;
     
     // Construire la requête avec les filtres
     const query = { isActive: true };
@@ -48,10 +52,15 @@ async function handlePlugsMenu(bot, chatId, filters = {}) {
       query[`methods.${filters.method}`] = true;
     }
     
-    // Récupérer tous les plugs avec les filtres appliqués
+    // Compter le nombre total de plugs pour la pagination
+    const totalPlugs = await Plug.countDocuments(query);
+    const totalPages = Math.ceil(totalPlugs / PLUGS_PER_PAGE);
+    
+    // Récupérer les plugs pour la page actuelle
     const plugs = await Plug.find(query)
       .sort({ likes: -1 })
-      .limit(50);
+      .skip(skip)
+      .limit(PLUGS_PER_PAGE);
     
     // Récupérer tous les plugs pour les statistiques
     const allPlugs = await Plug.find({ isActive: true });
