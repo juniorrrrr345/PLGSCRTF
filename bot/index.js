@@ -519,6 +519,44 @@ bot.on('callback_query', async (callbackQuery) => {
       await handlePlugsMenu(bot, chatId, { country, method });
     }
     
+    // Pagination des plugs
+    else if (data.startsWith('plugs_page_')) {
+      // Extraire le numéro de page et les filtres
+      const pageData = data.replace('plugs_page_', '');
+      const parts = pageData.split('_');
+      const page = parseInt(parts[0]);
+      
+      let country = null;
+      let method = null;
+      
+      // Chercher les filtres dans les parties restantes
+      for (let i = 1; i < parts.length; i++) {
+        if (parts[i] === 'country' && parts[i + 1]) {
+          country = parts[i + 1];
+          i++; // Skip next part as it's the country value
+        } else if (parts[i] === 'method' && parts[i + 1]) {
+          method = parts[i + 1];
+          i++; // Skip next part as it's the method value
+        }
+      }
+      
+      await bot.deleteMessage(chatId, messageId);
+      await handlePlugsMenu(bot, chatId, { country, method }, page);
+    }
+    
+    // Page actuelle (ne rien faire)
+    else if (data === 'current_page') {
+      await bot.answerCallbackQuery(callbackQuery.id, {
+        text: 'Vous êtes déjà sur cette page',
+        show_alert: false
+      });
+    }
+    
+    // Séparateur (ne rien faire)
+    else if (data === 'separator') {
+      await bot.answerCallbackQuery(callbackQuery.id);
+    }
+    
     // Top Parrains
     else if (data === 'referrals' || data === 'top_referrals') {
       await bot.deleteMessage(chatId, messageId);

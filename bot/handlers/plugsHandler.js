@@ -38,7 +38,7 @@ async function handlePlugsMenu(bot, chatId, filters = {}, page = 1) {
     const settings = await Settings.findOne();
     
     // Configuration de la pagination
-    const PLUGS_PER_PAGE = 10;
+    const PLUGS_PER_PAGE = 8;
     const skip = (page - 1) * PLUGS_PER_PAGE;
     
     // Construire la requête avec les filtres
@@ -112,7 +112,11 @@ async function handlePlugsMenu(bot, chatId, filters = {}, page = 1) {
     if (plugs.length === 0) {
       message += '❌ Aucun plug trouvé avec ces critères.';
     } else {
-      message += `📊 <b>${plugs.length} plug${plugs.length > 1 ? 's' : ''} trouvé${plugs.length > 1 ? 's' : ''}</b>\n\n`;
+      message += `📊 <b>${totalPlugs} plug${totalPlugs > 1 ? 's' : ''} trouvé${totalPlugs > 1 ? 's' : ''}</b>\n`;
+      if (totalPages > 1) {
+        message += `📄 <b>Page ${page} sur ${totalPages}</b>\n`;
+      }
+      message += '\n';
     }
     
     const keyboard = {
@@ -226,6 +230,60 @@ async function handlePlugsMenu(bot, chatId, filters = {}, page = 1) {
         callback_data: `plug_${plug._id}`
       }]);
     });
+    
+    // Boutons de pagination si nécessaire
+    if (totalPages > 1) {
+      const paginationButtons = [];
+      
+      // Bouton page précédente
+      if (page > 1) {
+        paginationButtons.push({
+          text: '⬅️ Page précédente',
+          callback_data: `plugs_page_${page - 1}${filters.country ? '_country_' + filters.country : ''}${filters.method ? '_method_' + filters.method : ''}`
+        });
+      }
+      
+      // Bouton page suivante
+      if (page < totalPages) {
+        paginationButtons.push({
+          text: 'Page suivante ➡️',
+          callback_data: `plugs_page_${page + 1}${filters.country ? '_country_' + filters.country : ''}${filters.method ? '_method_' + filters.method : ''}`
+        });
+      }
+      
+      if (paginationButtons.length > 0) {
+        keyboard.inline_keyboard.push(paginationButtons);
+      }
+      
+      // Indicateur de pages (pour navigation rapide)
+      const pageIndicators = [];
+      const maxPagesToShow = 5;
+      let startPage = Math.max(1, page - Math.floor(maxPagesToShow / 2));
+      let endPage = Math.min(totalPages, startPage + maxPagesToShow - 1);
+      
+      // Ajuster si on est près de la fin
+      if (endPage - startPage < maxPagesToShow - 1) {
+        startPage = Math.max(1, endPage - maxPagesToShow + 1);
+      }
+      
+      for (let i = startPage; i <= endPage; i++) {
+        if (i === page) {
+          pageIndicators.push({
+            text: `[${i}]`,
+            callback_data: 'current_page'
+          });
+        } else {
+          pageIndicators.push({
+            text: `${i}`,
+            callback_data: `plugs_page_${i}${filters.country ? '_country_' + filters.country : ''}${filters.method ? '_method_' + filters.method : ''}`
+          });
+        }
+      }
+      
+      if (pageIndicators.length > 1) {
+        keyboard.inline_keyboard.push(pageIndicators);
+      }
+    }
     
     // Bouton retour au menu principal
     keyboard.inline_keyboard.push([{
