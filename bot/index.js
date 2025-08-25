@@ -356,9 +356,107 @@ bot.onText(/\/start(.*)/, async (msg, match) => {
   }
 });
 
-// Commande /notifications pour gérer les préférences
+// ===== NOUVELLES COMMANDES POUR LES FONCTIONNALITÉS =====
+
+// Commande /badges pour voir ses badges et récompenses
+bot.onText(/\/badges/, async (msg) => {
+  const chatId = msg.chat.id;
+  const userId = msg.from.id;
+  
+  try {
+    const user = await User.findOne({ telegramId: userId });
+    if (!user) {
+      await bot.sendMessage(chatId, '❌ Tu dois d\'abord utiliser /start');
+      return;
+    }
+    
+    const features = require('./features');
+    const badgeHandler = require('./features/handlers/badgeHandler');
+    const { badges, stats } = await badgeHandler.getUserBadges(user._id);
+    const message = badgeHandler.formatBadgeDisplay(badges, stats);
+    
+    await bot.sendMessage(chatId, message, {
+      parse_mode: 'HTML',
+      reply_markup: {
+        inline_keyboard: [
+          [{ text: '🔙 Menu principal', callback_data: 'back_to_main' }]
+        ]
+      }
+    });
+  } catch (error) {
+    console.error('Erreur /badges:', error);
+    await bot.sendMessage(chatId, '❌ Une erreur est survenue');
+  }
+});
+
+// Commande /rankings pour voir les classements
+bot.onText(/\/rankings/, async (msg) => {
+  const chatId = msg.chat.id;
+  
+  try {
+    const rankingHandler = require('./features/handlers/rankingHandler');
+    const keyboard = rankingHandler.createRankingsMenu();
+    
+    await bot.sendMessage(chatId, '📊 <b>CLASSEMENTS</b>\n\nChoisis le classement à consulter:', {
+      parse_mode: 'HTML',
+      reply_markup: keyboard
+    });
+  } catch (error) {
+    console.error('Erreur /rankings:', error);
+    await bot.sendMessage(chatId, '❌ Une erreur est survenue');
+  }
+});
+
+// Commande /battles pour voir les battles
+bot.onText(/\/battles/, async (msg) => {
+  const chatId = msg.chat.id;
+  
+  try {
+    const battleHandler = require('./features/handlers/battleHandler');
+    const keyboard = battleHandler.createBattlesMenu();
+    
+    await bot.sendMessage(chatId, '⚔️ <b>BATTLES</b>\n\nChoisis une option:', {
+      parse_mode: 'HTML',
+      reply_markup: keyboard
+    });
+  } catch (error) {
+    console.error('Erreur /battles:', error);
+    await bot.sendMessage(chatId, '❌ Une erreur est survenue');
+  }
+});
+
+// Commande /notifications pour gérer les préférences (NOUVELLE VERSION)
 bot.onText(/\/notifications/, async (msg) => {
-  await handleNotificationsCommand(bot, msg);
+  const chatId = msg.chat.id;
+  const userId = msg.from.id;
+  
+  try {
+    const user = await User.findOne({ telegramId: userId });
+    if (!user) {
+      await bot.sendMessage(chatId, '❌ Tu dois d\'abord utiliser /start');
+      return;
+    }
+    
+    const UserPreferences = require('./features/models/UserPreferences');
+    let userPrefs = await UserPreferences.findOne({ userId: user._id });
+    
+    if (!userPrefs) {
+      userPrefs = await UserPreferences.create({ userId: user._id });
+    }
+    
+    const notificationHandler = require('./features/handlers/notificationHandler');
+    const message = notificationHandler.formatPreferencesMenu(userPrefs);
+    const keyboard = notificationHandler.createPreferencesKeyboard(userPrefs);
+    
+    await bot.sendMessage(chatId, message, {
+      parse_mode: 'HTML',
+      reply_markup: keyboard
+    });
+  } catch (error) {
+    console.error('Erreur /notifications:', error);
+    // Fallback vers l'ancien handler si erreur
+    await handleNotificationsCommand(bot, msg);
+  }
 });
 
 // Commande /stats pour voir les statistiques de broadcast (admin uniquement)
@@ -864,6 +962,35 @@ bot.on('callback_query', async (callbackQuery) => {
         await handleVendorApplication(bot, chatId, userStates, data);
       }
     }
+    
+    // ===== GESTION DES NOUVELLES FONCTIONNALITÉS =====
+    // Badges
+    else if (data === 'my_badges') {
+      const features = require('./features');
+      await features.handleFeatureCallbacks(bot, callbackQuery);
+      callbackAnswered = true;
+    }
+    // Classements
+    else if (data === 'rankings_menu' || data === 'rankings_daily' || data === 'rankings_weekly' || 
+             data === 'rankings_trending' || data === 'rankings_global') {
+      const features = require('./features');
+      await features.handleFeatureCallbacks(bot, callbackQuery);
+      callbackAnswered = true;
+    }
+    // Battles
+    else if (data === 'battles_menu' || data === 'battles_active' || data === 'battles_history' || 
+             data === 'battles_mystats' || data.startsWith('battle_')) {
+      const features = require('./features');
+      await features.handleFeatureCallbacks(bot, callbackQuery);
+      callbackAnswered = true;
+    }
+    // Notifications
+    else if (data === 'notification_settings' || data.startsWith('pref_')) {
+      const features = require('./features');
+      await features.handleFeatureCallbacks(bot, callbackQuery);
+      callbackAnswered = true;
+    }
+    
     // Si on arrive ici et que le callback n'a pas été répondu, répondre maintenant
     if (!callbackAnswered) {
       await bot.answerCallbackQuery(callbackQuery.id);
