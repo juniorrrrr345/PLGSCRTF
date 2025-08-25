@@ -18,6 +18,9 @@ const { handleVendorApplication } = require('./handlers/vendorHandler');
 const { handleAdminCommand, handleAdminCallbacks } = require('./handlers/adminHandler');
 const { handleNotificationCallbacks, handleNotificationsCommand, getUsersForNotification } = require('./handlers/notificationHandler');
 
+// Import des nouvelles fonctionnalités
+const { initializeEnhancedFeatures } = require('./features-hook');
+
 // Utils
 const MessageQueue = require('./utils/messageQueue');
 
@@ -114,7 +117,18 @@ const messageQueue = new MessageQueue(bot);
 
 // Connexion à MongoDB
 mongoose.connect(process.env.MONGODB_URI)
-  .then(() => console.log('✅ Connected to MongoDB'))
+  .then(() => {
+    console.log('✅ Connected to MongoDB');
+    
+    // Initialiser les nouvelles fonctionnalités après la connexion MongoDB
+    try {
+      initializeEnhancedFeatures(bot);
+      console.log('✅ Enhanced features initialized');
+    } catch (error) {
+      console.error('⚠️ Error initializing enhanced features:', error.message);
+      // Le bot continue même si les nouvelles fonctionnalités échouent
+    }
+  })
   .catch(err => console.error('❌ MongoDB connection error:', err));
 
 // Serveur Express avec API
