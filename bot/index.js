@@ -1585,9 +1585,6 @@ bot.on('callback_query', async (callbackQuery) => {
     // ===== CALLBACK RETOUR AU MENU PRINCIPAL =====
     else if (data === 'back_to_main') {
       try {
-        // Supprimer le message actuel
-        await bot.deleteMessage(chatId, messageId);
-        
         // Récupérer directement les éléments pour afficher le menu
         const Settings = require('./models/Settings');
         const User = require('./models/User');
@@ -1650,7 +1647,14 @@ bot.on('callback_query', async (callbackQuery) => {
           }
         }
         
-        // Envoyer le menu avec l'image si disponible
+        // D'abord supprimer le message actuel
+        try {
+          await bot.deleteMessage(chatId, messageId);
+        } catch (deleteError) {
+          console.log('Impossible de supprimer le message:', deleteError.message);
+        }
+        
+        // Puis envoyer le menu avec l'image si disponible
         if (settings?.welcomeImage) {
           try {
             await bot.sendPhoto(chatId, settings.welcomeImage, {
