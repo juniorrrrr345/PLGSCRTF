@@ -557,6 +557,14 @@ async function handlePlugDetails(bot, chatId, plugId, fromMenu = 'plugs', userId
       }
     ]);
     
+    // Ajouter le bouton pour offrir un badge
+    keyboard.inline_keyboard.push([
+      { 
+        text: '🎁 Offrir un badge', 
+        callback_data: `give_badge_to_${plug._id}` 
+      }
+    ]);
+    
     // Navigation
     const backButton = fromMenu === 'top_referrals' 
       ? { text: '⬅️ RETOUR AU TOP PARRAINS', callback_data: 'top_referrals' }

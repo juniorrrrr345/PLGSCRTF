@@ -1454,14 +1454,15 @@ bot.on('callback_query', async (callbackQuery) => {
         };
         
         let badgesList = '';
+        let badgeNumber = 1;
         
-        // Afficher tous les badges avec leurs détails
+        // Afficher tous les badges avec leurs détails et numéros
         for (const badge of badges) {
           const owned = userStats.badges && userStats.badges.some(b => b.badgeId === badge.badgeId && !b.used);
           const canAfford = userStats.points >= badge.cost;
           const meetsLevel = userStats.level >= badge.requirements.minLevel;
           
-          badgesList += `${badge.emoji} <b>${badge.name}</b> - ${badge.cost} pts\n`;
+          badgesList += `${badgeNumber}. ${badge.emoji} <b>${badge.name}</b> - ${badge.cost} pts\n`;
           badgesList += `   <i>${badge.description}</i>\n`;
           
           if (!meetsLevel) {
@@ -1471,12 +1472,13 @@ bot.on('callback_query', async (callbackQuery) => {
           } else if (canAfford) {
             badgesList += `   ✨ Disponible à l'achat\n`;
             keyboard.inline_keyboard.push([
-              { text: `${badge.emoji} Acheter ${badge.name} (${badge.cost} pts)`, callback_data: `buy_badge_${badge.badgeId}` }
+              { text: `${badgeNumber}. ${badge.emoji} ${badge.name} (${badge.cost} pts)`, callback_data: `buy_badge_${badge.badgeId}` }
             ]);
           } else {
             badgesList += `   ❌ ${badge.cost - userStats.points} points manquants\n`;
           }
           badgesList += '\n';
+          badgeNumber++;
         }
         
         message += badgesList;
@@ -1685,7 +1687,86 @@ bot.on('callback_query', async (callbackQuery) => {
       }
     }
     
-    // Donner un badge à un plug
+    // Offrir un badge depuis le menu du plug
+    else if (data.startsWith('give_badge_to_')) {
+      try {
+        const plugId = data.replace('give_badge_to_', '');
+        const UserStats = require('./models/UserStats');
+        const Plug = require('./models/Plug');
+        
+        // Récupérer les stats de l'utilisateur
+        const userStats = await UserStats.findOne({ userId: callbackQuery.from.id });
+        
+        if (!userStats || !userStats.badges || userStats.badges.length === 0) {
+          await bot.answerCallbackQuery(callbackQuery.id, {
+            text: '❌ Tu n\'as pas de badges à offrir.\n\n💡 Va dans la boutique pour en acheter !',
+            show_alert: true
+          });
+          return;
+        }
+        
+        // Filtrer les badges non utilisés
+        const availableBadges = userStats.badges.filter(b => !b.used);
+        
+        if (availableBadges.length === 0) {
+          await bot.answerCallbackQuery(callbackQuery.id, {
+            text: '❌ Tous tes badges ont déjà été utilisés.\n\n💡 Achète de nouveaux badges dans la boutique !',
+            show_alert: true
+          });
+          return;
+        }
+        
+        // Récupérer le plug
+        const plug = await Plug.findById(plugId);
+        if (!plug) {
+          await bot.answerCallbackQuery(callbackQuery.id, {
+            text: '❌ Plug introuvable',
+            show_alert: true
+          });
+          return;
+        }
+        
+        // Créer le message avec les badges disponibles
+        let message = `🎁 <b>OFFRIR UN BADGE À ${plug.name}</b>\n`;
+        message += `━━━━━━━━━━━━━━━━\n\n`;
+        message += `Choisis le badge à offrir:\n\n`;
+        
+        const keyboard = {
+          inline_keyboard: []
+        };
+        
+        // Lister les badges disponibles avec numéros
+        availableBadges.forEach((badge, index) => {
+          message += `${index + 1}. ${badge.emoji} ${badge.name}\n`;
+          keyboard.inline_keyboard.push([
+            { text: `${index + 1}. ${badge.emoji} ${badge.name}`, callback_data: `give_badge_${badge.badgeId}_to_${plugId}` }
+          ]);
+        });
+        
+        keyboard.inline_keyboard.push([
+          { text: '🔙 Retour', callback_data: `plug_${plugId}` }
+        ]);
+        
+        // Supprimer l'ancien message et envoyer le nouveau
+        try {
+          await bot.deleteMessage(chatId, messageId);
+        } catch (e) {}
+        
+        await bot.sendMessage(chatId, message, {
+          parse_mode: 'HTML',
+          reply_markup: keyboard
+        });
+        
+      } catch (error) {
+        console.error('Erreur give_badge_to:', error);
+        await bot.answerCallbackQuery(callbackQuery.id, {
+          text: '❌ Erreur lors du chargement des badges',
+          show_alert: true
+        });
+      }
+    }
+    
+    // Donner un badge à un plug (confirmation)
     else if (data.startsWith('give_badge_') && data.includes('_to_')) {
       try {
         const parts = data.split('_to_');
