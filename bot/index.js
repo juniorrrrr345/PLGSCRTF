@@ -846,18 +846,13 @@ bot.on('callback_query', async (callbackQuery) => {
   const messageId = callbackQuery.message.message_id;
   const data = callbackQuery.data;
   
-  // RÉPONDRE IMMÉDIATEMENT pour éviter TOUT message d'erreur
-  try {
-    await bot.answerCallbackQuery(callbackQuery.id);
-  } catch (e) {
-    // Ignorer si déjà répondu
-  }
+  // Flag pour savoir si on a déjà répondu
+  let callbackAnswered = false;
   
   // Flag pour éviter les doubles envois
   let messageSent = false;
   
   try {
-    let callbackAnswered = true; // Déjà répondu au début
     // Vérifier d'abord si c'est une callback admin
     const isAdminCallback = await handleAdminCallbacks(bot, callbackQuery);
     if (isAdminCallback) return;
@@ -887,6 +882,7 @@ bot.on('callback_query', async (callbackQuery) => {
           text: '✅ Vérification réussie ! Bienvenue !',
           show_alert: true
         });
+        callbackAnswered = true;
         await bot.deleteMessage(chatId, messageId);
         await showMainMenu(bot, chatId);
       } else {
@@ -894,6 +890,7 @@ bot.on('callback_query', async (callbackQuery) => {
           text: '‼️ IMPORTANT DE REJOINDRE POUR VOIR LES MENUS ‼️\n\nCORDIALEMENT PLUGS DU MOMENT',
           show_alert: true
         });
+        callbackAnswered = true;
         
         // Supprimer l'ancien message et renvoyer le message de vérification
         await bot.deleteMessage(chatId, messageId);
@@ -1131,6 +1128,7 @@ bot.on('callback_query', async (callbackQuery) => {
             text: `⏱️ Veuillez patienter ${remainingTime} minute${remainingTime > 1 ? 's' : ''} avant de liker à nouveau.\n\n💡 Vous pourrez voter à nouveau dans ${remainingTime} minute${remainingTime > 1 ? 's' : ''}.\n\n❤️ Merci pour votre soutien !`,
             show_alert: true
           });
+          callbackAnswered = true;
           
           // Mettre à jour le bouton avec le temps actuel
           try {
@@ -1217,6 +1215,7 @@ bot.on('callback_query', async (callbackQuery) => {
           text: 'Erreur lors du chargement du plug',
           show_alert: true
         });
+        callbackAnswered = true;
       }
     }
     
@@ -1234,14 +1233,15 @@ bot.on('callback_query', async (callbackQuery) => {
           text: 'Erreur lors du chargement du plug',
           show_alert: true
         });
+        callbackAnswered = true;
       }
     }
     
     // Like d'un plug
     else if (data.startsWith('like_')) {
-      callbackAnswered = true; // handleLike gère sa propre réponse
       const plugId = data.replace('like_', '');
       await handleLike(bot, callbackQuery, plugId);
+      callbackAnswered = true; // handleLike a géré sa propre réponse
     }
     
     // Démarrer le questionnaire vendeur
@@ -1260,6 +1260,7 @@ bot.on('callback_query', async (callbackQuery) => {
           text: '❌ Session expirée. Veuillez recommencer.',
           show_alert: true
         });
+        callbackAnswered = true;
         return;
       }
       
@@ -2068,6 +2069,7 @@ bot.on('callback_query', async (callbackQuery) => {
             text: '❌ Badge introuvable',
             show_alert: true
           });
+          callbackAnswered = true;
           return;
         }
         
@@ -2115,6 +2117,7 @@ bot.on('callback_query', async (callbackQuery) => {
             text: `❌ ${error.message}`,
             show_alert: true
           });
+          callbackAnswered = true;
         }
         
         callbackAnswered = true;
@@ -2421,6 +2424,7 @@ bot.on('callback_query', async (callbackQuery) => {
           show_alert: true
         });
         callbackAnswered = true;
+        callbackAnswered = true;
       }
     }
     
@@ -2544,11 +2548,29 @@ bot.on('callback_query', async (callbackQuery) => {
       }
     }
     
-    // Callback déjà répondu au début, pas besoin de répondre à nouveau
+    // Si on arrive ici et que le callback n'a pas été répondu, répondre maintenant
+    if (!callbackAnswered) {
+      try {
+        await bot.answerCallbackQuery(callbackQuery.id);
+      } catch (e) {
+        // Ignorer si déjà répondu
+      }
+    }
     
   } catch (error) {
     console.error('Error handling callback query:', error);
-    // Ne pas afficher de message d'erreur, callback déjà répondu au début
+    // Essayer de répondre au callback en cas d'erreur
+    if (!callbackAnswered) {
+      try {
+        await bot.answerCallbackQuery(callbackQuery.id, {
+          text: 'Une erreur est survenue',
+          show_alert: false
+        });
+      } catch (answerError) {
+        // Ignorer si la réponse échoue aussi
+        console.error('Impossible de répondre au callback:', answerError.message);
+      }
+    }
   }
 });
 
