@@ -1861,105 +1861,20 @@ bot.on('callback_query', async (callbackQuery) => {
     // ===== CALLBACK RETOUR AU MENU PRINCIPAL =====
     else if (data === 'back_to_main') {
       try {
-        // Éviter les doubles envois
-        if (messageSent) return;
+        // Utiliser la même logique que 'plugs' : supprimer et appeler handleStart
+        await bot.deleteMessage(chatId, messageId).catch(() => {});
         
-        // Récupérer directement les éléments pour afficher le menu
-        const Settings = require('./models/Settings');
-        const User = require('./models/User');
-        const Plug = require('./models/Plug');
+        // Importer et appeler handleStart
+        const { handleStart } = require('./handlers/startHandler');
         
-        const settings = await Settings.findOne();
-        const userCount = await User.countDocuments() || 0;
-        const plugCount = await Plug.countDocuments() || 0;
-        
-        const welcomeMessage = settings?.welcomeMessage || 
-          '🔌 <b>Bienvenue sur PLUGS CRTFS !</b>\n\nLa marketplace exclusive des vendeurs certifiés.';
-        
-        const messageWithStats = `${welcomeMessage}\n\n🔌 <b>${plugCount} Plugs Disponibles</b> ✅\n\n👥 <b>${userCount} utilisateurs</b> nous font déjà confiance !`;
-        
-        const miniAppButtonText = settings?.miniAppButtonText || '🔌 MINI APP PLGS CRTFS';
-        const botUsername = process.env.TELEGRAM_BOT_USERNAME || 'PLGSCRTF_BOT';
-        const miniAppUrl = `https://t.me/${botUsername}/miniapp`;
-        
-        const keyboard = {
-          inline_keyboard: [
-            [{ text: miniAppButtonText, url: miniAppUrl }],
-            [{ text: '🔌 NOS PLUGS DU MOMENT', callback_data: 'plugs' }],
-            [{ text: '🏅 MES BADGES', callback_data: 'my_badges' }],
-            [{ text: '🗳️ CLASSEMENT PLUGS', callback_data: 'rankings_menu' }],
-            [{ text: '🛍️ BOUTIQUE DE BADGES', callback_data: 'badge_shop_direct' }],
-            [{ text: '🏆 TOP PARRAINS', callback_data: 'referrals' }],
-            [{ text: '✅ DEVENIR CERTIFIÉ', callback_data: 'apply' }],
-            [{ text: 'ℹ️ INFORMATIONS', callback_data: 'info' }]
-          ]
+        // Créer un faux message pour handleStart
+        const fakeMessage = {
+          chat: { id: chatId },
+          from: callbackQuery.from,
+          message_id: messageId
         };
         
-        // Ajouter les réseaux sociaux si disponibles
-        if (settings?.botSocialNetworks && settings.botSocialNetworks.length > 0) {
-          const sortedNetworks = settings.botSocialNetworks.sort((a, b) => (a.order || 0) - (b.order || 0));
-          
-          for (let i = 0; i < sortedNetworks.length; i += 2) {
-            const row = [];
-            const network1 = sortedNetworks[i];
-            
-            if (network1.name && network1.url) {
-              row.push({
-                text: `${network1.emoji || '🔗'} ${network1.name}`,
-                url: network1.url
-              });
-            }
-            
-            if (i + 1 < sortedNetworks.length) {
-              const network2 = sortedNetworks[i + 1];
-              if (network2.name && network2.url) {
-                row.push({
-                  text: `${network2.emoji || '🔗'} ${network2.name}`,
-                  url: network2.url
-                });
-              }
-            }
-            
-            if (row.length > 0) {
-              keyboard.inline_keyboard.push(row);
-            }
-          }
-        }
-        
-        // TOUJOURS supprimer d'abord le message actuel
-        try {
-          await bot.deleteMessage(chatId, messageId);
-        } catch (deleteError) {
-          console.log('Impossible de supprimer le message:', deleteError.message);
-        }
-        
-        // Petit délai pour s'assurer que la suppression est terminée
-        await new Promise(resolve => setTimeout(resolve, 200));
-        
-        // Envoyer UNE SEULE FOIS le menu
-        if (settings?.welcomeImage) {
-          try {
-            await bot.sendPhoto(chatId, settings.welcomeImage, {
-              caption: messageWithStats,
-              parse_mode: 'HTML',
-              reply_markup: keyboard
-            });
-          } catch (error) {
-            console.error('Erreur envoi image, envoi texte:', error.message);
-            await bot.sendMessage(chatId, messageWithStats, {
-              parse_mode: 'HTML',
-              reply_markup: keyboard
-            });
-          }
-        } else {
-          await bot.sendMessage(chatId, messageWithStats, {
-            parse_mode: 'HTML',
-            reply_markup: keyboard
-          });
-        }
-        
-        // Marquer comme envoyé pour éviter les doublons
-        messageSent = true;
+        await handleStart(bot, fakeMessage);
         
       } catch (error) {
         console.error('Erreur back_to_main:', error);
