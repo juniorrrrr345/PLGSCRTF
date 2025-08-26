@@ -1045,30 +1045,48 @@ bot.on('callback_query', async (callbackQuery) => {
         const Plug = require('./models/Plug');
         let title = '';
         let plugs = [];
+        let noDataMessage = '';
         
         if (data === 'rankings_global') {
-          title = '🏆 <b>TOP GLOBAL</b>';
-          plugs = await Plug.find({ isActive: true })
+          title = '🏆 <b>TOP GLOBAL - TOUS LES TEMPS</b>';
+          plugs = await Plug.find({ isActive: true, likes: { $gt: 0 } })
             .sort({ likes: -1 })
             .limit(10);
+          noDataMessage = 'Aucun vote enregistré pour le moment.';
         } else if (data === 'rankings_daily') {
           title = '📅 <b>TOP DU JOUR</b>';
-          // Pour l'instant, afficher le top global (à améliorer avec un système de votes journaliers)
-          plugs = await Plug.find({ isActive: true })
-            .sort({ likes: -1 })
+          // Filtrer les plugs avec des votes aujourd'hui
+          const oneDayAgo = new Date(Date.now() - 24 * 60 * 60 * 1000);
+          plugs = await Plug.find({ 
+            isActive: true, 
+            'dailyVotes.count': { $gt: 0 },
+            'dailyVotes.lastReset': { $gte: oneDayAgo }
+          })
+            .sort({ 'dailyVotes.count': -1 })
             .limit(10);
+          noDataMessage = '❌ Aucun vote aujourd\'hui.\n\n💡 Sois le premier à voter !';
         } else if (data === 'rankings_weekly') {
           title = '📊 <b>TOP DE LA SEMAINE</b>';
-          // Pour l'instant, afficher le top global (à améliorer avec un système de votes hebdomadaires)
-          plugs = await Plug.find({ isActive: true })
-            .sort({ likes: -1 })
+          // Filtrer les plugs avec des votes cette semaine
+          const oneWeekAgo = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000);
+          plugs = await Plug.find({ 
+            isActive: true, 
+            'weeklyVotes.count': { $gt: 0 },
+            'weeklyVotes.lastReset': { $gte: oneWeekAgo }
+          })
+            .sort({ 'weeklyVotes.count': -1 })
             .limit(10);
+          noDataMessage = '❌ Aucun vote cette semaine.\n\n💡 Commence à voter pour voir le classement !';
         } else if (data === 'rankings_trending') {
           title = '📈 <b>PLUGS EN PROGRESSION</b>';
-          // Pour l'instant, afficher le top global (à améliorer avec un système de tendances)
-          plugs = await Plug.find({ isActive: true })
-            .sort({ likes: -1 })
+          // Trier par score de tendance
+          plugs = await Plug.find({ 
+            isActive: true, 
+            trendingScore: { $gt: 0 }
+          })
+            .sort({ trendingScore: -1 })
             .limit(10);
+          noDataMessage = '📊 Pas assez de données pour calculer les tendances.\n\n💡 Reviens dans quelques jours !';
         }
         
         let message = `${title}\n`;
@@ -1076,14 +1094,31 @@ bot.on('callback_query', async (callbackQuery) => {
         
         if (plugs.length > 0) {
           plugs.forEach((plug, index) => {
-            const medal = index === 0 ? '🥇' : index === 1 ? '🥈' : index === 2 ? '🥉' : '🏅';
-            message += `${index + 1}. ${medal} ${plug.name} - ${plug.likes || 0} votes\n`;
+            const medal = index === 0 ? '🥇' : index === 1 ? '🥈' : index === 2 ? '🥉' : `${index + 1}.`;
+            let voteCount = 0;
+            let suffix = '';
+            
+            if (data === 'rankings_global') {
+              voteCount = plug.likes || 0;
+              suffix = ' votes total';
+            } else if (data === 'rankings_daily') {
+              voteCount = plug.dailyVotes?.count || 0;
+              suffix = ' votes aujourd\'hui';
+            } else if (data === 'rankings_weekly') {
+              voteCount = plug.weeklyVotes?.count || 0;
+              suffix = ' votes cette semaine';
+            } else if (data === 'rankings_trending') {
+              voteCount = Math.round(plug.trendingScore || 0);
+              suffix = '% de progression';
+            }
+            
+            message += `${medal} ${plug.name} - ${voteCount}${suffix}\n`;
           });
         } else {
-          message += `Aucun plug disponible pour le moment.\n`;
+          message += noDataMessage;
         }
         
-        message += `\n📈 Mise à jour en temps réel`;
+        message += `\n⏱️ Mise à jour: ${new Date().toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' })}`;
         
         const keyboard = {
           inline_keyboard: [
@@ -1099,20 +1134,18 @@ bot.on('callback_query', async (callbackQuery) => {
           ]
         };
         
-        if (callbackQuery.message.text) {
-          await bot.editMessageText(message, {
-            chat_id: chatId,
-            message_id: messageId,
-            parse_mode: 'HTML',
-            reply_markup: keyboard
-          });
-        } else {
+        // TOUJOURS supprimer et envoyer pour éviter les problèmes
+        try {
           await bot.deleteMessage(chatId, messageId);
-          await bot.sendMessage(chatId, message, {
-            parse_mode: 'HTML',
-            reply_markup: keyboard
-          });
+        } catch (deleteError) {
+          console.log('Impossible de supprimer le message:', deleteError.message);
         }
+        
+        await bot.sendMessage(chatId, message, {
+          parse_mode: 'HTML',
+          reply_markup: keyboard
+        });
+        
         callbackAnswered = true;
       } catch (error) {
         console.error('Erreur rankings:', error);

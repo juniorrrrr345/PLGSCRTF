@@ -50,6 +50,22 @@ const plugSchema = new mongoose.Schema({
     type: Number,
     default: 0
   },
+  // Votes détaillés pour les classements
+  dailyVotes: {
+    count: { type: Number, default: 0 },
+    lastReset: { type: Date, default: Date.now }
+  },
+  weeklyVotes: {
+    count: { type: Number, default: 0 },
+    lastReset: { type: Date, default: Date.now }
+  },
+  monthlyVotes: {
+    count: { type: Number, default: 0 },
+    lastReset: { type: Date, default: Date.now }
+  },
+  // Tendance (progression)
+  previousWeekVotes: { type: Number, default: 0 },
+  trendingScore: { type: Number, default: 0 },
   referralCount: {
     type: Number,
     default: 0

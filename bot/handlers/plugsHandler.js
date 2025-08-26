@@ -698,12 +698,8 @@ async function handleLike(bot, callbackQuery, plugId) {
       }
     }
     
-    // Mettre à jour le plug
-    const plug = await Plug.findByIdAndUpdate(
-      plugId,
-      { $inc: { likes: 1 } },
-      { new: true }
-    );
+    // Récupérer le plug d'abord pour vérifier les dates de reset
+    let plug = await Plug.findById(plugId);
     
     if (!plug) {
       await bot.answerCallbackQuery(callbackQuery.id, {
@@ -712,6 +708,47 @@ async function handleLike(bot, callbackQuery, plugId) {
       });
       return;
     }
+    
+    // Vérifier et réinitialiser les compteurs si nécessaire
+    const now = new Date();
+    const oneDayAgo = new Date(now.getTime() - 24 * 60 * 60 * 1000);
+    const oneWeekAgo = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000);
+    const oneMonthAgo = new Date(now.getTime() - 30 * 24 * 60 * 60 * 1000);
+    
+    // Reset journalier
+    if (!plug.dailyVotes.lastReset || plug.dailyVotes.lastReset < oneDayAgo) {
+      plug.dailyVotes.count = 0;
+      plug.dailyVotes.lastReset = now;
+    }
+    
+    // Reset hebdomadaire
+    if (!plug.weeklyVotes.lastReset || plug.weeklyVotes.lastReset < oneWeekAgo) {
+      plug.previousWeekVotes = plug.weeklyVotes.count || 0;
+      plug.weeklyVotes.count = 0;
+      plug.weeklyVotes.lastReset = now;
+    }
+    
+    // Reset mensuel
+    if (!plug.monthlyVotes.lastReset || plug.monthlyVotes.lastReset < oneMonthAgo) {
+      plug.monthlyVotes.count = 0;
+      plug.monthlyVotes.lastReset = now;
+    }
+    
+    // Incrémenter tous les compteurs
+    plug.likes = (plug.likes || 0) + 1;
+    plug.dailyVotes.count = (plug.dailyVotes.count || 0) + 1;
+    plug.weeklyVotes.count = (plug.weeklyVotes.count || 0) + 1;
+    plug.monthlyVotes.count = (plug.monthlyVotes.count || 0) + 1;
+    
+    // Calculer le score de tendance
+    if (plug.previousWeekVotes > 0) {
+      plug.trendingScore = ((plug.weeklyVotes.count - plug.previousWeekVotes) / plug.previousWeekVotes) * 100;
+    } else {
+      plug.trendingScore = plug.weeklyVotes.count * 100;
+    }
+    
+    // Sauvegarder les changements
+    plug = await plug.save();
     
     // Créer ou mettre à jour le vote pour ce plug
     if (existingVote) {
