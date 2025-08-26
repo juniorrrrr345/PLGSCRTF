@@ -438,6 +438,9 @@ bot.on('callback_query', async (callbackQuery) => {
     // Ignorer si déjà répondu
   }
   
+  // Flag pour éviter les doubles envois
+  let messageSent = false;
+  
   try {
     let callbackAnswered = true; // Déjà répondu au début
     // Vérifier d'abord si c'est une callback admin
@@ -1707,6 +1710,9 @@ bot.on('callback_query', async (callbackQuery) => {
     // ===== CALLBACK RETOUR AU MENU PRINCIPAL =====
     else if (data === 'back_to_main') {
       try {
+        // Éviter les doubles envois
+        if (messageSent) return;
+        
         // Récupérer directement les éléments pour afficher le menu
         const Settings = require('./models/Settings');
         const User = require('./models/User');
@@ -1769,14 +1775,17 @@ bot.on('callback_query', async (callbackQuery) => {
           }
         }
         
-        // D'abord supprimer le message actuel
+        // TOUJOURS supprimer d'abord le message actuel
         try {
           await bot.deleteMessage(chatId, messageId);
         } catch (deleteError) {
           console.log('Impossible de supprimer le message:', deleteError.message);
         }
         
-        // Puis envoyer le menu avec l'image si disponible
+        // Petit délai pour s'assurer que la suppression est terminée
+        await new Promise(resolve => setTimeout(resolve, 200));
+        
+        // Envoyer UNE SEULE FOIS le menu
         if (settings?.welcomeImage) {
           try {
             await bot.sendPhoto(chatId, settings.welcomeImage, {
@@ -1785,7 +1794,7 @@ bot.on('callback_query', async (callbackQuery) => {
               reply_markup: keyboard
             });
           } catch (error) {
-            console.error('Erreur envoi image:', error);
+            console.error('Erreur envoi image, envoi texte:', error.message);
             await bot.sendMessage(chatId, messageWithStats, {
               parse_mode: 'HTML',
               reply_markup: keyboard
@@ -1797,6 +1806,9 @@ bot.on('callback_query', async (callbackQuery) => {
             reply_markup: keyboard
           });
         }
+        
+        // Marquer comme envoyé pour éviter les doublons
+        messageSent = true;
         
       } catch (error) {
         console.error('Erreur back_to_main:', error);
