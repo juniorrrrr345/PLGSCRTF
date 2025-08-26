@@ -902,22 +902,51 @@ bot.on('callback_query', async (callbackQuery) => {
           `❌ Tu n'as pas encore de badges.\n` +
           `💡 Vote pour tes plugs préférés pour débloquer des badges !`;
         
-        await bot.editMessageText(message, {
-          chat_id: chatId,
-          message_id: messageId,
-          parse_mode: 'HTML',
-          reply_markup: {
-            inline_keyboard: [
-              [{ text: '🔙 Retour au menu', callback_data: 'back_to_main' }]
-            ]
-          }
-        });
+        // Vérifier si le message original contient du texte
+        if (callbackQuery.message.text) {
+          await bot.editMessageText(message, {
+            chat_id: chatId,
+            message_id: messageId,
+            parse_mode: 'HTML',
+            reply_markup: {
+              inline_keyboard: [
+                [{ text: '🔙 Retour au menu', callback_data: 'back_to_main' }]
+              ]
+            }
+          });
+        } else {
+          // Si c'est une image, supprimer et envoyer un nouveau message
+          await bot.deleteMessage(chatId, messageId);
+          await bot.sendMessage(chatId, message, {
+            parse_mode: 'HTML',
+            reply_markup: {
+              inline_keyboard: [
+                [{ text: '🔙 Retour au menu', callback_data: 'back_to_main' }]
+              ]
+            }
+          });
+        }
         callbackAnswered = true;
       } catch (error) {
         console.error('Erreur my_badges:', error);
+        // Essayer d'envoyer un nouveau message en cas d'erreur
+        try {
+          await bot.deleteMessage(chatId, messageId);
+          const message = `🏅 <b>MES BADGES</b>\n\n❌ Fonction en cours de développement`;
+          await bot.sendMessage(chatId, message, {
+            parse_mode: 'HTML',
+            reply_markup: {
+              inline_keyboard: [
+                [{ text: '🔙 Retour au menu', callback_data: 'back_to_main' }]
+              ]
+            }
+          });
+        } catch (e) {
+          console.error('Erreur envoi message:', e);
+        }
         await bot.answerCallbackQuery(callbackQuery.id, {
-          text: '❌ Erreur lors du chargement',
-          show_alert: true
+          text: '✅ Chargement...',
+          show_alert: false
         });
         callbackAnswered = true;
       }
@@ -929,24 +958,36 @@ bot.on('callback_query', async (callbackQuery) => {
         const message = `📊 <b>CLASSEMENTS</b>\n\n` +
           `Choisis le classement à consulter:`;
         
-        await bot.editMessageText(message, {
-          chat_id: chatId,
-          message_id: messageId,
-          parse_mode: 'HTML',
-          reply_markup: {
-            inline_keyboard: [
-              [
-                { text: '🏆 Top Global', callback_data: 'rankings_global' },
-                { text: '📅 Top du Jour', callback_data: 'rankings_daily' }
-              ],
-              [
-                { text: '📊 Top Semaine', callback_data: 'rankings_weekly' },
-                { text: '📈 En Progression', callback_data: 'rankings_trending' }
-              ],
-              [{ text: '🔙 Retour au menu', callback_data: 'back_to_main' }]
-            ]
-          }
-        });
+        const keyboard = {
+          inline_keyboard: [
+            [
+              { text: '🏆 Top Global', callback_data: 'rankings_global' },
+              { text: '📅 Top du Jour', callback_data: 'rankings_daily' }
+            ],
+            [
+              { text: '📊 Top Semaine', callback_data: 'rankings_weekly' },
+              { text: '📈 En Progression', callback_data: 'rankings_trending' }
+            ],
+            [{ text: '🔙 Retour au menu', callback_data: 'back_to_main' }]
+          ]
+        };
+        
+        // Vérifier si le message original contient du texte
+        if (callbackQuery.message.text) {
+          await bot.editMessageText(message, {
+            chat_id: chatId,
+            message_id: messageId,
+            parse_mode: 'HTML',
+            reply_markup: keyboard
+          });
+        } else {
+          // Si c'est une image, supprimer et envoyer un nouveau message
+          await bot.deleteMessage(chatId, messageId);
+          await bot.sendMessage(chatId, message, {
+            parse_mode: 'HTML',
+            reply_markup: keyboard
+          });
+        }
         callbackAnswered = true;
       } catch (error) {
         console.error('Erreur rankings_menu:', error);
@@ -981,24 +1022,34 @@ bot.on('callback_query', async (callbackQuery) => {
           `🔄 Cette fonctionnalité arrive bientôt !\n\n` +
           `En attendant, consulte le classement principal via "🔌 NOS PLUGS DU MOMENT"`;
         
-        await bot.editMessageText(message, {
-          chat_id: chatId,
-          message_id: messageId,
-          parse_mode: 'HTML',
-          reply_markup: {
-            inline_keyboard: [
-              [
-                { text: '🏆 Top Global', callback_data: 'rankings_global' },
-                { text: '📅 Top du Jour', callback_data: 'rankings_daily' }
-              ],
-              [
-                { text: '📊 Top Semaine', callback_data: 'rankings_weekly' },
-                { text: '📈 En Progression', callback_data: 'rankings_trending' }
-              ],
-              [{ text: '🔙 Retour au menu', callback_data: 'back_to_main' }]
-            ]
-          }
-        });
+        const keyboard = {
+          inline_keyboard: [
+            [
+              { text: '🏆 Top Global', callback_data: 'rankings_global' },
+              { text: '📅 Top du Jour', callback_data: 'rankings_daily' }
+            ],
+            [
+              { text: '📊 Top Semaine', callback_data: 'rankings_weekly' },
+              { text: '📈 En Progression', callback_data: 'rankings_trending' }
+            ],
+            [{ text: '🔙 Retour au menu', callback_data: 'back_to_main' }]
+          ]
+        };
+        
+        if (callbackQuery.message.text) {
+          await bot.editMessageText(message, {
+            chat_id: chatId,
+            message_id: messageId,
+            parse_mode: 'HTML',
+            reply_markup: keyboard
+          });
+        } else {
+          await bot.deleteMessage(chatId, messageId);
+          await bot.sendMessage(chatId, message, {
+            parse_mode: 'HTML',
+            reply_markup: keyboard
+          });
+        }
         callbackAnswered = true;
       } catch (error) {
         console.error('Erreur rankings:', error);
@@ -1012,21 +1063,31 @@ bot.on('callback_query', async (callbackQuery) => {
         const message = `⚔️ <b>BATTLES</b>\n\n` +
           `Choisis une option:`;
         
-        await bot.editMessageText(message, {
-          chat_id: chatId,
-          message_id: messageId,
-          parse_mode: 'HTML',
-          reply_markup: {
-            inline_keyboard: [
-              [
-                { text: '⚔️ Battles en cours', callback_data: 'battles_active' },
-                { text: '🏆 Historique', callback_data: 'battles_history' }
-              ],
-              [{ text: '📊 Mes stats de battle', callback_data: 'battles_mystats' }],
-              [{ text: '🔙 Retour au menu', callback_data: 'back_to_main' }]
-            ]
-          }
-        });
+        const keyboard = {
+          inline_keyboard: [
+            [
+              { text: '⚔️ Battles en cours', callback_data: 'battles_active' },
+              { text: '🏆 Historique', callback_data: 'battles_history' }
+            ],
+            [{ text: '📊 Mes stats de battle', callback_data: 'battles_mystats' }],
+            [{ text: '🔙 Retour au menu', callback_data: 'back_to_main' }]
+          ]
+        };
+        
+        if (callbackQuery.message.text) {
+          await bot.editMessageText(message, {
+            chat_id: chatId,
+            message_id: messageId,
+            parse_mode: 'HTML',
+            reply_markup: keyboard
+          });
+        } else {
+          await bot.deleteMessage(chatId, messageId);
+          await bot.sendMessage(chatId, message, {
+            parse_mode: 'HTML',
+            reply_markup: keyboard
+          });
+        }
         callbackAnswered = true;
       } catch (error) {
         console.error('Erreur battles_menu:', error);
@@ -1058,21 +1119,31 @@ bot.on('callback_query', async (callbackQuery) => {
           `━━━━━━━━━━━━━━━━\n\n` +
           `${content}`;
         
-        await bot.editMessageText(message, {
-          chat_id: chatId,
-          message_id: messageId,
-          parse_mode: 'HTML',
-          reply_markup: {
-            inline_keyboard: [
-              [
-                { text: '⚔️ Battles en cours', callback_data: 'battles_active' },
-                { text: '🏆 Historique', callback_data: 'battles_history' }
-              ],
-              [{ text: '📊 Mes stats', callback_data: 'battles_mystats' }],
-              [{ text: '🔙 Retour au menu', callback_data: 'back_to_main' }]
-            ]
-          }
-        });
+        const keyboard = {
+          inline_keyboard: [
+            [
+              { text: '⚔️ Battles en cours', callback_data: 'battles_active' },
+              { text: '🏆 Historique', callback_data: 'battles_history' }
+            ],
+            [{ text: '📊 Mes stats', callback_data: 'battles_mystats' }],
+            [{ text: '🔙 Retour au menu', callback_data: 'back_to_main' }]
+          ]
+        };
+        
+        if (callbackQuery.message.text) {
+          await bot.editMessageText(message, {
+            chat_id: chatId,
+            message_id: messageId,
+            parse_mode: 'HTML',
+            reply_markup: keyboard
+          });
+        } else {
+          await bot.deleteMessage(chatId, messageId);
+          await bot.sendMessage(chatId, message, {
+            parse_mode: 'HTML',
+            reply_markup: keyboard
+          });
+        }
         callbackAnswered = true;
       } catch (error) {
         console.error('Erreur battles:', error);
@@ -1096,24 +1167,34 @@ bot.on('callback_query', async (callbackQuery) => {
           `❌ Nuit (22h-8h)\n\n` +
           `📊 <b>Limite quotidienne:</b> 5 notifications/jour`;
         
-        await bot.editMessageText(message, {
-          chat_id: chatId,
-          message_id: messageId,
-          parse_mode: 'HTML',
-          reply_markup: {
-            inline_keyboard: [
-              [
-                { text: '✅ Badges', callback_data: 'pref_toggle_badges' },
-                { text: '✅ Classements', callback_data: 'pref_toggle_rankings' }
-              ],
-              [
-                { text: '✅ Battles', callback_data: 'pref_toggle_battles' },
-                { text: '❌ Top du jour', callback_data: 'pref_toggle_daily' }
-              ],
-              [{ text: '🔙 Retour au menu', callback_data: 'back_to_main' }]
-            ]
-          }
-        });
+        const keyboard = {
+          inline_keyboard: [
+            [
+              { text: '✅ Badges', callback_data: 'pref_toggle_badges' },
+              { text: '✅ Classements', callback_data: 'pref_toggle_rankings' }
+            ],
+            [
+              { text: '✅ Battles', callback_data: 'pref_toggle_battles' },
+              { text: '❌ Top du jour', callback_data: 'pref_toggle_daily' }
+            ],
+            [{ text: '🔙 Retour au menu', callback_data: 'back_to_main' }]
+          ]
+        };
+        
+        if (callbackQuery.message.text) {
+          await bot.editMessageText(message, {
+            chat_id: chatId,
+            message_id: messageId,
+            parse_mode: 'HTML',
+            reply_markup: keyboard
+          });
+        } else {
+          await bot.deleteMessage(chatId, messageId);
+          await bot.sendMessage(chatId, message, {
+            parse_mode: 'HTML',
+            reply_markup: keyboard
+          });
+        }
         callbackAnswered = true;
       } catch (error) {
         console.error('Erreur notifications:', error);
@@ -1144,24 +1225,34 @@ bot.on('callback_query', async (callbackQuery) => {
           `📊 <b>Limite quotidienne:</b> 5 notifications/jour\n\n` +
           `✅ Préférences mises à jour !`;
         
-        await bot.editMessageText(message, {
-          chat_id: chatId,
-          message_id: messageId,
-          parse_mode: 'HTML',
-          reply_markup: {
-            inline_keyboard: [
-              [
-                { text: '✅ Badges', callback_data: 'pref_toggle_badges' },
-                { text: '✅ Classements', callback_data: 'pref_toggle_rankings' }
-              ],
-              [
-                { text: '✅ Battles', callback_data: 'pref_toggle_battles' },
-                { text: '❌ Top du jour', callback_data: 'pref_toggle_daily' }
-              ],
-              [{ text: '🔙 Retour au menu', callback_data: 'back_to_main' }]
-            ]
-          }
-        });
+        const keyboard = {
+          inline_keyboard: [
+            [
+              { text: '✅ Badges', callback_data: 'pref_toggle_badges' },
+              { text: '✅ Classements', callback_data: 'pref_toggle_rankings' }
+            ],
+            [
+              { text: '✅ Battles', callback_data: 'pref_toggle_battles' },
+              { text: '❌ Top du jour', callback_data: 'pref_toggle_daily' }
+            ],
+            [{ text: '🔙 Retour au menu', callback_data: 'back_to_main' }]
+          ]
+        };
+        
+        if (callbackQuery.message.text) {
+          await bot.editMessageText(message, {
+            chat_id: chatId,
+            message_id: messageId,
+            parse_mode: 'HTML',
+            reply_markup: keyboard
+          });
+        } else {
+          await bot.deleteMessage(chatId, messageId);
+          await bot.sendMessage(chatId, message, {
+            parse_mode: 'HTML',
+            reply_markup: keyboard
+          });
+        }
         callbackAnswered = true;
       } catch (error) {
         console.error('Erreur toggle pref:', error);
