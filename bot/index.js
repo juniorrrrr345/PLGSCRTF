@@ -969,17 +969,34 @@ bot.on('callback_query', async (callbackQuery) => {
           { text: '🔙 Retour au menu', callback_data: 'back_to_main' }
         ]);
         
-        // TOUJOURS supprimer et envoyer un nouveau message pour éviter les erreurs
+        // Essayer d'éditer le message existant d'abord
         try {
-          await bot.deleteMessage(chatId, messageId);
-        } catch (deleteError) {
-          console.log('Impossible de supprimer le message:', deleteError.message);
+          if (callbackQuery.message.text) {
+            await bot.editMessageText(message, {
+              chat_id: chatId,
+              message_id: messageId,
+              parse_mode: 'HTML',
+              reply_markup: keyboard
+            });
+          } else {
+            // Si c'est une image, on doit supprimer et recréer
+            await bot.deleteMessage(chatId, messageId);
+            await bot.sendMessage(chatId, message, {
+              parse_mode: 'HTML',
+              reply_markup: keyboard
+            });
+          }
+        } catch (error) {
+          console.error('Erreur édition my_badges:', error);
+          // En cas d'erreur, supprimer et recréer
+          try {
+            await bot.deleteMessage(chatId, messageId);
+          } catch (e) {}
+          await bot.sendMessage(chatId, message, {
+            parse_mode: 'HTML',
+            reply_markup: keyboard
+          });
         }
-        
-        await bot.sendMessage(chatId, message, {
-          parse_mode: 'HTML',
-          reply_markup: keyboard
-        });
       } catch (error) {
         console.error('Erreur my_badges:', error);
         // Ne pas afficher de message d'erreur
