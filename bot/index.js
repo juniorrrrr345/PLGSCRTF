@@ -1324,13 +1324,22 @@ bot.on('callback_query', async (callbackQuery) => {
           await userStats.save();
         }
         
+        // Compter les badges totaux (possédés + utilisés)
+        const BadgeConfig = require('./models/BadgeConfig');
+        const allBadges = await BadgeConfig.find({ isActive: true });
+        const totalBadges = allBadges.length;
+        const ownedBadges = userStats.badges.filter(b => !b.used).length;
+        const usedBadges = userStats.badges.filter(b => b.used).length;
+        
         // Construire le message avec les vraies données
         let message = `🏅 <b>MES BADGES ET RÉCOMPENSES</b>\n`;
         message += `━━━━━━━━━━━━━━━━\n\n`;
         message += `📊 <b>Statistiques</b>\n`;
         message += `🎖️ Niveau: ${userStats.level}\n`;
         message += `⭐ Points: ${userStats.points}\n`;
-        message += `🏆 Badges: ${userStats.badges.length}\n`;
+        message += `🏆 Badges possédés: ${ownedBadges}\n`;
+        message += `🎁 Badges offerts: ${usedBadges}\n`;
+        message += `📦 Badges totaux: ${ownedBadges + usedBadges}/${totalBadges}\n`;
         message += `🗳️ Votes totaux: ${userStats.totalVotes}\n\n`;
         
         // Progression vers le prochain niveau
@@ -1370,7 +1379,7 @@ bot.on('callback_query', async (callbackQuery) => {
         }
         
         keyboard.inline_keyboard.push([
-          { text: '🔙 Retour au menu', callback_data: 'back_to_main' }
+          { text: '🔙 Retour au menu', callback_data: 'main_menu' }
         ]);
         
         // Essayer d'éditer le message existant d'abord
@@ -1432,7 +1441,7 @@ bot.on('callback_query', async (callbackQuery) => {
               { text: '📊 Top Semaine', callback_data: 'rankings_weekly' },
               { text: '📈 En Progression', callback_data: 'rankings_trending' }
             ],
-            [{ text: '🔙 Retour au menu', callback_data: 'back_to_main' }]
+            [{ text: '🔙 Retour au menu', callback_data: 'main_menu' }]
           ]
         };
         
@@ -1487,9 +1496,9 @@ bot.on('callback_query', async (callbackQuery) => {
         
         if (data === 'rankings_global') {
           title = '🏆 <b>TOP GLOBAL - TOUS LES TEMPS</b>';
+          // Récupérer TOUS les plugs avec des votes, pas seulement 10
           plugs = await Plug.find({ isActive: true, likes: { $gt: 0 } })
-            .sort({ likes: -1 })
-            .limit(10);
+            .sort({ likes: -1 });
           noDataMessage = 'Aucun vote enregistré pour le moment.';
         } else if (data === 'rankings_daily') {
           title = '📅 <b>TOP DU JOUR</b>';
@@ -1568,7 +1577,7 @@ bot.on('callback_query', async (callbackQuery) => {
               { text: '📊 Top Semaine', callback_data: 'rankings_weekly' },
               { text: '📈 En Progression', callback_data: 'rankings_trending' }
             ],
-            [{ text: '🔙 Retour au menu', callback_data: 'back_to_main' }]
+            [{ text: '🔙 Retour au menu', callback_data: 'main_menu' }]
           ]
         };
         
@@ -1629,7 +1638,7 @@ bot.on('callback_query', async (callbackQuery) => {
               { text: '🏆 Historique', callback_data: 'battles_history' }
             ],
             [{ text: '📊 Mes stats de battle', callback_data: 'battles_mystats' }],
-            [{ text: '🔙 Retour au menu', callback_data: 'back_to_main' }]
+            [{ text: '🔙 Retour au menu', callback_data: 'main_menu' }]
           ]
         };
         
@@ -1690,7 +1699,7 @@ bot.on('callback_query', async (callbackQuery) => {
               { text: '🏆 Historique', callback_data: 'battles_history' }
             ],
             [{ text: '📊 Mes stats', callback_data: 'battles_mystats' }],
-            [{ text: '🔙 Retour au menu', callback_data: 'back_to_main' }]
+            [{ text: '🔙 Retour au menu', callback_data: 'main_menu' }]
           ]
         };
         
@@ -1746,7 +1755,7 @@ bot.on('callback_query', async (callbackQuery) => {
               { text: '✅ Battles', callback_data: 'pref_toggle_battles' },
               { text: '❌ Top du jour', callback_data: 'pref_toggle_daily' }
             ],
-            [{ text: '🔙 Retour au menu', callback_data: 'back_to_main' }]
+            [{ text: '🔙 Retour au menu', callback_data: 'main_menu' }]
           ]
         };
         
@@ -1809,7 +1818,7 @@ bot.on('callback_query', async (callbackQuery) => {
               { text: '✅ Battles', callback_data: 'pref_toggle_battles' },
               { text: '❌ Top du jour', callback_data: 'pref_toggle_daily' }
             ],
-            [{ text: '🔙 Retour au menu', callback_data: 'back_to_main' }]
+            [{ text: '🔙 Retour au menu', callback_data: 'main_menu' }]
           ]
         };
         
@@ -1915,7 +1924,7 @@ bot.on('callback_query', async (callbackQuery) => {
         // Toujours ajouter les boutons de navigation
         keyboard.inline_keyboard.push(
           [{ text: '🏅 Mes badges achetés', callback_data: 'my_badges' }],
-          [{ text: '🔙 Retour au menu', callback_data: 'back_to_main' }]
+          [{ text: '🔙 Retour au menu', callback_data: 'main_menu' }]
         );
         
         // TOUJOURS supprimer et envoyer un nouveau message
@@ -2008,7 +2017,7 @@ bot.on('callback_query', async (callbackQuery) => {
         
         keyboard.inline_keyboard.push(
           [{ text: '🔙 Retour aux badges', callback_data: 'my_badges' }],
-          [{ text: '🔙 Retour au menu', callback_data: 'back_to_main' }]
+          [{ text: '🔙 Retour au menu', callback_data: 'main_menu' }]
         );
         
         // TOUJOURS supprimer et envoyer un nouveau message
@@ -2256,7 +2265,7 @@ bot.on('callback_query', async (callbackQuery) => {
           inline_keyboard: [
             [{ text: '🏅 Mes badges', callback_data: 'my_badges' }],
             [{ text: '🛍️ Acheter d\'autres badges', callback_data: 'badge_shop_direct' }],
-            [{ text: '🔙 Retour au menu', callback_data: 'back_to_main' }]
+            [{ text: '🔙 Retour au menu', callback_data: 'main_menu' }]
           ]
         };
         
@@ -2282,25 +2291,34 @@ bot.on('callback_query', async (callbackQuery) => {
     
     // ===== CALLBACK RETOUR AU MENU PRINCIPAL =====
     else if (data === 'back_to_main') {
+      // Rediriger vers main_menu qui édite le message au lieu de le supprimer
+      data = 'main_menu';
+      // Le code de main_menu sera exécuté plus haut dans la condition
+      // On doit donc re-traiter ce cas
       try {
-        // Utiliser la même logique que 'plugs' : supprimer et appeler handleStart
-        await bot.deleteMessage(chatId, messageId).catch(() => {});
-        
-        // Importer et appeler handleStart
         const { handleStart } = require('./handlers/startHandler');
+        const mainMenu = await generateMainMenu(callbackQuery.from.id);
         
-        // Créer un faux message pour handleStart
-        const fakeMessage = {
-          chat: { id: chatId },
-          from: callbackQuery.from,
-          message_id: messageId
-        };
-        
-        await handleStart(bot, fakeMessage);
-        
+        await bot.editMessageText(mainMenu.message, {
+          chat_id: chatId,
+          message_id: messageId,
+          parse_mode: 'HTML',
+          reply_markup: mainMenu.keyboard
+        });
       } catch (error) {
-        console.error('Erreur back_to_main:', error);
-        // En cas d'erreur, ne rien afficher
+        // Si l'édition échoue, essayer de supprimer et créer un nouveau message
+        try {
+          await bot.deleteMessage(chatId, messageId);
+          const { handleStart } = require('./handlers/startHandler');
+          const fakeMessage = {
+            chat: { id: chatId },
+            from: callbackQuery.from,
+            message_id: messageId
+          };
+          await handleStart(bot, fakeMessage);
+        } catch (e) {
+          console.error('Erreur back_to_main:', e);
+        }
       }
     }
     
