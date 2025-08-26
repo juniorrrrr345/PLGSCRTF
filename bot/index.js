@@ -891,6 +891,10 @@ bot.on('callback_query', async (callbackQuery) => {
     // Badges
     else if (data === 'my_badges') {
       try {
+        // Répondre immédiatement au callback pour éviter le message d'erreur
+        await bot.answerCallbackQuery(callbackQuery.id);
+        callbackAnswered = true;
+        
         const UserStats = require('./models/UserStats');
         const BadgeConfig = require('./models/BadgeConfig');
         
@@ -977,22 +981,27 @@ bot.on('callback_query', async (callbackQuery) => {
             reply_markup: keyboard
           });
         }
-        callbackAnswered = true;
       } catch (error) {
         console.error('Erreur my_badges:', error);
-        // Ne pas afficher de message d'erreur, juste répondre silencieusement
-        try {
-          await bot.answerCallbackQuery(callbackQuery.id);
-        } catch (err) {
-          // Ignorer
+        // Ne pas afficher de message d'erreur
+        if (!callbackAnswered) {
+          try {
+            await bot.answerCallbackQuery(callbackQuery.id);
+          } catch (err) {
+            // Ignorer
+          }
+          callbackAnswered = true;
         }
-        callbackAnswered = true;
       }
     }
     
     // Menu Classements
     else if (data === 'rankings_menu') {
       try {
+        // Répondre immédiatement au callback pour éviter le message d'erreur
+        await bot.answerCallbackQuery(callbackQuery.id);
+        callbackAnswered = true;
+        
         const message = `🗳️ <b>CLASSEMENT PLUGS</b>\n` +
           `━━━━━━━━━━━━━━━━\n\n` +
           `Choisis le classement à consulter:`;
@@ -1027,14 +1036,15 @@ bot.on('callback_query', async (callbackQuery) => {
             reply_markup: keyboard
           });
         }
-        callbackAnswered = true;
       } catch (error) {
         console.error('Erreur rankings_menu:', error);
-        // Répondre silencieusement sans message d'erreur
-        try {
-          await bot.answerCallbackQuery(callbackQuery.id);
-        } catch (e) {}
-        callbackAnswered = true;
+        // Ne pas afficher de message d'erreur
+        if (!callbackAnswered) {
+          try {
+            await bot.answerCallbackQuery(callbackQuery.id);
+          } catch (e) {}
+          callbackAnswered = true;
+        }
       }
     }
     
@@ -1042,6 +1052,10 @@ bot.on('callback_query', async (callbackQuery) => {
     else if (data === 'rankings_global' || data === 'rankings_daily' || 
              data === 'rankings_weekly' || data === 'rankings_trending') {
       try {
+        // Répondre immédiatement au callback pour éviter le message d'erreur
+        await bot.answerCallbackQuery(callbackQuery.id);
+        callbackAnswered = true;
+        
         const Plug = require('./models/Plug');
         let title = '';
         let plugs = [];
@@ -1350,6 +1364,10 @@ bot.on('callback_query', async (callbackQuery) => {
     // Boutique de badges (depuis menu principal)
     else if (data === 'badge_shop_direct') {
       try {
+        // Répondre immédiatement au callback pour éviter le message d'erreur
+        await bot.answerCallbackQuery(callbackQuery.id);
+        callbackAnswered = true;
+        
         const UserStats = require('./models/UserStats');
         const BadgeConfig = require('./models/BadgeConfig');
         
@@ -1588,17 +1606,100 @@ bot.on('callback_query', async (callbackQuery) => {
     // ===== CALLBACK RETOUR AU MENU PRINCIPAL =====
     else if (data === 'back_to_main') {
       try {
+        // Répondre immédiatement au callback pour éviter le message d'erreur
+        await bot.answerCallbackQuery(callbackQuery.id);
+        callbackAnswered = true;
+        
         // Supprimer le message actuel
         await bot.deleteMessage(chatId, messageId);
         
-        // Appeler directement showMainMenu SANS vérification du canal
-        const { showMainMenu } = require('./handlers/startHandler');
-        await showMainMenu(bot, chatId); // PAS de userId = pas de vérification
+        // Récupérer directement les éléments pour afficher le menu
+        const Settings = require('./models/Settings');
+        const User = require('./models/User');
+        const Plug = require('./models/Plug');
         
-        callbackAnswered = true;
+        const settings = await Settings.findOne();
+        const userCount = await User.countDocuments() || 0;
+        const plugCount = await Plug.countDocuments() || 0;
+        
+        const welcomeMessage = settings?.welcomeMessage || 
+          '🔌 <b>Bienvenue sur PLUGS CRTFS !</b>\n\nLa marketplace exclusive des vendeurs certifiés.';
+        
+        const messageWithStats = `${welcomeMessage}\n\n🔌 <b>${plugCount} Plugs Disponibles</b> ✅\n\n👥 <b>${userCount} utilisateurs</b> nous font déjà confiance !`;
+        
+        const miniAppButtonText = settings?.miniAppButtonText || '🔌 MINI APP PLGS CRTFS';
+        const botUsername = process.env.TELEGRAM_BOT_USERNAME || 'PLGSCRTF_BOT';
+        const miniAppUrl = `https://t.me/${botUsername}/miniapp`;
+        
+        const keyboard = {
+          inline_keyboard: [
+            [{ text: miniAppButtonText, url: miniAppUrl }],
+            [{ text: '🔌 NOS PLUGS DU MOMENT', callback_data: 'plugs' }],
+            [{ text: '🏅 MES BADGES', callback_data: 'my_badges' }],
+            [{ text: '🗳️ CLASSEMENT PLUGS', callback_data: 'rankings_menu' }],
+            [{ text: '🛍️ BOUTIQUE DE BADGES', callback_data: 'badge_shop_direct' }],
+            [{ text: '🏆 TOP PARRAINS', callback_data: 'referrals' }],
+            [{ text: '✅ DEVENIR CERTIFIÉ', callback_data: 'apply' }],
+            [{ text: 'ℹ️ INFORMATIONS', callback_data: 'info' }]
+          ]
+        };
+        
+        // Ajouter les réseaux sociaux si disponibles
+        if (settings?.botSocialNetworks && settings.botSocialNetworks.length > 0) {
+          const sortedNetworks = settings.botSocialNetworks.sort((a, b) => (a.order || 0) - (b.order || 0));
+          
+          for (let i = 0; i < sortedNetworks.length; i += 2) {
+            const row = [];
+            const network1 = sortedNetworks[i];
+            
+            if (network1.name && network1.url) {
+              row.push({
+                text: `${network1.emoji || '🔗'} ${network1.name}`,
+                url: network1.url
+              });
+            }
+            
+            if (i + 1 < sortedNetworks.length) {
+              const network2 = sortedNetworks[i + 1];
+              if (network2.name && network2.url) {
+                row.push({
+                  text: `${network2.emoji || '🔗'} ${network2.name}`,
+                  url: network2.url
+                });
+              }
+            }
+            
+            if (row.length > 0) {
+              keyboard.inline_keyboard.push(row);
+            }
+          }
+        }
+        
+        // Envoyer le menu avec l'image si disponible
+        if (settings?.welcomeImage) {
+          try {
+            await bot.sendPhoto(chatId, settings.welcomeImage, {
+              caption: messageWithStats,
+              parse_mode: 'HTML',
+              reply_markup: keyboard
+            });
+          } catch (error) {
+            console.error('Erreur envoi image:', error);
+            await bot.sendMessage(chatId, messageWithStats, {
+              parse_mode: 'HTML',
+              reply_markup: keyboard
+            });
+          }
+        } else {
+          await bot.sendMessage(chatId, messageWithStats, {
+            parse_mode: 'HTML',
+            reply_markup: keyboard
+          });
+        }
+        
       } catch (error) {
         console.error('Erreur back_to_main:', error);
-        callbackAnswered = true;
+        // En cas d'erreur, ne rien afficher
       }
     }
     
