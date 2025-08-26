@@ -257,7 +257,8 @@ async function showMainMenu(bot, chatId, userId = null) {
     inline_keyboard: [
           [{ text: miniAppButtonText, url: miniAppUrl }],
     [{ text: '🔌 NOS PLUGS DU MOMENT', callback_data: 'plugs' }],
-    [{ text: '🏅 MES BADGES', callback_data: 'my_badges' }, { text: '🗳️ CLASSEMENT PLUGS', callback_data: 'rankings_menu' }],
+    [{ text: '🏅 MES BADGES', callback_data: 'my_badges' }],
+    [{ text: '🗳️ CLASSEMENT PLUGS', callback_data: 'rankings_menu' }],
     [{ text: '🛍️ BOUTIQUE DE BADGES', callback_data: 'badge_shop_direct' }],
     [{ text: '🏆 TOP PARRAINS', callback_data: 'referrals' }],
     [{ text: '✅ DEVENIR CERTIFIÉ', callback_data: 'apply' }],

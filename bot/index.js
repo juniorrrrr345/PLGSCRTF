@@ -918,14 +918,14 @@ bot.on('callback_query', async (callbackQuery) => {
         message += `📊 <b>Statistiques</b>\n`;
         message += `🎖️ Niveau: ${userStats.level}\n`;
         message += `⭐ Points: ${userStats.points}\n`;
-        message += `💎 Points de badge: ${userStats.badgePoints}\n`;
         message += `🏆 Badges: ${userStats.badges.length}\n`;
         message += `🗳️ Votes totaux: ${userStats.totalVotes}\n\n`;
         
         // Progression vers le prochain niveau
         const votesForNextLevel = (userStats.level * 5) - userStats.totalVotes;
         if (votesForNextLevel > 0) {
-          message += `📈 <b>Prochain niveau dans ${votesForNextLevel} vote${votesForNextLevel > 1 ? 's' : ''}</b>\n\n`;
+          message += `📈 <b>Prochain niveau dans ${votesForNextLevel} vote${votesForNextLevel > 1 ? 's' : ''}</b>\n`;
+          message += `<i>(+3 points au prochain niveau)</i>\n\n`;
         }
         
         // Afficher les badges possédés
@@ -938,11 +938,11 @@ bot.on('callback_query', async (callbackQuery) => {
         }
         
         // Info sur les badges
-        if (userStats.level >= 15) {
-          message += `💎 Tu peux acheter des badges avec tes points !\n`;
+        if (userStats.points >= 10) {
+          message += `💎 Tu peux acheter des badges avec tes ${userStats.points} points !\n`;
         } else {
-          const levelsNeeded = 15 - userStats.level;
-          message += `🔒 <i>Badges débloqués au niveau 15 (encore ${levelsNeeded} niveaux)</i>\n`;
+          const pointsNeeded = 10 - userStats.points;
+          message += `🔒 <i>Boutique débloquée à 10 points (encore ${pointsNeeded} points)</i>\n`;
         }
         
         // Créer le clavier avec les boutons appropriés
@@ -950,10 +950,10 @@ bot.on('callback_query', async (callbackQuery) => {
           inline_keyboard: []
         };
         
-        // Ajouter bouton boutique si niveau 15+ et points disponibles
-        if (userStats.level >= 15 && userStats.badgePoints > 0) {
+        // Ajouter bouton boutique si 10+ points
+        if (userStats.points >= 10) {
           keyboard.inline_keyboard.push([
-            { text: `🛍️ Boutique de badges (${userStats.badgePoints} pts)`, callback_data: 'badge_shop' }
+            { text: `🛍️ Boutique de badges (${userStats.points} pts)`, callback_data: 'badge_shop' }
           ]);
         }
         
@@ -980,22 +980,7 @@ bot.on('callback_query', async (callbackQuery) => {
         callbackAnswered = true;
       } catch (error) {
         console.error('Erreur my_badges:', error);
-        // Essayer d'envoyer un nouveau message en cas d'erreur
-        try {
-          await bot.deleteMessage(chatId, messageId);
-          const message = `🏅 <b>MES BADGES</b>\n\n❌ Fonction en cours de développement`;
-          await bot.sendMessage(chatId, message, {
-            parse_mode: 'HTML',
-            reply_markup: {
-              inline_keyboard: [
-                [{ text: '🔙 Retour au menu', callback_data: 'back_to_main' }]
-              ]
-            }
-          });
-        } catch (e) {
-          console.error('Erreur envoi message:', e);
-        }
-        // Ne pas afficher d'alerte d'erreur
+        // Ne pas afficher de message d'erreur, juste répondre silencieusement
         try {
           await bot.answerCallbackQuery(callbackQuery.id);
         } catch (err) {
@@ -1009,22 +994,14 @@ bot.on('callback_query', async (callbackQuery) => {
     else if (data === 'rankings_menu') {
       try {
         const Plug = require('./models/Plug');
-        const UserStats = require('./models/UserStats');
         
         // Récupérer le top 10 des plugs
         const topPlugs = await Plug.find({ isActive: true })
           .sort({ likes: -1 })
           .limit(10);
         
-        // Récupérer le top 5 des utilisateurs
-        const topUsers = await UserStats.find()
-          .sort({ level: -1, totalVotes: -1, points: -1 })
-          .limit(5);
-        
         let message = `🗳️ <b>CLASSEMENT PLUGS</b>\n`;
         message += `━━━━━━━━━━━━━━━━\n\n`;
-        
-        // Top des plugs
         message += `📊 <b>Top 10 des plugs les plus votés</b>\n\n`;
         
         if (topPlugs.length > 0) {
@@ -1036,28 +1013,8 @@ bot.on('callback_query', async (callbackQuery) => {
           message += `Aucun plug disponible pour le moment.\n`;
         }
         
-        message += `\n━━━━━━━━━━━━━━━━\n\n`;
-        
-        // Top des utilisateurs
-        message += `👥 <b>Top 5 des votants</b>\n\n`;
-        
-        if (topUsers.length > 0) {
-          topUsers.forEach((user, index) => {
-            const medal = index === 0 ? '👑' : index === 1 ? '💎' : index === 2 ? '⭐' : '🌟';
-            message += `${index + 1}. ${medal} ${user.username} - Niv.${user.level} (${user.totalVotes} votes)\n`;
-          });
-          
-          // Info sur le leader mensuel
-          const leader = topUsers[0];
-          if (leader.badges.length > 0) {
-            message += `\n🏆 Leader du mois: ${leader.username} avec ${leader.badges.length} badge${leader.badges.length > 1 ? 's' : ''} !`;
-          }
-        } else {
-          message += `Aucun votant pour le moment.\n`;
-        }
-        
-        message += `\n\n📈 Mise à jour en temps réel\n`;
-        message += `🗳️ Vote pour monter dans le classement !`;
+        message += `\n📈 Mise à jour en temps réel\n`;
+        message += `🗳️ Vote pour ton plug préféré !`;
         
         const keyboard = {
           inline_keyboard: [
@@ -1407,13 +1364,14 @@ bot.on('callback_query', async (callbackQuery) => {
         let message = `🛍️ <b>BOUTIQUE DE BADGES</b>\n`;
         message += `━━━━━━━━━━━━━━━━\n\n`;
         
-        if (userStats.level < 15) {
-          const levelsNeeded = 15 - userStats.level;
+        if (userStats.points < 10) {
+          const pointsNeeded = 10 - userStats.points;
           message += `🔒 <b>Boutique verrouillée</b>\n\n`;
-          message += `📊 Ton niveau actuel: ${userStats.level}\n`;
-          message += `🎯 Niveau requis: 15\n`;
-          message += `📈 Encore ${levelsNeeded} niveaux (${levelsNeeded * 5} votes)\n\n`;
-          message += `💡 <i>Vote pour tes plugs préférés pour monter de niveau !</i>`;
+          message += `📊 Tes points actuels: ${userStats.points}\n`;
+          message += `🎯 Points requis: 10\n`;
+          message += `📈 Encore ${pointsNeeded} points à gagner\n\n`;
+          message += `💡 <i>Vote pour tes plugs préférés pour gagner des points !</i>\n`;
+          message += `<i>5 votes = 1 niveau = 3 points</i>`;
           
           const keyboard = {
             inline_keyboard: [
@@ -1458,9 +1416,9 @@ bot.on('callback_query', async (callbackQuery) => {
         
         const userStats = await UserStats.findOne({ userId: callbackQuery.from.id });
         
-        if (!userStats || userStats.level < 15) {
+        if (!userStats || userStats.points < 10) {
           await bot.answerCallbackQuery(callbackQuery.id, {
-            text: '❌ Niveau 15 requis pour accéder à la boutique',
+            text: '❌ Minimum 10 points requis pour accéder à la boutique',
             show_alert: true
           });
           return;
@@ -1477,7 +1435,7 @@ bot.on('callback_query', async (callbackQuery) => {
         
         let message = `🛍️ <b>BOUTIQUE DE BADGES</b>\n`;
         message += `━━━━━━━━━━━━━━━━\n\n`;
-        message += `💎 Points disponibles: ${userStats.badgePoints}\n\n`;
+        message += `💎 Points disponibles: ${userStats.points}\n\n`;
         
         if (unboughtBadges.length > 0) {
           message += `<b>Badges disponibles:</b>\n\n`;
@@ -1487,13 +1445,9 @@ bot.on('callback_query', async (callbackQuery) => {
           };
           
           for (const badge of unboughtBadges) {
-            const canAfford = userStats.badgePoints >= badge.cost;
+            const canAfford = userStats.points >= badge.cost;
             message += `${badge.emoji} <b>${badge.name}</b> - ${badge.cost} pts\n`;
             message += `   ${badge.description}\n`;
-            
-            if (badge.shopRewards?.freeAdDays > 0) {
-              message += `   🎁 Récompense: ${badge.shopRewards.freeAdDays} jours de pub gratuite\n`;
-            }
             
             if (canAfford) {
               keyboard.inline_keyboard.push([
@@ -1638,7 +1592,8 @@ bot.on('callback_query', async (callbackQuery) => {
           inline_keyboard: [
             [{ text: miniAppButtonText, url: miniAppUrl }],
             [{ text: '🔌 NOS PLUGS DU MOMENT', callback_data: 'plugs' }],
-            [{ text: '🏅 MES BADGES', callback_data: 'my_badges' }, { text: '🗳️ CLASSEMENT PLUGS', callback_data: 'rankings_menu' }],
+            [{ text: '🏅 MES BADGES', callback_data: 'my_badges' }],
+            [{ text: '🗳️ CLASSEMENT PLUGS', callback_data: 'rankings_menu' }],
             [{ text: '🛍️ BOUTIQUE DE BADGES', callback_data: 'badge_shop_direct' }],
             [{ text: '🏆 TOP PARRAINS', callback_data: 'referrals' }],
             [{ text: '✅ DEVENIR CERTIFIÉ', callback_data: 'apply' }],

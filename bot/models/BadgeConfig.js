@@ -69,77 +69,78 @@ const defaultBadges = [
     name: 'Supporter',
     emoji: '🎖️',
     description: 'Badge de base pour les supporters actifs',
-    cost: 1,
+    cost: 10,
     category: 'bronze',
-    requirements: { minLevel: 15 }
+    requirements: { minLevel: 1 }
   },
   {
     badgeId: 'fan',
     name: 'Fan',
     emoji: '⭐',
     description: 'Fan dévoué des plugs',
-    cost: 3,
+    cost: 15,
     category: 'bronze',
-    requirements: { minLevel: 20 }
+    requirements: { minLevel: 2 }
   },
   {
     badgeId: 'expert',
     name: 'Expert',
     emoji: '🏅',
-    description: 'Expert en plugs certifiés',
-    cost: 5,
+    description: 'Expert en plugs certifiés - 7 jours de pub gratuite',
+    cost: 20,
     category: 'silver',
-    requirements: { minLevel: 25 }
+    shopRewards: { freeAdDays: 7 },
+    requirements: { minLevel: 3 }
   },
   {
     badgeId: 'influencer',
     name: 'Influenceur',
     emoji: '💎',
-    description: 'Influenceur de la communauté',
-    cost: 10,
+    description: 'Influenceur de la communauté - 15 jours de pub gratuite',
+    cost: 30,
     category: 'gold',
-    shopRewards: { freeAdDays: 7 },
-    requirements: { minLevel: 30 }
+    shopRewards: { freeAdDays: 15 },
+    requirements: { minLevel: 5 }
   },
   {
     badgeId: 'ambassador',
     name: 'Ambassadeur',
     emoji: '👑',
-    description: 'Ambassadeur officiel - 15 jours de pub gratuite pour votre plug',
-    cost: 15,
+    description: 'Ambassadeur officiel - 30 jours de pub gratuite pour votre plug',
+    cost: 45,
     category: 'platinum',
-    shopRewards: { freeAdDays: 15, boostMultiplier: 1.5 },
-    requirements: { minLevel: 40 }
+    shopRewards: { freeAdDays: 30, boostMultiplier: 1.5 },
+    requirements: { minLevel: 8 }
   },
   {
     badgeId: 'legend',
     name: 'Légende',
     emoji: '🔥',
-    description: 'Légende de la communauté - 30 jours de pub gratuite',
-    cost: 25,
+    description: 'Légende de la communauté - 60 jours de pub gratuite',
+    cost: 60,
     category: 'diamond',
-    shopRewards: { freeAdDays: 30, boostMultiplier: 2, specialMention: true },
-    requirements: { minLevel: 50 }
+    shopRewards: { freeAdDays: 60, boostMultiplier: 2, specialMention: true },
+    requirements: { minLevel: 10 }
   },
   {
     badgeId: 'vip',
     name: 'VIP',
     emoji: '💫',
-    description: 'Membre VIP exclusif',
-    cost: 30,
+    description: 'Membre VIP exclusif - 90 jours de pub gratuite',
+    cost: 90,
     category: 'special',
-    shopRewards: { freeAdDays: 30, boostMultiplier: 2.5, specialMention: true },
-    requirements: { minLevel: 60 }
+    shopRewards: { freeAdDays: 90, boostMultiplier: 2.5, specialMention: true },
+    requirements: { minLevel: 15 }
   },
   {
     badgeId: 'premium',
     name: 'Premium',
     emoji: '🌟',
-    description: 'Membre Premium avec avantages exclusifs',
-    cost: 50,
+    description: 'Membre Premium avec avantages exclusifs - 180 jours de pub gratuite',
+    cost: 150,
     category: 'special',
-    shopRewards: { freeAdDays: 60, boostMultiplier: 3, specialMention: true },
-    requirements: { minLevel: 75 }
+    shopRewards: { freeAdDays: 180, boostMultiplier: 3, specialMention: true },
+    requirements: { minLevel: 20 }
   }
 ];
 

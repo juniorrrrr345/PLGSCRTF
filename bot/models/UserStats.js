@@ -109,22 +109,18 @@ userStatsSchema.methods.addVote = async function(plugId, plugName) {
   this.weeklyVotes += 1;
   this.monthlyVotes += 1;
   
-  // 1 point par vote
-  const pointsEarned = 1;
-  this.points += pointsEarned;
-  
   // Calculer le niveau (1 niveau tous les 5 votes)
   const newLevel = Math.floor(this.totalVotes / 5) + 1;
   const levelUp = newLevel > this.level;
+  const oldLevel = this.level;
   this.level = newLevel;
   
-  // Points de badge bonus à partir du niveau 15
-  if (this.level >= 15) {
-    // 1 point de badge tous les 5 niveaux après le niveau 15
-    const bonusLevels = Math.floor((this.level - 15) / 5);
-    if (bonusLevels > 0 && levelUp) {
-      this.badgePoints += 1;
-    }
+  // 3 points par niveau gagné
+  let pointsEarned = 0;
+  if (levelUp) {
+    pointsEarned = 3;
+    this.points += pointsEarned;
+    this.badgePoints += pointsEarned; // Les points de badge sont les mêmes que les points normaux
   }
   
   // Ajouter à l'historique
@@ -174,12 +170,12 @@ userStatsSchema.methods.addVote = async function(plugId, plugName) {
 
 // Méthode pour acheter un badge
 userStatsSchema.methods.purchaseBadge = async function(badge) {
-  if (this.level < 15) {
-    throw new Error('Niveau 15 requis pour acheter des badges');
+  if (this.points < 10) {
+    throw new Error('Minimum 10 points requis pour acheter des badges');
   }
   
-  if (this.badgePoints < badge.cost) {
-    throw new Error('Points de badge insuffisants');
+  if (this.points < badge.cost) {
+    throw new Error('Points insuffisants');
   }
   
   // Vérifier si le badge n'est pas déjà possédé
@@ -188,7 +184,7 @@ userStatsSchema.methods.purchaseBadge = async function(badge) {
     throw new Error('Badge déjà possédé');
   }
   
-  this.badgePoints -= badge.cost;
+  this.points -= badge.cost;
   this.badges.push({
     badgeId: badge.badgeId,
     name: badge.name,
