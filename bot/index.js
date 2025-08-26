@@ -2147,7 +2147,7 @@ bot.on('callback_query', async (callbackQuery) => {
             '💡 Va dans la boutique pour en acheter !';
           const errorKeyboard = {
             inline_keyboard: [
-              [{ text: '🛍️ Boutique de badges', callback_data: 'shop' }],
+              [{ text: '🛍️ Boutique de badges', callback_data: 'badge_shop' }],
               [{ text: '🔙 Retour', callback_data: `plug_${plugId}` }]
             ]
           };
@@ -2180,7 +2180,7 @@ bot.on('callback_query', async (callbackQuery) => {
             '💡 Achète de nouveaux badges dans la boutique !';
           const usedKeyboard = {
             inline_keyboard: [
-              [{ text: '🛍️ Boutique de badges', callback_data: 'shop' }],
+              [{ text: '🛍️ Boutique de badges', callback_data: 'badge_shop' }],
               [{ text: '🔙 Retour', callback_data: `plug_${plugId}` }]
             ]
           };
@@ -2356,7 +2356,7 @@ bot.on('callback_query', async (callbackQuery) => {
               parse_mode: 'HTML',
               reply_markup: {
                 inline_keyboard: [
-                  [{ text: '🛍️ Boutique de badges', callback_data: 'shop' }],
+                  [{ text: '🛍️ Boutique de badges', callback_data: 'badge_shop' }],
                   [{ text: '🔙 Retour', callback_data: `plug_${plugId}` }]
                 ]
               }
@@ -2400,7 +2400,7 @@ bot.on('callback_query', async (callbackQuery) => {
           inline_keyboard: [
             [{ text: `🔌 Voir ${plug.name}`, callback_data: `plug_${plugId}` }],
             [{ text: '🏅 Mes badges', callback_data: 'my_badges' }],
-            [{ text: '🛍️ Acheter d\'autres badges', callback_data: 'shop' }],
+            [{ text: '🛍️ Acheter d\'autres badges', callback_data: 'badge_shop' }],
             [{ text: '🔙 Retour au menu', callback_data: 'main_menu' }]
           ]
         };
