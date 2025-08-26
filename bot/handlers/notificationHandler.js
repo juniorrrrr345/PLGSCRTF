@@ -145,7 +145,12 @@ async function handleNotificationCallbacks(bot, callbackQuery) {
     });
     
     // Mettre à jour le message
-    await bot.deleteMessage(chatId, callbackQuery.message.message_id);
+    try {
+      await bot.deleteMessage(chatId, callbackQuery.message.message_id);
+    } catch (error) {
+      // Ignorer l'erreur si le message n'existe plus
+      console.log('Info: Message de notification déjà supprimé');
+    }
     await handleNotificationPreferences(bot, chatId, userId);
     
     return true;

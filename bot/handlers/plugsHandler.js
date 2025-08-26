@@ -813,25 +813,26 @@ async function handleLike(bot, callbackQuery, plugId) {
       }
     }
     
-    // Construire le message de succès avec les infos de niveau
-    let successMessage = `❤️ Vote enregistré pour ${plug.name} !\n\n`;
-    successMessage += `🗳️ Votes totaux: ${userStats.totalVotes}\n`;
-    successMessage += `🎯 Niveau: ${voteResult.newLevel}\n`;
-    successMessage += `⭐ Points: ${userStats.points}`;
+    // Message de succès simple et clair
+    let successMessage = `✅ Merci pour ton vote sur ${plug.name} !\n\n`;
+    successMessage += `📊 Ton statut:\n`;
+    successMessage += `🗳️ ${userStats.totalVotes} votes total\n`;
+    successMessage += `🎖️ Niveau ${voteResult.newLevel}\n`;
+    successMessage += `⭐ ${userStats.points} points`;
     
     if (voteResult.levelUp) {
-      successMessage += ` (+3)\n\n🎉 NIVEAU SUPÉRIEUR !`;
-      successMessage += `\nTu es maintenant niveau ${voteResult.newLevel} !`;
+      successMessage += ` (+3 points)\n\n🎉 NIVEAU SUPÉRIEUR ! 🎉`;
+      successMessage += `\nFélicitations ! Tu es maintenant niveau ${voteResult.newLevel} !`;
       
       if (userStats.points >= 10 && userStats.points - 3 < 10) {
-        successMessage += `\n\n🎁 Tu peux maintenant acheter des badges !`;
+        successMessage += `\n\n🛍️ Tu peux maintenant acheter des badges !`;
       }
     } else {
       const votesForNext = (voteResult.newLevel * 5) - userStats.totalVotes;
-      successMessage += `\n📈 Prochain niveau dans ${votesForNext} vote${votesForNext > 1 ? 's' : ''}`;
+      successMessage += `\n\n📈 Plus que ${votesForNext} vote${votesForNext > 1 ? 's' : ''} pour le niveau ${voteResult.newLevel + 1}`;
     }
     
-    successMessage += `\n\n⏰ Prochain vote dans 30 minutes`;
+    successMessage += `\n\n⏰ Tu pourras voter à nouveau dans 30 minutes`;
     
     // Répondre avec succès SANS supprimer le message
     await bot.answerCallbackQuery(callbackQuery.id, {

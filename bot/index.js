@@ -29,6 +29,17 @@ const { initializeEnhancedFeatures } = require('./features-hook');
 // Utils
 const MessageQueue = require('./utils/messageQueue');
 
+// Fonction utilitaire pour supprimer les messages de manière sécurisée
+async function safeDeleteMessage(bot, chatId, messageId) {
+  try {
+    await bot.deleteMessage(chatId, messageId);
+  } catch (error) {
+    // Ignorer silencieusement les erreurs de suppression de message
+    // (message déjà supprimé, permissions insuffisantes, etc.)
+    console.log(`Info: Impossible de supprimer le message ${messageId} dans le chat ${chatId}`);
+  }
+}
+
 // Configuration du bot avec gestion des conflits
 let bot;
 let pollingError = false;
@@ -861,7 +872,7 @@ bot.on('callback_query', async (callbackQuery) => {
     const { checkMaintenanceMode } = require('./middleware/maintenanceCheck');
     const inMaintenance = await checkMaintenanceMode(bot, chatId);
     if (inMaintenance) {
-      await bot.deleteMessage(chatId, messageId);
+      await safeDeleteMessage(bot, chatId, messageId);
       return; // Arrêter ici si en maintenance
     }
     
@@ -2132,21 +2143,30 @@ bot.on('callback_query', async (callbackQuery) => {
         
         if (!userStats || !userStats.badges || userStats.badges.length === 0) {
           // Éditer le message pour afficher l'erreur
-          await bot.editMessageText(
-            '❌ <b>Tu n\'as pas de badges à offrir</b>\n\n' +
-            '💡 Va dans la boutique pour en acheter !',
-            {
+          const errorMessage = '❌ <b>Tu n\'as pas de badges à offrir</b>\n\n' +
+            '💡 Va dans la boutique pour en acheter !';
+          const errorKeyboard = {
+            inline_keyboard: [
+              [{ text: '🛍️ Boutique de badges', callback_data: 'shop' }],
+              [{ text: '🔙 Retour', callback_data: `plug_${plugId}` }]
+            ]
+          };
+          
+          if (callbackQuery.message.photo) {
+            await bot.editMessageCaption(errorMessage, {
               chat_id: chatId,
               message_id: messageId,
               parse_mode: 'HTML',
-              reply_markup: {
-                inline_keyboard: [
-                  [{ text: '🛍️ Boutique de badges', callback_data: 'shop' }],
-                  [{ text: '🔙 Retour', callback_data: `plug_${plugId}` }]
-                ]
-              }
-            }
-          );
+              reply_markup: errorKeyboard
+            });
+          } else {
+            await bot.editMessageText(errorMessage, {
+              chat_id: chatId,
+              message_id: messageId,
+              parse_mode: 'HTML',
+              reply_markup: errorKeyboard
+            });
+          }
           callbackAnswered = true;
           return;
         }
@@ -2156,21 +2176,30 @@ bot.on('callback_query', async (callbackQuery) => {
         
         if (availableBadges.length === 0) {
           // Éditer le message pour afficher l'erreur
-          await bot.editMessageText(
-            '❌ <b>Tous tes badges ont déjà été utilisés</b>\n\n' +
-            '💡 Achète de nouveaux badges dans la boutique !',
-            {
+          const usedMessage = '❌ <b>Tous tes badges ont déjà été utilisés</b>\n\n' +
+            '💡 Achète de nouveaux badges dans la boutique !';
+          const usedKeyboard = {
+            inline_keyboard: [
+              [{ text: '🛍️ Boutique de badges', callback_data: 'shop' }],
+              [{ text: '🔙 Retour', callback_data: `plug_${plugId}` }]
+            ]
+          };
+          
+          if (callbackQuery.message.photo) {
+            await bot.editMessageCaption(usedMessage, {
               chat_id: chatId,
               message_id: messageId,
               parse_mode: 'HTML',
-              reply_markup: {
-                inline_keyboard: [
-                  [{ text: '🛍️ Boutique de badges', callback_data: 'shop' }],
-                  [{ text: '🔙 Retour', callback_data: `plug_${plugId}` }]
-                ]
-              }
-            }
-          );
+              reply_markup: usedKeyboard
+            });
+          } else {
+            await bot.editMessageText(usedMessage, {
+              chat_id: chatId,
+              message_id: messageId,
+              parse_mode: 'HTML',
+              reply_markup: usedKeyboard
+            });
+          }
           callbackAnswered = true;
           return;
         }
@@ -2178,19 +2207,28 @@ bot.on('callback_query', async (callbackQuery) => {
         // Récupérer le plug
         const plug = await Plug.findById(plugId);
         if (!plug) {
-          await bot.editMessageText(
-            '❌ <b>Plug introuvable</b>',
-            {
+          const notFoundMessage = '❌ <b>Plug introuvable</b>';
+          const notFoundKeyboard = {
+            inline_keyboard: [
+              [{ text: '🔙 Retour au menu', callback_data: 'main_menu' }]
+            ]
+          };
+          
+          if (callbackQuery.message.photo) {
+            await bot.editMessageCaption(notFoundMessage, {
               chat_id: chatId,
               message_id: messageId,
               parse_mode: 'HTML',
-              reply_markup: {
-                inline_keyboard: [
-                  [{ text: '🔙 Retour au menu', callback_data: 'main_menu' }]
-                ]
-              }
-            }
-          );
+              reply_markup: notFoundKeyboard
+            });
+          } else {
+            await bot.editMessageText(notFoundMessage, {
+              chat_id: chatId,
+              message_id: messageId,
+              parse_mode: 'HTML',
+              reply_markup: notFoundKeyboard
+            });
+          }
           callbackAnswered = true;
           return;
         }
@@ -2219,32 +2257,52 @@ bot.on('callback_query', async (callbackQuery) => {
           { text: '🔙 Retour', callback_data: `plug_${plugId}` }
         ]);
         
-        // Éditer le message actuel
-        await bot.editMessageText(message, {
-          chat_id: chatId,
-          message_id: messageId,
-          parse_mode: 'HTML',
-          reply_markup: keyboard
-        });
+        // Éditer le message actuel - détecter si c'est un message avec photo
+        if (callbackQuery.message.photo) {
+          // Si c'est un message avec photo, utiliser editMessageCaption
+          await bot.editMessageCaption(message, {
+            chat_id: chatId,
+            message_id: messageId,
+            parse_mode: 'HTML',
+            reply_markup: keyboard
+          });
+        } else {
+          // Si c'est un message texte, utiliser editMessageText
+          await bot.editMessageText(message, {
+            chat_id: chatId,
+            message_id: messageId,
+            parse_mode: 'HTML',
+            reply_markup: keyboard
+          });
+        }
         
         callbackAnswered = true;
         
       } catch (error) {
         console.error('Erreur give_badge_to:', error);
         try {
-          await bot.editMessageText(
-            '❌ <b>Erreur lors du chargement des badges</b>',
-            {
+          const errorMsg = '❌ <b>Erreur lors du chargement des badges</b>';
+          const errorKb = {
+            inline_keyboard: [
+              [{ text: '🔙 Retour', callback_data: `plug_${plugId}` }]
+            ]
+          };
+          
+          if (callbackQuery.message.photo) {
+            await bot.editMessageCaption(errorMsg, {
               chat_id: chatId,
               message_id: messageId,
               parse_mode: 'HTML',
-              reply_markup: {
-                inline_keyboard: [
-                  [{ text: '🔙 Retour', callback_data: `plug_${plugId}` }]
-                ]
-              }
-            }
-          );
+              reply_markup: errorKb
+            });
+          } else {
+            await bot.editMessageText(errorMsg, {
+              chat_id: chatId,
+              message_id: messageId,
+              parse_mode: 'HTML',
+              reply_markup: errorKb
+            });
+          }
         } catch (e) {}
         callbackAnswered = true;
       }
@@ -2705,9 +2763,9 @@ async function processVendorTextResponse(bot, chatId, text, userState) {
     // Envoyer un message de confirmation temporaire
     const confirmMsg = await bot.sendMessage(chatId, '✅ Réponse enregistrée');
     
-    // Supprimer le message de confirmation après 2 secondes
+            // Supprimer le message de confirmation après 2 secondes
     setTimeout(() => {
-      bot.deleteMessage(chatId, confirmMsg.message_id).catch(() => {});
+      safeDeleteMessage(bot, chatId, confirmMsg.message_id);
     }, 2000);
     
     // Continuer avec la prochaine étape

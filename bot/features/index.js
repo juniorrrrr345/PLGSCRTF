@@ -201,12 +201,22 @@ async function handleFeatureCallbacks(bot, query) {
           ]
         };
         
-        await bot.editMessageText(message, {
-          chat_id: chatId,
-          message_id: query.message.message_id,
-          parse_mode: 'HTML',
-          reply_markup: keyboard
-        });
+        // Éditer le message - détecter si c'est un message avec photo
+        if (query.message.photo) {
+          await bot.editMessageCaption(message, {
+            chat_id: chatId,
+            message_id: query.message.message_id,
+            parse_mode: 'HTML',
+            reply_markup: keyboard
+          });
+        } else {
+          await bot.editMessageText(message, {
+            chat_id: chatId,
+            message_id: query.message.message_id,
+            parse_mode: 'HTML',
+            reply_markup: keyboard
+          });
+        }
         
         await bot.answerCallbackQuery(query.id);
       } catch (error) {

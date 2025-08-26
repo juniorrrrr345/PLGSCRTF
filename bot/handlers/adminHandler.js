@@ -105,7 +105,12 @@ async function handleAdminCallbacks(bot, callbackQuery) {
       break;
       
     case 'admin_close':
-      await bot.deleteMessage(chatId, callbackQuery.message.message_id);
+      try {
+        await bot.deleteMessage(chatId, callbackQuery.message.message_id);
+      } catch (error) {
+        // Ignorer l'erreur si le message n'existe plus
+        console.log('Info: Message admin déjà supprimé');
+      }
       break;
       
     case 'admin_sync_users':
