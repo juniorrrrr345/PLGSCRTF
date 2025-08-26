@@ -425,12 +425,23 @@ bot.onText(/\/stats/, async (msg) => {
   }
 });
 
+// Map pour stocker les derniers messages de boutique par utilisateur
+const lastShopMessages = new Map();
+
 // Commande /buy pour acheter un badge par numéro
 bot.onText(/\/buy\s*(\d+)?/, async (msg, match) => {
   const chatId = msg.chat.id;
+  const userId = msg.from.id;
   const badgeNumber = match[1] ? parseInt(match[1]) : null;
   
   try {
+    // Supprimer la commande de l'utilisateur
+    try {
+      await bot.deleteMessage(chatId, msg.message_id);
+    } catch (e) {
+      // Ignorer si on ne peut pas supprimer
+    }
+    
     const UserStats = require('./models/UserStats');
     const BadgeConfig = require('./models/BadgeConfig');
     
@@ -455,6 +466,16 @@ bot.onText(/\/buy\s*(\d+)?/, async (msg, match) => {
     const badges = await BadgeConfig.find({ isActive: true }).sort({ cost: 1 });
     
     if (!badgeNumber || badgeNumber < 1 || badgeNumber > badges.length) {
+      // Supprimer l'ancien message de boutique s'il existe
+      const lastMessageId = lastShopMessages.get(userId);
+      if (lastMessageId) {
+        try {
+          await bot.deleteMessage(chatId, lastMessageId);
+        } catch (e) {
+          // Ignorer si on ne peut pas supprimer
+        }
+      }
+      
       // Afficher la liste des badges avec leurs numéros
       let message = `🛍️ <b>BOUTIQUE DE BADGES</b>\n`;
       message += `━━━━━━━━━━━━━━━━\n\n`;
@@ -490,11 +511,25 @@ bot.onText(/\/buy\s*(\d+)?/, async (msg, match) => {
         ]
       };
       
-      await bot.sendMessage(chatId, message, { 
+      const sentMessage = await bot.sendMessage(chatId, message, { 
         parse_mode: 'HTML',
         reply_markup: keyboard
       });
+      
+      // Sauvegarder l'ID du message pour pouvoir le supprimer plus tard
+      lastShopMessages.set(userId, sentMessage.message_id);
       return;
+    }
+    
+    // Supprimer l'ancien message de boutique s'il existe
+    const lastMessageId = lastShopMessages.get(userId);
+    if (lastMessageId) {
+      try {
+        await bot.deleteMessage(chatId, lastMessageId);
+        lastShopMessages.delete(userId);
+      } catch (e) {
+        // Ignorer si on ne peut pas supprimer
+      }
     }
     
     // Acheter le badge spécifié
@@ -610,6 +645,187 @@ bot.onText(/\/buy\s*(\d+)?/, async (msg, match) => {
   } catch (error) {
     console.error('Erreur /buy:', error);
     await bot.sendMessage(chatId, '❌ Erreur lors de l\'achat du badge.', { parse_mode: 'HTML' });
+  }
+});
+
+// Commande admin pour gérer les points des utilisateurs
+bot.onText(/\/points(?:\s+(\d+)\s+([\+\-]?\d+))?/, async (msg, match) => {
+  const chatId = msg.chat.id;
+  const userId = msg.from.id;
+  
+  // Vérifier si l'utilisateur est admin
+  const adminId = process.env.ADMIN_ID ? process.env.ADMIN_ID.trim() : null;
+  const Settings = require('./models/Settings');
+  const settings = await Settings.findOne();
+  const settingsAdminIds = settings?.adminChatIds || [];
+  const isAdmin = (adminId && userId.toString() === adminId) || settingsAdminIds.includes(userId.toString());
+  
+  if (!isAdmin) {
+    await bot.sendMessage(chatId, '❌ Cette commande est réservée aux administrateurs.', { parse_mode: 'HTML' });
+    return;
+  }
+  
+  const targetUserId = match[1] ? parseInt(match[1]) : null;
+  const pointsChange = match[2] ? parseInt(match[2]) : null;
+  
+  try {
+    const UserStats = require('./models/UserStats');
+    
+    // Si pas de paramètres, afficher l'aide
+    if (!targetUserId || pointsChange === null) {
+      let message = `⭐ <b>GESTION DES POINTS (ADMIN)</b>\n`;
+      message += `━━━━━━━━━━━━━━━━\n\n`;
+      message += `<b>Utilisation:</b>\n`;
+      message += `/points [ID] [+/-points]\n\n`;
+      message += `<b>Exemples:</b>\n`;
+      message += `/points 123456789 +50\n`;
+      message += `  → Ajoute 50 points\n\n`;
+      message += `/points 123456789 -20\n`;
+      message += `  → Retire 20 points\n\n`;
+      message += `/points 123456789 100\n`;
+      message += `  → Définit à 100 points\n\n`;
+      message += `💡 <i>L'ID est l'identifiant Telegram de l'utilisateur</i>`;
+      
+      await bot.sendMessage(chatId, message, { parse_mode: 'HTML' });
+      return;
+    }
+    
+    // Récupérer ou créer les stats de l'utilisateur cible
+    let userStats = await UserStats.findOne({ userId: targetUserId });
+    
+    if (!userStats) {
+      const User = require('./models/User');
+      const user = await User.findOne({ telegramId: targetUserId });
+      
+      if (!user) {
+        await bot.sendMessage(chatId, 
+          `❌ Utilisateur avec l'ID ${targetUserId} non trouvé.\n\n` +
+          `L'utilisateur doit d'abord interagir avec le bot.`,
+          { parse_mode: 'HTML' }
+        );
+        return;
+      }
+      
+      userStats = new UserStats({
+        userId: targetUserId,
+        username: user.username || 'Utilisateur',
+        points: 0
+      });
+      await userStats.save();
+    }
+    
+    const oldPoints = userStats.points;
+    let newPoints;
+    let action;
+    
+    // Déterminer l'action selon le format
+    if (match[2].startsWith('+')) {
+      // Ajouter des points
+      newPoints = oldPoints + Math.abs(pointsChange);
+      action = 'ajouté';
+    } else if (match[2].startsWith('-')) {
+      // Retirer des points
+      newPoints = Math.max(0, oldPoints - Math.abs(pointsChange));
+      action = 'retiré';
+    } else {
+      // Définir les points
+      newPoints = Math.max(0, pointsChange);
+      action = 'défini à';
+    }
+    
+    // Mettre à jour les points
+    userStats.points = newPoints;
+    
+    // Recalculer le niveau basé sur les nouveaux points
+    const calculateLevel = (points) => {
+      if (points < 10) return 1;
+      if (points < 25) return 2;
+      if (points < 50) return 3;
+      if (points < 100) return 4;
+      if (points < 150) return 5;
+      if (points < 250) return 6;
+      if (points < 400) return 7;
+      if (points < 600) return 8;
+      if (points < 850) return 9;
+      if (points < 1200) return 10;
+      if (points < 1600) return 11;
+      if (points < 2100) return 12;
+      if (points < 2700) return 13;
+      if (points < 3400) return 14;
+      if (points < 4200) return 15;
+      if (points < 5100) return 16;
+      if (points < 6100) return 17;
+      if (points < 7200) return 18;
+      if (points < 8400) return 19;
+      return 20;
+    };
+    
+    const oldLevel = userStats.level;
+    userStats.level = calculateLevel(newPoints);
+    
+    await userStats.save();
+    
+    // Créer le message de confirmation
+    let message = `✅ <b>Points modifiés avec succès !</b>\n\n`;
+    message += `👤 <b>Utilisateur:</b> ${userStats.username}\n`;
+    message += `🆔 <b>ID:</b> ${targetUserId}\n`;
+    message += `━━━━━━━━━━━━━━━━\n\n`;
+    
+    if (match[2].startsWith('+') || match[2].startsWith('-')) {
+      message += `📊 <b>Changement:</b> ${match[2]} points\n`;
+    }
+    
+    message += `💰 <b>Points:</b> ${oldPoints} → ${newPoints}\n`;
+    
+    if (oldLevel !== userStats.level) {
+      message += `🎖️ <b>Niveau:</b> ${oldLevel} → ${userStats.level}\n`;
+    } else {
+      message += `🎖️ <b>Niveau:</b> ${userStats.level}\n`;
+    }
+    
+    // Boutons pour actions supplémentaires
+    const keyboard = {
+      inline_keyboard: [
+        [
+          { text: '➕ Ajouter', callback_data: `admin_points_${targetUserId}_add` },
+          { text: '➖ Retirer', callback_data: `admin_points_${targetUserId}_remove` }
+        ],
+        [{ text: '📊 Stats utilisateur', callback_data: `admin_stats_${targetUserId}` }]
+      ]
+    };
+    
+    await bot.sendMessage(chatId, message, { 
+      parse_mode: 'HTML',
+      reply_markup: keyboard
+    });
+    
+    // Notifier l'utilisateur si ses points ont été modifiés
+    try {
+      let notifMessage = '';
+      if (match[2].startsWith('+')) {
+        notifMessage = `🎉 Tu as reçu ${Math.abs(pointsChange)} points !\n\n`;
+        notifMessage += `💰 Total: ${newPoints} points\n`;
+        if (oldLevel !== userStats.level) {
+          notifMessage += `🎖️ Nouveau niveau: ${userStats.level} !`;
+        }
+      } else if (match[2].startsWith('-')) {
+        notifMessage = `📉 ${Math.abs(pointsChange)} points ont été retirés.\n\n`;
+        notifMessage += `💰 Total: ${newPoints} points`;
+      } else {
+        notifMessage = `📊 Tes points ont été ajustés.\n\n`;
+        notifMessage += `💰 Total: ${newPoints} points\n`;
+        notifMessage += `🎖️ Niveau: ${userStats.level}`;
+      }
+      
+      await bot.sendMessage(targetUserId, notifMessage, { parse_mode: 'HTML' });
+    } catch (e) {
+      // L'utilisateur a peut-être bloqué le bot
+      console.log(`Impossible de notifier l'utilisateur ${targetUserId}`);
+    }
+    
+  } catch (error) {
+    console.error('Erreur /points:', error);
+    await bot.sendMessage(chatId, '❌ Erreur lors de la modification des points.', { parse_mode: 'HTML' });
   }
 });
 
