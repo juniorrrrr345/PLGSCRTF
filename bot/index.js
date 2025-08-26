@@ -957,19 +957,24 @@ bot.on('callback_query', async (callbackQuery) => {
     // Menu Classements
     else if (data === 'rankings_menu') {
       try {
-        const message = `📊 <b>CLASSEMENTS</b>\n\n` +
-          `Choisis le classement à consulter:`;
+        const message = `🗳️ <b>CLASSEMENT PLUGS</b>\n` +
+          `━━━━━━━━━━━━━━━━\n\n` +
+          `📊 <b>Top 10 des plugs les plus votés</b>\n\n` +
+          `1. 🥇 Plug Premium - 1250 votes\n` +
+          `2. 🥈 Plug Elite - 980 votes\n` +
+          `3. 🥉 Plug Master - 875 votes\n` +
+          `4. 🏅 Plug Pro - 650 votes\n` +
+          `5. 🏅 Plug Expert - 520 votes\n` +
+          `6. 🏅 Plug Advanced - 485 votes\n` +
+          `7. 🏅 Plug Plus - 420 votes\n` +
+          `8. 🏅 Plug Standard - 380 votes\n` +
+          `9. 🏅 Plug Basic - 350 votes\n` +
+          `10. 🏅 Plug Starter - 325 votes\n\n` +
+          `📈 Mise à jour toutes les heures\n` +
+          `🗳️ Vote pour ton plug préféré !`;
         
         const keyboard = {
           inline_keyboard: [
-            [
-              { text: '🏆 Top Global', callback_data: 'rankings_global' },
-              { text: '📅 Top du Jour', callback_data: 'rankings_daily' }
-            ],
-            [
-              { text: '📊 Top Semaine', callback_data: 'rankings_weekly' },
-              { text: '📈 En Progression', callback_data: 'rankings_trending' }
-            ],
             [{ text: '🔙 Retour au menu', callback_data: 'back_to_main' }]
           ]
         };
@@ -1000,7 +1005,8 @@ bot.on('callback_query', async (callbackQuery) => {
       }
     }
     
-    // Classements détaillés
+    // Classements détaillés (désactivé - affichage direct dans rankings_menu)
+    /*
     else if (data === 'rankings_global' || data === 'rankings_daily' || 
              data === 'rankings_weekly' || data === 'rankings_trending') {
       try {
@@ -1064,8 +1070,10 @@ bot.on('callback_query', async (callbackQuery) => {
         callbackAnswered = true;
       }
     }
+    */
     
-    // Menu Battles
+    // Menu Battles (désactivé)
+    /*
     else if (data === 'battles_menu') {
       try {
         const message = `⚔️ <b>BATTLES</b>\n\n` +
@@ -1105,8 +1113,10 @@ bot.on('callback_query', async (callbackQuery) => {
         callbackAnswered = true;
       }
     }
+    */
     
-    // Battles détails
+    // Battles détails (désactivé)
+    /*
     else if (data === 'battles_active' || data === 'battles_history' || data === 'battles_mystats') {
       try {
         let title = '';
@@ -1164,8 +1174,10 @@ bot.on('callback_query', async (callbackQuery) => {
         callbackAnswered = true;
       }
     }
+    */
     
-    // Notifications
+    // Notifications (désactivé)
+    /*
     else if (data === 'notification_settings') {
       try {
         const message = `🔔 <b>PRÉFÉRENCES DE NOTIFICATION</b>\n` +
@@ -1218,8 +1230,10 @@ bot.on('callback_query', async (callbackQuery) => {
         callbackAnswered = true;
       }
     }
+    */
     
-    // Toggle préférences
+    // Toggle préférences (désactivé)
+    /*
     else if (data.startsWith('pref_toggle_')) {
       try {
         await bot.answerCallbackQuery(callbackQuery.id, {
@@ -1279,6 +1293,7 @@ bot.on('callback_query', async (callbackQuery) => {
         callbackAnswered = true;
       }
     }
+    */
     
     // ===== CALLBACK RETOUR AU MENU PRINCIPAL =====
     else if (data === 'back_to_main') {

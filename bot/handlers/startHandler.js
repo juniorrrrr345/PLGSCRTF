@@ -255,13 +255,12 @@ async function showMainMenu(bot, chatId, userId = null) {
   
   const keyboard = {
     inline_keyboard: [
-      [{ text: miniAppButtonText, url: miniAppUrl }],
-      [{ text: '🔌 NOS PLUGS DU MOMENT', callback_data: 'plugs' }],
-      [{ text: '🏅 MES BADGES', callback_data: 'my_badges' }, { text: '📊 CLASSEMENTS', callback_data: 'rankings_menu' }],
-      [{ text: '⚔️ BATTLES', callback_data: 'battles_menu' }, { text: '🔔 NOTIFICATIONS', callback_data: 'notification_settings' }],
-      [{ text: '🏆 TOP PARRAINS', callback_data: 'referrals' }],
-      [{ text: '✅ DEVENIR CERTIFIÉ', callback_data: 'apply' }],
-      [{ text: 'ℹ️ INFORMATIONS', callback_data: 'info' }]
+          [{ text: miniAppButtonText, url: miniAppUrl }],
+    [{ text: '🔌 NOS PLUGS DU MOMENT', callback_data: 'plugs' }],
+    [{ text: '🏅 MES BADGES', callback_data: 'my_badges' }, { text: '🗳️ CLASSEMENT PLUGS', callback_data: 'rankings_menu' }],
+    [{ text: '🏆 TOP PARRAINS', callback_data: 'referrals' }],
+    [{ text: '✅ DEVENIR CERTIFIÉ', callback_data: 'apply' }],
+    [{ text: 'ℹ️ INFORMATIONS', callback_data: 'info' }]
     ]
   };
   
