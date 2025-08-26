@@ -425,6 +425,135 @@ bot.onText(/\/stats/, async (msg) => {
   }
 });
 
+// Commande /buy pour acheter un badge par numéro
+bot.onText(/\/buy\s*(\d+)?/, async (msg, match) => {
+  const chatId = msg.chat.id;
+  const badgeNumber = match[1] ? parseInt(match[1]) : null;
+  
+  try {
+    const UserStats = require('./models/UserStats');
+    const BadgeConfig = require('./models/BadgeConfig');
+    
+    // Initialiser les badges
+    await BadgeConfig.initializeDefaults();
+    
+    // Récupérer ou créer les stats de l'utilisateur
+    let userStats = await UserStats.findOne({ userId: msg.from.id });
+    
+    if (!userStats) {
+      const User = require('./models/User');
+      const user = await User.findOne({ telegramId: msg.from.id });
+      
+      userStats = new UserStats({
+        userId: msg.from.id,
+        username: user?.username || msg.from.username || 'Utilisateur'
+      });
+      await userStats.save();
+    }
+    
+    // Récupérer tous les badges
+    const badges = await BadgeConfig.find({ isActive: true }).sort({ cost: 1 });
+    
+    if (!badgeNumber || badgeNumber < 1 || badgeNumber > badges.length) {
+      // Afficher la liste des badges avec leurs numéros
+      let message = `🛍️ <b>BOUTIQUE DE BADGES</b>\n`;
+      message += `━━━━━━━━━━━━━━━━\n\n`;
+      message += `💰 Tes points: ${userStats.points}\n`;
+      message += `🎖️ Niveau: ${userStats.level}\n\n`;
+      message += `📌 <b>Pour acheter un badge:</b>\n`;
+      message += `Utilise /buy [numéro]\n\n`;
+      message += `<b>Badges disponibles:</b>\n\n`;
+      
+      badges.forEach((badge, index) => {
+        const owned = userStats.badges && userStats.badges.some(b => b.badgeId === badge.badgeId && !b.used);
+        const canAfford = userStats.points >= badge.cost;
+        const meetsLevel = userStats.level >= badge.requirements.minLevel;
+        
+        message += `${index + 1}. ${badge.emoji} <b>${badge.name}</b> - ${badge.cost} pts\n`;
+        
+        if (!meetsLevel) {
+          message += `   ⚠️ Niveau ${badge.requirements.minLevel} requis\n`;
+        } else if (owned) {
+          message += `   ✅ Déjà acheté\n`;
+        } else if (!canAfford) {
+          message += `   ❌ ${badge.cost - userStats.points} points manquants\n`;
+        } else {
+          message += `   ✨ Disponible - /buy ${index + 1}\n`;
+        }
+        message += '\n';
+      });
+      
+      await bot.sendMessage(chatId, message, { parse_mode: 'HTML' });
+      return;
+    }
+    
+    // Acheter le badge spécifié
+    const badge = badges[badgeNumber - 1];
+    const owned = userStats.badges && userStats.badges.some(b => b.badgeId === badge.badgeId && !b.used);
+    const canAfford = userStats.points >= badge.cost;
+    const meetsLevel = userStats.level >= badge.requirements.minLevel;
+    
+    if (!meetsLevel) {
+      await bot.sendMessage(chatId, 
+        `❌ Tu dois être niveau ${badge.requirements.minLevel} pour acheter ce badge.\n` +
+        `Tu es actuellement niveau ${userStats.level}.`,
+        { parse_mode: 'HTML' }
+      );
+      return;
+    }
+    
+    if (owned) {
+      await bot.sendMessage(chatId, 
+        `❌ Tu possèdes déjà le badge ${badge.emoji} ${badge.name} !`,
+        { parse_mode: 'HTML' }
+      );
+      return;
+    }
+    
+    if (!canAfford) {
+      await bot.sendMessage(chatId, 
+        `❌ Tu n'as pas assez de points !\n\n` +
+        `Badge: ${badge.emoji} ${badge.name}\n` +
+        `Coût: ${badge.cost} points\n` +
+        `Tes points: ${userStats.points}\n` +
+        `Il te manque: ${badge.cost - userStats.points} points`,
+        { parse_mode: 'HTML' }
+      );
+      return;
+    }
+    
+    // Acheter le badge
+    try {
+      await userStats.purchaseBadge(badge);
+      
+      let message = `🎉 <b>Badge acheté avec succès !</b>\n\n`;
+      message += `${badge.emoji} <b>${badge.name}</b>\n`;
+      message += `<i>${badge.description}</i>\n\n`;
+      message += `💰 Points restants: ${userStats.points}\n\n`;
+      message += `Tu peux maintenant l'offrir à un plug !`;
+      
+      const keyboard = {
+        inline_keyboard: [
+          [{ text: '🔌 Voir les plugs', callback_data: 'plugs' }],
+          [{ text: '🏅 Mes badges', callback_data: 'my_badges' }]
+        ]
+      };
+      
+      await bot.sendMessage(chatId, message, {
+        parse_mode: 'HTML',
+        reply_markup: keyboard
+      });
+      
+    } catch (error) {
+      await bot.sendMessage(chatId, `❌ ${error.message}`, { parse_mode: 'HTML' });
+    }
+    
+  } catch (error) {
+    console.error('Erreur /buy:', error);
+    await bot.sendMessage(chatId, '❌ Erreur lors de l\'achat du badge.', { parse_mode: 'HTML' });
+  }
+});
+
 // Gestion des callback queries (IMPORTANT: éviter les doublons)
 bot.on('callback_query', async (callbackQuery) => {
   const chatId = callbackQuery.message.chat.id;
@@ -1503,6 +1632,7 @@ bot.on('callback_query', async (callbackQuery) => {
         // Info sur l'utilisation
         message += `💡 <b>Comment ça marche:</b>\n`;
         message += `• Achète des badges avec tes points\n`;
+        message += `• Utilise /buy [numéro] pour acheter\n`;
         message += `• Offre-les aux plugs que tu soutiens\n`;
         message += `• Les plugs gagnent visibilité et pub gratuite\n`;
         message += `• Usage unique: 1 badge = 1 cadeau\n`;
