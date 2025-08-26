@@ -1015,17 +1015,34 @@ bot.on('callback_query', async (callbackQuery) => {
           ]
         };
         
-        // TOUJOURS supprimer et envoyer un nouveau message pour éviter les erreurs
+        // Essayer d'éditer le message existant d'abord
         try {
-          await bot.deleteMessage(chatId, messageId);
-        } catch (deleteError) {
-          console.log('Impossible de supprimer le message:', deleteError.message);
+          if (callbackQuery.message.text) {
+            await bot.editMessageText(message, {
+              chat_id: chatId,
+              message_id: messageId,
+              parse_mode: 'HTML',
+              reply_markup: keyboard
+            });
+          } else {
+            // Si c'est une image, on doit supprimer et recréer
+            await bot.deleteMessage(chatId, messageId);
+            await bot.sendMessage(chatId, message, {
+              parse_mode: 'HTML',
+              reply_markup: keyboard
+            });
+          }
+        } catch (error) {
+          console.error('Erreur édition menu rankings:', error);
+          // En cas d'erreur, supprimer et recréer
+          try {
+            await bot.deleteMessage(chatId, messageId);
+          } catch (e) {}
+          await bot.sendMessage(chatId, message, {
+            parse_mode: 'HTML',
+            reply_markup: keyboard
+          });
         }
-        
-        await bot.sendMessage(chatId, message, {
-          parse_mode: 'HTML',
-          reply_markup: keyboard
-        });
       } catch (error) {
         console.error('Erreur rankings_menu:', error);
         // Ne pas afficher de message d'erreur
@@ -1134,17 +1151,37 @@ bot.on('callback_query', async (callbackQuery) => {
           ]
         };
         
-        // TOUJOURS supprimer et envoyer pour éviter les problèmes
+        // Éditer le message existant au lieu de le recréer
         try {
-          await bot.deleteMessage(chatId, messageId);
-        } catch (deleteError) {
-          console.log('Impossible de supprimer le message:', deleteError.message);
+          if (callbackQuery.message.text) {
+            // Si c'est un message texte, on peut l'éditer directement
+            await bot.editMessageText(message, {
+              chat_id: chatId,
+              message_id: messageId,
+              parse_mode: 'HTML',
+              reply_markup: keyboard
+            });
+          } else {
+            // Si c'est une image ou autre, on doit supprimer et recréer
+            await bot.deleteMessage(chatId, messageId);
+            await bot.sendMessage(chatId, message, {
+              parse_mode: 'HTML',
+              reply_markup: keyboard
+            });
+          }
+        } catch (error) {
+          console.error('Erreur lors de la mise à jour du classement:', error);
+          // En cas d'erreur, essayer de supprimer et recréer
+          try {
+            await bot.deleteMessage(chatId, messageId);
+            await bot.sendMessage(chatId, message, {
+              parse_mode: 'HTML',
+              reply_markup: keyboard
+            });
+          } catch (e) {
+            console.error('Erreur critique:', e);
+          }
         }
-        
-        await bot.sendMessage(chatId, message, {
-          parse_mode: 'HTML',
-          reply_markup: keyboard
-        });
         
         callbackAnswered = true;
       } catch (error) {
