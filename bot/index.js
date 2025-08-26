@@ -2124,14 +2124,30 @@ bot.on('callback_query', async (callbackQuery) => {
         const UserStats = require('./models/UserStats');
         const Plug = require('./models/Plug');
         
+        // Répondre immédiatement au callback
+        await bot.answerCallbackQuery(callbackQuery.id);
+        
         // Récupérer les stats de l'utilisateur
         const userStats = await UserStats.findOne({ userId: callbackQuery.from.id });
         
         if (!userStats || !userStats.badges || userStats.badges.length === 0) {
-          await bot.answerCallbackQuery(callbackQuery.id, {
-            text: '❌ Tu n\'as pas de badges à offrir.\n\n💡 Va dans la boutique pour en acheter !',
-            show_alert: true
-          });
+          // Éditer le message pour afficher l'erreur
+          await bot.editMessageText(
+            '❌ <b>Tu n\'as pas de badges à offrir</b>\n\n' +
+            '💡 Va dans la boutique pour en acheter !',
+            {
+              chat_id: chatId,
+              message_id: messageId,
+              parse_mode: 'HTML',
+              reply_markup: {
+                inline_keyboard: [
+                  [{ text: '🛍️ Boutique de badges', callback_data: 'shop' }],
+                  [{ text: '🔙 Retour', callback_data: `plug_${plugId}` }]
+                ]
+              }
+            }
+          );
+          callbackAnswered = true;
           return;
         }
         
@@ -2139,20 +2155,43 @@ bot.on('callback_query', async (callbackQuery) => {
         const availableBadges = userStats.badges.filter(b => !b.used);
         
         if (availableBadges.length === 0) {
-          await bot.answerCallbackQuery(callbackQuery.id, {
-            text: '❌ Tous tes badges ont déjà été utilisés.\n\n💡 Achète de nouveaux badges dans la boutique !',
-            show_alert: true
-          });
+          // Éditer le message pour afficher l'erreur
+          await bot.editMessageText(
+            '❌ <b>Tous tes badges ont déjà été utilisés</b>\n\n' +
+            '💡 Achète de nouveaux badges dans la boutique !',
+            {
+              chat_id: chatId,
+              message_id: messageId,
+              parse_mode: 'HTML',
+              reply_markup: {
+                inline_keyboard: [
+                  [{ text: '🛍️ Boutique de badges', callback_data: 'shop' }],
+                  [{ text: '🔙 Retour', callback_data: `plug_${plugId}` }]
+                ]
+              }
+            }
+          );
+          callbackAnswered = true;
           return;
         }
         
         // Récupérer le plug
         const plug = await Plug.findById(plugId);
         if (!plug) {
-          await bot.answerCallbackQuery(callbackQuery.id, {
-            text: '❌ Plug introuvable',
-            show_alert: true
-          });
+          await bot.editMessageText(
+            '❌ <b>Plug introuvable</b>',
+            {
+              chat_id: chatId,
+              message_id: messageId,
+              parse_mode: 'HTML',
+              reply_markup: {
+                inline_keyboard: [
+                  [{ text: '🔙 Retour au menu', callback_data: 'main_menu' }]
+                ]
+              }
+            }
+          );
+          callbackAnswered = true;
           return;
         }
         
@@ -2167,9 +2206,10 @@ bot.on('callback_query', async (callbackQuery) => {
         
         // Lister les badges disponibles avec numéros
         availableBadges.forEach((badge, index) => {
-          message += `${index + 1}. ${badge.emoji} ${badge.name}\n`;
+          message += `${index + 1}. ${badge.emoji} <b>${badge.name}</b>\n`;
+          message += `   <i>${badge.description || 'Badge spécial'}</i>\n\n`;
           keyboard.inline_keyboard.push([
-            { text: `${index + 1}. ${badge.emoji} ${badge.name}`, callback_data: `give_badge_${badge.badgeId}_to_${plugId}` }
+            { text: `${badge.emoji} ${badge.name}`, callback_data: `confirm_give_${badge.badgeId}_to_${plugId}` }
           ]);
         });
         
@@ -2177,31 +2217,46 @@ bot.on('callback_query', async (callbackQuery) => {
           { text: '🔙 Retour', callback_data: `plug_${plugId}` }
         ]);
         
-        // Supprimer l'ancien message et envoyer le nouveau
-        try {
-          await bot.deleteMessage(chatId, messageId);
-        } catch (e) {}
-        
-        await bot.sendMessage(chatId, message, {
+        // Éditer le message actuel
+        await bot.editMessageText(message, {
+          chat_id: chatId,
+          message_id: messageId,
           parse_mode: 'HTML',
           reply_markup: keyboard
         });
         
+        callbackAnswered = true;
+        
       } catch (error) {
         console.error('Erreur give_badge_to:', error);
-        await bot.answerCallbackQuery(callbackQuery.id, {
-          text: '❌ Erreur lors du chargement des badges',
-          show_alert: true
-        });
+        try {
+          await bot.editMessageText(
+            '❌ <b>Erreur lors du chargement des badges</b>',
+            {
+              chat_id: chatId,
+              message_id: messageId,
+              parse_mode: 'HTML',
+              reply_markup: {
+                inline_keyboard: [
+                  [{ text: '🔙 Retour', callback_data: `plug_${plugId}` }]
+                ]
+              }
+            }
+          );
+        } catch (e) {}
+        callbackAnswered = true;
       }
     }
     
     // Donner un badge à un plug (confirmation)
-    else if (data.startsWith('give_badge_') && data.includes('_to_')) {
+    else if (data.startsWith('confirm_give_') && data.includes('_to_')) {
       try {
         const parts = data.split('_to_');
-        const badgeId = parts[0].replace('give_badge_', '');
+        const badgeId = parts[0].replace('confirm_give_', '');
         const plugId = parts[1];
+        
+        // Répondre immédiatement au callback
+        await bot.answerCallbackQuery(callbackQuery.id);
         
         const UserStats = require('./models/UserStats');
         const BadgeConfig = require('./models/BadgeConfig');
@@ -2213,20 +2268,41 @@ bot.on('callback_query', async (callbackQuery) => {
         const plug = await Plug.findById(plugId);
         
         if (!badge || !plug) {
-          await bot.answerCallbackQuery(callbackQuery.id, {
-            text: '❌ Badge ou plug introuvable',
-            show_alert: true
-          });
+          await bot.editMessageText(
+            '❌ <b>Badge ou plug introuvable</b>',
+            {
+              chat_id: chatId,
+              message_id: messageId,
+              parse_mode: 'HTML',
+              reply_markup: {
+                inline_keyboard: [
+                  [{ text: '🔙 Retour au menu', callback_data: 'main_menu' }]
+                ]
+              }
+            }
+          );
+          callbackAnswered = true;
           return;
         }
         
         // Vérifier que l'utilisateur possède ce badge
-        const ownedBadge = userStats.badges && userStats.badges.find(b => b.badgeId === badgeId);
-        if (!ownedBadge || ownedBadge.used) {
-          await bot.answerCallbackQuery(callbackQuery.id, {
-            text: '❌ Tu ne possèdes pas ce badge ou il a déjà été utilisé',
-            show_alert: true
-          });
+        const ownedBadge = userStats.badges && userStats.badges.find(b => b.badgeId === badgeId && !b.used);
+        if (!ownedBadge) {
+          await bot.editMessageText(
+            '❌ <b>Tu ne possèdes pas ce badge ou il a déjà été utilisé</b>',
+            {
+              chat_id: chatId,
+              message_id: messageId,
+              parse_mode: 'HTML',
+              reply_markup: {
+                inline_keyboard: [
+                  [{ text: '🛍️ Boutique de badges', callback_data: 'shop' }],
+                  [{ text: '🔙 Retour', callback_data: `plug_${plugId}` }]
+                ]
+              }
+            }
+          );
+          callbackAnswered = true;
           return;
         }
         
@@ -2262,17 +2338,17 @@ bot.on('callback_query', async (callbackQuery) => {
         
         const keyboard = {
           inline_keyboard: [
+            [{ text: `🔌 Voir ${plug.name}`, callback_data: `plug_${plugId}` }],
             [{ text: '🏅 Mes badges', callback_data: 'my_badges' }],
-            [{ text: '🛍️ Acheter d\'autres badges', callback_data: 'badge_shop_direct' }],
+            [{ text: '🛍️ Acheter d\'autres badges', callback_data: 'shop' }],
             [{ text: '🔙 Retour au menu', callback_data: 'main_menu' }]
           ]
         };
         
-        try {
-          await bot.deleteMessage(chatId, messageId);
-        } catch (e) {}
-        
-        await bot.sendMessage(chatId, message, {
+        // Éditer le message actuel
+        await bot.editMessageText(message, {
+          chat_id: chatId,
+          message_id: messageId,
           parse_mode: 'HTML',
           reply_markup: keyboard
         });
