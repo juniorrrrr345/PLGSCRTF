@@ -1325,7 +1325,6 @@ bot.on('callback_query', async (callbackQuery) => {
         }
         
         // Compter les badges totaux (possédés + utilisés)
-        const BadgeConfig = require('./models/BadgeConfig');
         const allBadges = await BadgeConfig.find({ isActive: true });
         const totalBadges = allBadges.length;
         const ownedBadges = userStats.badges.filter(b => !b.used).length;
