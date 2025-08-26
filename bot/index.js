@@ -431,10 +431,15 @@ bot.on('callback_query', async (callbackQuery) => {
   const messageId = callbackQuery.message.message_id;
   const data = callbackQuery.data;
   
+  // RÉPONDRE IMMÉDIATEMENT pour éviter TOUT message d'erreur
   try {
-    // Répondre immédiatement à la callback query pour éviter le chargement infini
-    // Mais seulement si ce n'est pas déjà fait par un handler spécifique
-    let callbackAnswered = false;
+    await bot.answerCallbackQuery(callbackQuery.id);
+  } catch (e) {
+    // Ignorer si déjà répondu
+  }
+  
+  try {
+    let callbackAnswered = true; // Déjà répondu au début
     // Vérifier d'abord si c'est une callback admin
     const isAdminCallback = await handleAdminCallbacks(bot, callbackQuery);
     if (isAdminCallback) return;
@@ -891,10 +896,6 @@ bot.on('callback_query', async (callbackQuery) => {
     // Badges
     else if (data === 'my_badges') {
       try {
-        // Répondre immédiatement au callback pour éviter le message d'erreur
-        await bot.answerCallbackQuery(callbackQuery.id);
-        callbackAnswered = true;
-        
         const UserStats = require('./models/UserStats');
         const BadgeConfig = require('./models/BadgeConfig');
         
@@ -998,10 +999,6 @@ bot.on('callback_query', async (callbackQuery) => {
     // Menu Classements
     else if (data === 'rankings_menu') {
       try {
-        // Répondre immédiatement au callback pour éviter le message d'erreur
-        await bot.answerCallbackQuery(callbackQuery.id);
-        callbackAnswered = true;
-        
         const message = `🗳️ <b>CLASSEMENT PLUGS</b>\n` +
           `━━━━━━━━━━━━━━━━\n\n` +
           `Choisis le classement à consulter:`;
@@ -1052,10 +1049,6 @@ bot.on('callback_query', async (callbackQuery) => {
     else if (data === 'rankings_global' || data === 'rankings_daily' || 
              data === 'rankings_weekly' || data === 'rankings_trending') {
       try {
-        // Répondre immédiatement au callback pour éviter le message d'erreur
-        await bot.answerCallbackQuery(callbackQuery.id);
-        callbackAnswered = true;
-        
         const Plug = require('./models/Plug');
         let title = '';
         let plugs = [];
@@ -1364,10 +1357,6 @@ bot.on('callback_query', async (callbackQuery) => {
     // Boutique de badges (depuis menu principal)
     else if (data === 'badge_shop_direct') {
       try {
-        // Répondre immédiatement au callback pour éviter le message d'erreur
-        await bot.answerCallbackQuery(callbackQuery.id);
-        callbackAnswered = true;
-        
         const UserStats = require('./models/UserStats');
         const BadgeConfig = require('./models/BadgeConfig');
         
@@ -1606,10 +1595,6 @@ bot.on('callback_query', async (callbackQuery) => {
     // ===== CALLBACK RETOUR AU MENU PRINCIPAL =====
     else if (data === 'back_to_main') {
       try {
-        // Répondre immédiatement au callback pour éviter le message d'erreur
-        await bot.answerCallbackQuery(callbackQuery.id);
-        callbackAnswered = true;
-        
         // Supprimer le message actuel
         await bot.deleteMessage(chatId, messageId);
         
@@ -1703,23 +1688,11 @@ bot.on('callback_query', async (callbackQuery) => {
       }
     }
     
-    // Si on arrive ici et que le callback n'a pas été répondu, répondre maintenant
-    if (!callbackAnswered) {
-      await bot.answerCallbackQuery(callbackQuery.id);
-    }
+    // Callback déjà répondu au début, pas besoin de répondre à nouveau
     
   } catch (error) {
     console.error('Error handling callback query:', error);
-    // Essayer de répondre au callback en cas d'erreur
-    try {
-      await bot.answerCallbackQuery(callbackQuery.id, {
-        text: 'Une erreur est survenue',
-        show_alert: false
-      });
-    } catch (answerError) {
-      // Ignorer si la réponse échoue aussi
-      console.error('Impossible de répondre au callback:', answerError.message);
-    }
+    // Ne pas afficher de message d'erreur, callback déjà répondu au début
   }
 });
 
