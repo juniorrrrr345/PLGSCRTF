@@ -2364,6 +2364,93 @@ bot.on('callback_query', async (callbackQuery) => {
       }
     }
     
+    // ===== CALLBACK BOUTIQUE =====
+    else if (data === 'shop') {
+      try {
+        const UserStats = require('./models/UserStats');
+        const BadgeConfig = require('./models/BadgeConfig');
+        
+        // Initialiser les badges
+        await BadgeConfig.initializeDefaults();
+        
+        // Récupérer ou créer les stats de l'utilisateur
+        let userStats = await UserStats.findOne({ userId: callbackQuery.from.id });
+        
+        if (!userStats) {
+          const User = require('./models/User');
+          const user = await User.findOne({ telegramId: callbackQuery.from.id });
+          
+          userStats = new UserStats({
+            userId: callbackQuery.from.id,
+            username: user?.username || callbackQuery.from.username || 'Utilisateur'
+          });
+          await userStats.save();
+        }
+        
+        // Récupérer tous les badges
+        const badges = await BadgeConfig.find({ isActive: true }).sort({ cost: 1 });
+        
+        // Afficher la liste des badges
+        let message = `🛍️ <b>BOUTIQUE DE BADGES</b>\n`;
+        message += `━━━━━━━━━━━━━━━━\n\n`;
+        message += `💰 Tes points: ${userStats.points}\n`;
+        message += `🎖️ Niveau: ${userStats.level}\n\n`;
+        message += `📌 <b>Pour acheter un badge:</b>\n`;
+        message += `Utilise /buy [numéro]\n\n`;
+        message += `<b>Badges disponibles:</b>\n\n`;
+        
+        badges.forEach((badge, index) => {
+          const owned = userStats.badges && userStats.badges.some(b => b.badgeId === badge.badgeId && !b.used);
+          const canAfford = userStats.points >= badge.cost;
+          const meetsLevel = userStats.level >= badge.requirements.minLevel;
+          
+          message += `${index + 1}. ${badge.emoji} <b>${badge.name}</b> - ${badge.cost} pts\n`;
+          
+          if (!meetsLevel) {
+            message += `   ⚠️ Niveau ${badge.requirements.minLevel} requis\n`;
+          } else if (owned) {
+            message += `   ✅ Déjà acheté\n`;
+          } else if (!canAfford) {
+            message += `   ❌ ${badge.cost - userStats.points} points manquants\n`;
+          } else {
+            message += `   ✨ Disponible - /buy ${index + 1}\n`;
+          }
+          message += '\n';
+        });
+        
+        // Ajouter un bouton de retour au menu
+        const keyboard = {
+          inline_keyboard: [
+            [{ text: '🔙 Retour au menu', callback_data: 'main_menu' }]
+          ]
+        };
+        
+        // Éditer le message actuel
+        await bot.editMessageText(message, {
+          chat_id: chatId,
+          message_id: messageId,
+          parse_mode: 'HTML',
+          reply_markup: keyboard
+        });
+        
+        callbackAnswered = true;
+        
+      } catch (error) {
+        console.error('Erreur shop:', error);
+        // En cas d'erreur, essayer de retourner au menu
+        try {
+          const mainMenu = await generateMainMenu(callbackQuery.from.id);
+          await bot.editMessageText(mainMenu.message, {
+            chat_id: chatId,
+            message_id: messageId,
+            parse_mode: 'HTML',
+            reply_markup: mainMenu.keyboard
+          });
+        } catch (e) {}
+        callbackAnswered = true;
+      }
+    }
+    
     // ===== CALLBACK RETOUR AU MENU PRINCIPAL =====
     else if (data === 'back_to_main') {
       // Rediriger vers main_menu qui édite le message au lieu de le supprimer
