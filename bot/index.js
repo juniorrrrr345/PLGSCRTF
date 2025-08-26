@@ -1381,7 +1381,76 @@ bot.on('callback_query', async (callbackQuery) => {
     }
     */
     
-    // Boutique de badges
+    // Boutique de badges (depuis menu principal)
+    else if (data === 'badge_shop_direct') {
+      try {
+        const UserStats = require('./models/UserStats');
+        const BadgeConfig = require('./models/BadgeConfig');
+        
+        // Initialiser les badges par défaut si nécessaire
+        await BadgeConfig.initializeDefaults();
+        
+        // Récupérer ou créer les stats de l'utilisateur
+        let userStats = await UserStats.findOne({ userId: callbackQuery.from.id });
+        
+        if (!userStats) {
+          const User = require('./models/User');
+          const user = await User.findOne({ telegramId: callbackQuery.from.id });
+          
+          userStats = new UserStats({
+            userId: callbackQuery.from.id,
+            username: user?.username || callbackQuery.from.username || 'Utilisateur'
+          });
+          await userStats.save();
+        }
+        
+        let message = `🛍️ <b>BOUTIQUE DE BADGES</b>\n`;
+        message += `━━━━━━━━━━━━━━━━\n\n`;
+        
+        if (userStats.level < 15) {
+          const levelsNeeded = 15 - userStats.level;
+          message += `🔒 <b>Boutique verrouillée</b>\n\n`;
+          message += `📊 Ton niveau actuel: ${userStats.level}\n`;
+          message += `🎯 Niveau requis: 15\n`;
+          message += `📈 Encore ${levelsNeeded} niveaux (${levelsNeeded * 5} votes)\n\n`;
+          message += `💡 <i>Vote pour tes plugs préférés pour monter de niveau !</i>`;
+          
+          const keyboard = {
+            inline_keyboard: [
+              [{ text: '🏅 Voir mes stats', callback_data: 'my_badges' }],
+              [{ text: '🔙 Retour au menu', callback_data: 'back_to_main' }]
+            ]
+          };
+          
+          if (callbackQuery.message.text) {
+            await bot.editMessageText(message, {
+              chat_id: chatId,
+              message_id: messageId,
+              parse_mode: 'HTML',
+              reply_markup: keyboard
+            });
+          } else {
+            await bot.deleteMessage(chatId, messageId);
+            await bot.sendMessage(chatId, message, {
+              parse_mode: 'HTML',
+              reply_markup: keyboard
+            });
+          }
+        } else {
+          // Afficher la boutique normale
+          await bot.emit('callback_query', Object.assign({}, callbackQuery, {
+            data: 'badge_shop'
+          }));
+        }
+        
+        callbackAnswered = true;
+      } catch (error) {
+        console.error('Erreur badge_shop_direct:', error);
+        callbackAnswered = true;
+      }
+    }
+    
+    // Boutique de badges (depuis mes badges)
     else if (data === 'badge_shop') {
       try {
         const UserStats = require('./models/UserStats');
@@ -1570,6 +1639,7 @@ bot.on('callback_query', async (callbackQuery) => {
             [{ text: miniAppButtonText, url: miniAppUrl }],
             [{ text: '🔌 NOS PLUGS DU MOMENT', callback_data: 'plugs' }],
             [{ text: '🏅 MES BADGES', callback_data: 'my_badges' }, { text: '🗳️ CLASSEMENT PLUGS', callback_data: 'rankings_menu' }],
+            [{ text: '🛍️ BOUTIQUE DE BADGES', callback_data: 'badge_shop_direct' }],
             [{ text: '🏆 TOP PARRAINS', callback_data: 'referrals' }],
             [{ text: '✅ DEVENIR CERTIFIÉ', callback_data: 'apply' }],
             [{ text: 'ℹ️ INFORMATIONS', callback_data: 'info' }]
