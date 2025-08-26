@@ -1368,47 +1368,56 @@ bot.on('callback_query', async (callbackQuery) => {
         }
         
         // Récupérer les badges disponibles
-        const badges = await BadgeConfig.find({ isActive: true }).sort({ requiredLevel: 1 });
+        const badges = await BadgeConfig.find({ isActive: true }).sort({ cost: 1 });
         
         let message = `🛍️ <b>BOUTIQUE DE BADGES</b>\n`;
         message += `━━━━━━━━━━━━━━━━\n\n`;
-        message += `💰 Tes points: ${userStats.points}\n`;
-        message += `🎖️ Niveau: ${userStats.level}\n\n`;
+        message += `💰 Points disponibles: ${userStats.points}\n`;
+        message += `🎖️ Niveau actuel: ${userStats.level}\n\n`;
+        message += `📌 <b>Badges à acheter pour offrir aux plugs:</b>\n\n`;
         
         const keyboard = {
           inline_keyboard: []
         };
         
-        // Afficher tous les badges disponibles
+        let badgesList = '';
+        
+        // Afficher tous les badges avec leurs détails
         for (const badge of badges) {
-          const owned = userStats.ownedBadges.some(b => b.badgeId === badge.badgeId);
+          const owned = userStats.badges && userStats.badges.some(b => b.badgeId === badge.badgeId && !b.used);
           const canAfford = userStats.points >= badge.cost;
+          const meetsLevel = userStats.level >= badge.requirements.minLevel;
           
-          let badgeText = `${badge.emoji} ${badge.name}`;
-          if (owned) {
-            badgeText += ' ✅';
-          } else if (!canAfford) {
-            badgeText += ` (${badge.cost} pts)`;
-          } else {
-            badgeText += ` - ${badge.cost} pts`;
-          }
+          badgesList += `${badge.emoji} <b>${badge.name}</b> - ${badge.cost} pts\n`;
+          badgesList += `   <i>${badge.description}</i>\n`;
           
-          if (!owned && canAfford) {
+          if (!meetsLevel) {
+            badgesList += `   ⚠️ Niveau ${badge.requirements.minLevel} requis\n`;
+          } else if (owned) {
+            badgesList += `   ✅ Déjà acheté (usage unique)\n`;
+          } else if (canAfford) {
+            badgesList += `   ✨ Disponible à l'achat\n`;
             keyboard.inline_keyboard.push([
-              { text: badgeText, callback_data: `buy_badge_${badge.badgeId}` }
+              { text: `${badge.emoji} Acheter ${badge.name} (${badge.cost} pts)`, callback_data: `buy_badge_${badge.badgeId}` }
             ]);
+          } else {
+            badgesList += `   ❌ ${badge.cost - userStats.points} points manquants\n`;
           }
+          badgesList += '\n';
         }
         
-        // Ajouter le message d'info si pas assez de points
-        if (userStats.points < 10) {
-          message += `\n💡 <i>Vote pour gagner des points !</i>\n`;
-          message += `<i>5 votes = 1 niveau = 3 points</i>`;
-        }
+        message += badgesList;
+        
+        // Info sur l'utilisation
+        message += `💡 <b>Comment ça marche:</b>\n`;
+        message += `• Achète des badges avec tes points\n`;
+        message += `• Offre-les aux plugs que tu soutiens\n`;
+        message += `• Les plugs gagnent visibilité et pub gratuite\n`;
+        message += `• Usage unique: 1 badge = 1 cadeau\n`;
         
         // Toujours ajouter les boutons de navigation
         keyboard.inline_keyboard.push(
-          [{ text: '🏅 Voir mes badges', callback_data: 'my_badges' }],
+          [{ text: '🏅 Mes badges achetés', callback_data: 'my_badges' }],
           [{ text: '🔙 Retour au menu', callback_data: 'back_to_main' }]
         );
         
@@ -1474,7 +1483,7 @@ bot.on('callback_query', async (callbackQuery) => {
         
         // Afficher tous les badges
         for (const badge of badges) {
-          const owned = userStats.ownedBadges.some(b => b.badgeId === badge.badgeId);
+          const owned = userStats.badges && userStats.badges.some(b => b.badgeId === badge.badgeId && !b.used);
           const canAfford = userStats.points >= badge.cost;
           
           if (!owned) {
@@ -1549,22 +1558,41 @@ bot.on('callback_query', async (callbackQuery) => {
         try {
           await userStats.purchaseBadge(badge);
           
-          let successMsg = `🎉 Félicitations ! Tu as acheté le badge ${badge.emoji} ${badge.name} !`;
+          // Message de confirmation et demande de choix du plug
+          let message = `✅ <b>Badge acheté avec succès !</b>\n\n`;
+          message += `${badge.emoji} <b>${badge.name}</b>\n`;
+          message += `<i>${badge.description}</i>\n\n`;
+          message += `🎁 <b>À quel plug veux-tu l'offrir ?</b>\n\n`;
+          message += `Choisis un plug ci-dessous:`;
           
-          if (badge.shopRewards?.freeAdDays > 0) {
-            successMsg += `\n\n🎁 Récompense: ${badge.shopRewards.freeAdDays} jours de pub gratuite pour ta boutique !`;
-            successMsg += `\n\n📧 Contacte l'admin pour activer ta récompense.`;
+          // Récupérer les plugs disponibles
+          const Plug = require('./models/Plug');
+          const plugs = await Plug.find({ isActive: true }).limit(10).sort({ voteCount: -1 });
+          
+          const keyboard = {
+            inline_keyboard: []
+          };
+          
+          for (const plug of plugs) {
+            keyboard.inline_keyboard.push([
+              { text: `🔌 ${plug.name}`, callback_data: `give_badge_${badge.badgeId}_to_${plug._id}` }
+            ]);
           }
           
-          await bot.answerCallbackQuery(callbackQuery.id, {
-            text: successMsg,
-            show_alert: true
-          });
+          keyboard.inline_keyboard.push(
+            [{ text: '🔍 Voir plus de plugs', callback_data: 'plugs' }],
+            [{ text: '💾 Garder pour plus tard', callback_data: 'my_badges' }]
+          );
           
-          // Retourner à la page des badges
-          await bot.emit('callback_query', Object.assign({}, callbackQuery, {
-            data: 'my_badges'
-          }));
+          // Supprimer l'ancien message et envoyer le nouveau
+          try {
+            await bot.deleteMessage(chatId, messageId);
+          } catch (e) {}
+          
+          await bot.sendMessage(chatId, message, {
+            parse_mode: 'HTML',
+            reply_markup: keyboard
+          });
           
         } catch (error) {
           await bot.answerCallbackQuery(callbackQuery.id, {
@@ -1580,6 +1608,98 @@ bot.on('callback_query', async (callbackQuery) => {
         try {
           await bot.answerCallbackQuery(callbackQuery.id);
         } catch (e) {}
+        callbackAnswered = true;
+      }
+    }
+    
+    // Donner un badge à un plug
+    else if (data.startsWith('give_badge_') && data.includes('_to_')) {
+      try {
+        const parts = data.split('_to_');
+        const badgeId = parts[0].replace('give_badge_', '');
+        const plugId = parts[1];
+        
+        const UserStats = require('./models/UserStats');
+        const BadgeConfig = require('./models/BadgeConfig');
+        const PlugBadges = require('./models/PlugBadges');
+        const Plug = require('./models/Plug');
+        
+        const userStats = await UserStats.findOne({ userId: callbackQuery.from.id });
+        const badge = await BadgeConfig.findOne({ badgeId: badgeId });
+        const plug = await Plug.findById(plugId);
+        
+        if (!badge || !plug) {
+          await bot.answerCallbackQuery(callbackQuery.id, {
+            text: '❌ Badge ou plug introuvable',
+            show_alert: true
+          });
+          return;
+        }
+        
+        // Vérifier que l'utilisateur possède ce badge
+        const ownedBadge = userStats.badges && userStats.badges.find(b => b.badgeId === badgeId);
+        if (!ownedBadge || ownedBadge.used) {
+          await bot.answerCallbackQuery(callbackQuery.id, {
+            text: '❌ Tu ne possèdes pas ce badge ou il a déjà été utilisé',
+            show_alert: true
+          });
+          return;
+        }
+        
+        // Marquer le badge comme utilisé
+        ownedBadge.used = true;
+        ownedBadge.usedFor = { plugId: plug._id, plugName: plug.name, usedAt: new Date() };
+        await userStats.save();
+        
+        // Ajouter le badge au plug
+        let plugBadges = await PlugBadges.findOne({ plugId: plug._id });
+        if (!plugBadges) {
+          plugBadges = new PlugBadges({ plugId: plug._id });
+        }
+        
+        await plugBadges.addBadge(badge, {
+          userId: callbackQuery.from.id,
+          username: callbackQuery.from.username || 'Utilisateur'
+        });
+        
+        // Message de confirmation
+        let message = `🎉 <b>Badge offert avec succès !</b>\n\n`;
+        message += `Tu as offert ${badge.emoji} <b>${badge.name}</b> à <b>${plug.name}</b>\n\n`;
+        
+        if (badge.shopRewards?.freeAdDays > 0) {
+          message += `🎁 Le plug gagne ${badge.shopRewards.freeAdDays} jours de pub gratuite !\n`;
+        }
+        if (badge.shopRewards?.boostMultiplier > 1) {
+          const boost = Math.round((badge.shopRewards.boostMultiplier - 1) * 100);
+          message += `📈 Le plug gagne +${boost}% de visibilité !\n`;
+        }
+        
+        message += `\n✨ Merci pour ton soutien !`;
+        
+        const keyboard = {
+          inline_keyboard: [
+            [{ text: '🏅 Mes badges', callback_data: 'my_badges' }],
+            [{ text: '🛍️ Acheter d\'autres badges', callback_data: 'badge_shop_direct' }],
+            [{ text: '🔙 Retour au menu', callback_data: 'back_to_main' }]
+          ]
+        };
+        
+        try {
+          await bot.deleteMessage(chatId, messageId);
+        } catch (e) {}
+        
+        await bot.sendMessage(chatId, message, {
+          parse_mode: 'HTML',
+          reply_markup: keyboard
+        });
+        
+        callbackAnswered = true;
+      } catch (error) {
+        console.error('Erreur give_badge:', error);
+        await bot.answerCallbackQuery(callbackQuery.id, {
+          text: '❌ Erreur lors du don du badge',
+          show_alert: true
+        });
         callbackAnswered = true;
       }
     }

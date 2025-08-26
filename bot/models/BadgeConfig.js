@@ -62,85 +62,77 @@ const badgeConfigSchema = new mongoose.Schema({
   timestamps: true
 });
 
-// Badges prédéfinis
+// Badges prédéfinis (usage unique - à donner aux plugs)
 const defaultBadges = [
   {
     badgeId: 'supporter',
     name: 'Supporter',
-    emoji: '🎖️',
-    description: 'Badge de base pour les supporters actifs',
+    emoji: '🌟',
+    description: 'Badge de soutien basique (+5% visibilité)',
     cost: 10,
     category: 'bronze',
+    shopRewards: { boostMultiplier: 1.05 },
     requirements: { minLevel: 1 }
   },
   {
-    badgeId: 'fan',
-    name: 'Fan',
-    emoji: '⭐',
-    description: 'Fan dévoué des plugs',
+    badgeId: 'actif',
+    name: 'Actif',
+    emoji: '⚡',
+    description: 'Pour les votants réguliers (+10% visibilité)',
     cost: 15,
     category: 'bronze',
+    shopRewards: { boostMultiplier: 1.10 },
     requirements: { minLevel: 2 }
   },
   {
-    badgeId: 'expert',
-    name: 'Expert',
-    emoji: '🏅',
-    description: 'Expert en plugs certifiés - 7 jours de pub gratuite',
+    badgeId: 'influenceur',
+    name: 'Influenceur',
+    emoji: '🔥',
+    description: 'Influenceur de la communauté (+20% visibilité)',
     cost: 20,
     category: 'silver',
-    shopRewards: { freeAdDays: 7 },
+    shopRewards: { boostMultiplier: 1.20, freeAdDays: 1 },
     requirements: { minLevel: 3 }
-  },
-  {
-    badgeId: 'influencer',
-    name: 'Influenceur',
-    emoji: '💎',
-    description: 'Influenceur de la communauté - 15 jours de pub gratuite',
-    cost: 30,
-    category: 'gold',
-    shopRewards: { freeAdDays: 15 },
-    requirements: { minLevel: 5 }
-  },
-  {
-    badgeId: 'ambassador',
-    name: 'Ambassadeur',
-    emoji: '👑',
-    description: 'Ambassadeur officiel - 30 jours de pub gratuite pour votre plug',
-    cost: 45,
-    category: 'platinum',
-    shopRewards: { freeAdDays: 30, boostMultiplier: 1.5 },
-    requirements: { minLevel: 8 }
-  },
-  {
-    badgeId: 'legend',
-    name: 'Légende',
-    emoji: '🔥',
-    description: 'Légende de la communauté - 60 jours de pub gratuite',
-    cost: 60,
-    category: 'diamond',
-    shopRewards: { freeAdDays: 60, boostMultiplier: 2, specialMention: true },
-    requirements: { minLevel: 10 }
   },
   {
     badgeId: 'vip',
     name: 'VIP',
-    emoji: '💫',
-    description: 'Membre VIP exclusif - 90 jours de pub gratuite',
-    cost: 90,
-    category: 'special',
-    shopRewards: { freeAdDays: 90, boostMultiplier: 2.5, specialMention: true },
-    requirements: { minLevel: 15 }
+    emoji: '💎',
+    description: 'Statut VIP premium (+30% visibilité + 3 jours pub)',
+    cost: 30,
+    category: 'gold',
+    shopRewards: { boostMultiplier: 1.30, freeAdDays: 3 },
+    requirements: { minLevel: 5 }
   },
   {
-    badgeId: 'premium',
-    name: 'Premium',
-    emoji: '🌟',
-    description: 'Membre Premium avec avantages exclusifs - 180 jours de pub gratuite',
-    cost: 150,
+    badgeId: 'roi',
+    name: 'Roi du Vote',
+    emoji: '👑',
+    description: 'Top votant (+50% visibilité + 7 jours pub)',
+    cost: 50,
+    category: 'platinum',
+    shopRewards: { boostMultiplier: 1.50, freeAdDays: 7 },
+    requirements: { minLevel: 8 }
+  },
+  {
+    badgeId: 'champion',
+    name: 'Champion',
+    emoji: '🏆',
+    description: 'Badge prestigieux (+75% visibilité + 15 jours pub)',
+    cost: 75,
+    category: 'diamond',
+    shopRewards: { boostMultiplier: 1.75, freeAdDays: 15, specialMention: true },
+    requirements: { minLevel: 12 }
+  },
+  {
+    badgeId: 'legendaire',
+    name: 'Légendaire',
+    emoji: '🌈',
+    description: 'Le plus rare (+100% visibilité + 30 jours pub)',
+    cost: 100,
     category: 'special',
-    shopRewards: { freeAdDays: 180, boostMultiplier: 3, specialMention: true },
-    requirements: { minLevel: 20 }
+    shopRewards: { boostMultiplier: 2.0, freeAdDays: 30, specialMention: true },
+    requirements: { minLevel: 15 }
   }
 ];
 

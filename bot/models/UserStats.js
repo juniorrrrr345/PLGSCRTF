@@ -38,6 +38,15 @@ const userStatsSchema = new mongoose.Schema({
       type: Date,
       default: Date.now
     },
+    used: {
+      type: Boolean,
+      default: false
+    },
+    usedFor: {
+      plugId: mongoose.Schema.Types.ObjectId,
+      plugName: String,
+      usedAt: Date
+    },
     cost: Number
   }],
   
@@ -189,7 +198,9 @@ userStatsSchema.methods.purchaseBadge = async function(badge) {
     badgeId: badge.badgeId,
     name: badge.name,
     emoji: badge.emoji,
-    cost: badge.cost
+    cost: badge.cost,
+    purchaseDate: new Date(),
+    used: false
   });
   
   if (!this.achievements.firstBadge) {
