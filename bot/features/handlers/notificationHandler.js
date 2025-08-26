@@ -475,7 +475,7 @@ function formatPreferencesMenu(userPrefs) {
   message += `${prefs.rankings.enabled ? '✅' : '❌'} Classements\n`;
   message += `${prefs.battles.enabled ? '✅' : '❌'} Battles\n\n`;
   
-  message += '⏰ <b>Horaires préférés:</b>\n`;
+  message += '⏰ <b>Horaires préférés:</b>\n';
   message += `${prefs.preferredTimes.morning ? '✅' : '❌'} Matin (8h-12h)\n`;
   message += `${prefs.preferredTimes.afternoon ? '✅' : '❌'} Après-midi (12h-18h)\n`;
   message += `${prefs.preferredTimes.evening ? '✅' : '❌'} Soir (18h-22h)\n`;
