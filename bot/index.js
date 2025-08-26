@@ -993,31 +993,20 @@ bot.on('callback_query', async (callbackQuery) => {
     // Menu Classements
     else if (data === 'rankings_menu') {
       try {
-        const Plug = require('./models/Plug');
-        
-        // Récupérer le top 10 des plugs
-        const topPlugs = await Plug.find({ isActive: true })
-          .sort({ likes: -1 })
-          .limit(10);
-        
-        let message = `🗳️ <b>CLASSEMENT PLUGS</b>\n`;
-        message += `━━━━━━━━━━━━━━━━\n\n`;
-        message += `📊 <b>Top 10 des plugs les plus votés</b>\n\n`;
-        
-        if (topPlugs.length > 0) {
-          topPlugs.forEach((plug, index) => {
-            const medal = index === 0 ? '🥇' : index === 1 ? '🥈' : index === 2 ? '🥉' : '🏅';
-            message += `${index + 1}. ${medal} ${plug.name} - ${plug.likes || 0} votes\n`;
-          });
-        } else {
-          message += `Aucun plug disponible pour le moment.\n`;
-        }
-        
-        message += `\n📈 Mise à jour en temps réel\n`;
-        message += `🗳️ Vote pour ton plug préféré !`;
+        const message = `🗳️ <b>CLASSEMENT PLUGS</b>\n` +
+          `━━━━━━━━━━━━━━━━\n\n` +
+          `Choisis le classement à consulter:`;
         
         const keyboard = {
           inline_keyboard: [
+            [
+              { text: '🏆 Top Global', callback_data: 'rankings_global' },
+              { text: '📅 Top du Jour', callback_data: 'rankings_daily' }
+            ],
+            [
+              { text: '📊 Top Semaine', callback_data: 'rankings_weekly' },
+              { text: '📈 En Progression', callback_data: 'rankings_trending' }
+            ],
             [{ text: '🔙 Retour au menu', callback_data: 'back_to_main' }]
           ]
         };
@@ -1049,33 +1038,52 @@ bot.on('callback_query', async (callbackQuery) => {
       }
     }
     
-    // Classements détaillés (désactivé - affichage direct dans rankings_menu)
-    /*
+    // Classements détaillés
     else if (data === 'rankings_global' || data === 'rankings_daily' || 
              data === 'rankings_weekly' || data === 'rankings_trending') {
       try {
+        const Plug = require('./models/Plug');
         let title = '';
-        let content = '';
+        let plugs = [];
         
         if (data === 'rankings_global') {
-          title = '🏆 TOP GLOBAL';
-          content = 'Classement général de tous les plugs';
+          title = '🏆 <b>TOP GLOBAL</b>';
+          plugs = await Plug.find({ isActive: true })
+            .sort({ likes: -1 })
+            .limit(10);
         } else if (data === 'rankings_daily') {
-          title = '📅 TOP DU JOUR';
-          content = 'Les plugs les plus votés aujourd\'hui';
+          title = '📅 <b>TOP DU JOUR</b>';
+          // Pour l'instant, afficher le top global (à améliorer avec un système de votes journaliers)
+          plugs = await Plug.find({ isActive: true })
+            .sort({ likes: -1 })
+            .limit(10);
         } else if (data === 'rankings_weekly') {
-          title = '📊 TOP DE LA SEMAINE';
-          content = 'Classement hebdomadaire';
+          title = '📊 <b>TOP DE LA SEMAINE</b>';
+          // Pour l'instant, afficher le top global (à améliorer avec un système de votes hebdomadaires)
+          plugs = await Plug.find({ isActive: true })
+            .sort({ likes: -1 })
+            .limit(10);
         } else if (data === 'rankings_trending') {
-          title = '📈 PLUGS EN PROGRESSION';
-          content = 'Les plugs qui montent';
+          title = '📈 <b>PLUGS EN PROGRESSION</b>';
+          // Pour l'instant, afficher le top global (à améliorer avec un système de tendances)
+          plugs = await Plug.find({ isActive: true })
+            .sort({ likes: -1 })
+            .limit(10);
         }
         
-        const message = `${title}\n` +
-          `━━━━━━━━━━━━━━━━\n\n` +
-          `${content}\n\n` +
-          `🔄 Cette fonctionnalité arrive bientôt !\n\n` +
-          `En attendant, consulte le classement principal via "🔌 NOS PLUGS DU MOMENT"`;
+        let message = `${title}\n`;
+        message += `━━━━━━━━━━━━━━━━\n\n`;
+        
+        if (plugs.length > 0) {
+          plugs.forEach((plug, index) => {
+            const medal = index === 0 ? '🥇' : index === 1 ? '🥈' : index === 2 ? '🥉' : '🏅';
+            message += `${index + 1}. ${medal} ${plug.name} - ${plug.likes || 0} votes\n`;
+          });
+        } else {
+          message += `Aucun plug disponible pour le moment.\n`;
+        }
+        
+        message += `\n📈 Mise à jour en temps réel`;
         
         const keyboard = {
           inline_keyboard: [
@@ -1108,16 +1116,16 @@ bot.on('callback_query', async (callbackQuery) => {
         callbackAnswered = true;
       } catch (error) {
         console.error('Erreur rankings:', error);
+        // Répondre silencieusement sans message d'erreur
         try {
           await bot.answerCallbackQuery(callbackQuery.id);
         } catch (e) {}
         callbackAnswered = true;
       }
     }
-    */
     
-    // Menu Battles (désactivé)
     /*
+    // Menu Battles (désactivé)
     else if (data === 'battles_menu') {
       try {
         const message = `⚔️ <b>BATTLES</b>\n\n` +
@@ -1583,30 +1591,13 @@ bot.on('callback_query', async (callbackQuery) => {
         // Supprimer le message actuel
         await bot.deleteMessage(chatId, messageId);
         
-        // Simuler la commande /start pour afficher le menu principal
-        const { handleStart } = require('./handlers/startHandler');
-        const fakeMessage = {
-          from: callbackQuery.from,
-          chat: { id: chatId },
-          text: '/start'
-        };
+        // Appeler directement showMainMenu SANS vérification du canal
+        const { showMainMenu } = require('./handlers/startHandler');
+        await showMainMenu(bot, chatId); // PAS de userId = pas de vérification
         
-        await handleStart(bot, fakeMessage);
         callbackAnswered = true;
       } catch (error) {
         console.error('Erreur back_to_main:', error);
-        // En cas d'erreur, essayer quand même d'afficher le menu
-        try {
-          const { handleStart } = require('./handlers/startHandler');
-          const fakeMessage = {
-            from: callbackQuery.from,
-            chat: { id: chatId },
-            text: '/start'
-          };
-          await handleStart(bot, fakeMessage);
-        } catch (e) {
-          console.error('Impossible d\'afficher le menu:', e);
-        }
         callbackAnswered = true;
       }
     }
