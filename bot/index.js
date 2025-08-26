@@ -1,8 +1,13 @@
+console.log('🚀 Démarrage du bot...');
+console.log('📅 Date:', new Date().toISOString());
+
 require('dotenv').config();
 const TelegramBot = require('node-telegram-bot-api');
 const mongoose = require('mongoose');
 const express = require('express');
 const cors = require('cors');
+
+console.log('📦 Modules chargés avec succès');
 
 // Modèles
 const User = require('./models/User');
@@ -116,7 +121,13 @@ const userStates = new Map();
 const messageQueue = new MessageQueue(bot);
 
 // Connexion à MongoDB
-mongoose.connect(process.env.MONGODB_URI)
+console.log('🔄 Tentative de connexion à MongoDB...');
+console.log('📍 MongoDB URI exists:', !!process.env.MONGODB_URI);
+
+mongoose.connect(process.env.MONGODB_URI, {
+  serverSelectionTimeoutMS: 30000, // Timeout après 30 secondes
+  socketTimeoutMS: 45000,
+})
   .then(() => {
     console.log('✅ Connected to MongoDB');
     
@@ -129,7 +140,10 @@ mongoose.connect(process.env.MONGODB_URI)
       // Le bot continue même si les nouvelles fonctionnalités échouent
     }
   })
-  .catch(err => console.error('❌ MongoDB connection error:', err));
+  .catch(err => {
+    console.error('❌ MongoDB connection error:', err);
+    console.error('💡 Le bot va continuer sans MongoDB si possible');
+  });
 
 // Serveur Express avec API
 const app = express();
@@ -309,8 +323,16 @@ if (isRender) {
   console.log(`📨 Webhook route configurée: /bot${process.env.TELEGRAM_BOT_TOKEN.substring(0, 10)}...`);
 }
 
-app.listen(PORT, () => {
-  console.log(`🌐 Server listening on port ${PORT}`);
+console.log(`🔄 Démarrage du serveur Express sur le port ${PORT}...`);
+app.listen(PORT, '0.0.0.0', () => {
+  console.log(`✅ Serveur Express démarré sur le port ${PORT}`);
+  console.log(`🤖 Bot Telegram opérationnel !`);
+  console.log(`📡 Mode: ${isRender ? 'WEBHOOK (Render)' : 'POLLING (Local)'}`);
+  
+  if (isRender) {
+    console.log('📌 Webhook URL configuré');
+    console.log('✨ Bot prêt à recevoir des messages !');
+  }
 });
 
 // Fonction de synchronisation périodique
