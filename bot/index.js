@@ -1041,6 +1041,7 @@ bot.on('callback_query', async (callbackQuery) => {
         callbackAnswered = true;
       } catch (error) {
         console.error('Erreur rankings_menu:', error);
+        // Répondre silencieusement sans message d'erreur
         try {
           await bot.answerCallbackQuery(callbackQuery.id);
         } catch (e) {}
@@ -1404,6 +1405,10 @@ bot.on('callback_query', async (callbackQuery) => {
         callbackAnswered = true;
       } catch (error) {
         console.error('Erreur badge_shop_direct:', error);
+        // Répondre silencieusement sans message d'erreur
+        try {
+          await bot.answerCallbackQuery(callbackQuery.id);
+        } catch (e) {}
         callbackAnswered = true;
       }
     }
@@ -1508,6 +1513,10 @@ bot.on('callback_query', async (callbackQuery) => {
         callbackAnswered = true;
       } catch (error) {
         console.error('Erreur badge_shop:', error);
+        // Répondre silencieusement sans message d'erreur
+        try {
+          await bot.answerCallbackQuery(callbackQuery.id);
+        } catch (e) {}
         callbackAnswered = true;
       }
     }
@@ -1560,6 +1569,10 @@ bot.on('callback_query', async (callbackQuery) => {
         callbackAnswered = true;
       } catch (error) {
         console.error('Erreur buy_badge:', error);
+        // Répondre silencieusement sans message d'erreur
+        try {
+          await bot.answerCallbackQuery(callbackQuery.id);
+        } catch (e) {}
         callbackAnswered = true;
       }
     }
@@ -1570,93 +1583,30 @@ bot.on('callback_query', async (callbackQuery) => {
         // Supprimer le message actuel
         await bot.deleteMessage(chatId, messageId);
         
-        // Récupérer les paramètres pour le menu
-        const Settings = require('./models/Settings');
-        const User = require('./models/User');
-        const Plug = require('./models/Plug');
-        
-        const settings = await Settings.findOne();
-        const userCount = await User.countDocuments() || 0;
-        const plugCount = await Plug.countDocuments() || 0;
-        
-        const welcomeMessage = settings?.welcomeMessage || 
-          '🔌 <b>Bienvenue sur PLUGS CRTFS !</b>\n\nLa marketplace exclusive des vendeurs certifiés.';
-        
-        const messageWithStats = `${welcomeMessage}\n\n🔌 <b>${plugCount} Plugs Disponibles</b> ✅\n\n👥 <b>${userCount} utilisateurs</b> nous font déjà confiance !`;
-        
-        const miniAppButtonText = settings?.miniAppButtonText || '🔌 MINI APP PLGS CRTFS';
-        const botUsername = process.env.TELEGRAM_BOT_USERNAME || 'PLGSCRTF_BOT';
-        const miniAppUrl = `https://t.me/${botUsername}/miniapp`;
-        
-        const keyboard = {
-          inline_keyboard: [
-            [{ text: miniAppButtonText, url: miniAppUrl }],
-            [{ text: '🔌 NOS PLUGS DU MOMENT', callback_data: 'plugs' }],
-            [{ text: '🏅 MES BADGES', callback_data: 'my_badges' }],
-            [{ text: '🗳️ CLASSEMENT PLUGS', callback_data: 'rankings_menu' }],
-            [{ text: '🛍️ BOUTIQUE DE BADGES', callback_data: 'badge_shop_direct' }],
-            [{ text: '🏆 TOP PARRAINS', callback_data: 'referrals' }],
-            [{ text: '✅ DEVENIR CERTIFIÉ', callback_data: 'apply' }],
-            [{ text: 'ℹ️ INFORMATIONS', callback_data: 'info' }]
-          ]
+        // Simuler la commande /start pour afficher le menu principal
+        const { handleStart } = require('./handlers/startHandler');
+        const fakeMessage = {
+          from: callbackQuery.from,
+          chat: { id: chatId },
+          text: '/start'
         };
         
-        // Ajouter les réseaux sociaux si disponibles
-        if (settings?.botSocialNetworks && settings.botSocialNetworks.length > 0) {
-          const sortedNetworks = settings.botSocialNetworks.sort((a, b) => (a.order || 0) - (b.order || 0));
-          
-          for (let i = 0; i < sortedNetworks.length; i += 2) {
-            const row = [];
-            const network1 = sortedNetworks[i];
-            
-            if (network1.name && network1.url) {
-              row.push({
-                text: `${network1.emoji || '🔗'} ${network1.name}`,
-                url: network1.url
-              });
-            }
-            
-            if (i + 1 < sortedNetworks.length) {
-              const network2 = sortedNetworks[i + 1];
-              if (network2.name && network2.url) {
-                row.push({
-                  text: `${network2.emoji || '🔗'} ${network2.name}`,
-                  url: network2.url
-                });
-              }
-            }
-            
-            if (row.length > 0) {
-              keyboard.inline_keyboard.push(row);
-            }
-          }
-        }
-        
-        // Envoyer le menu avec l'image si disponible
-        if (settings?.welcomeImage) {
-          try {
-            await bot.sendPhoto(chatId, settings.welcomeImage, {
-              caption: messageWithStats,
-              parse_mode: 'HTML',
-              reply_markup: keyboard
-            });
-          } catch (error) {
-            console.error('Erreur envoi image:', error);
-            await bot.sendMessage(chatId, messageWithStats, {
-              parse_mode: 'HTML',
-              reply_markup: keyboard
-            });
-          }
-        } else {
-          await bot.sendMessage(chatId, messageWithStats, {
-            parse_mode: 'HTML',
-            reply_markup: keyboard
-          });
-        }
-        
+        await handleStart(bot, fakeMessage);
         callbackAnswered = true;
       } catch (error) {
         console.error('Erreur back_to_main:', error);
+        // En cas d'erreur, essayer quand même d'afficher le menu
+        try {
+          const { handleStart } = require('./handlers/startHandler');
+          const fakeMessage = {
+            from: callbackQuery.from,
+            chat: { id: chatId },
+            text: '/start'
+          };
+          await handleStart(bot, fakeMessage);
+        } catch (e) {
+          console.error('Impossible d\'afficher le menu:', e);
+        }
         callbackAnswered = true;
       }
     }
