@@ -1367,45 +1367,62 @@ bot.on('callback_query', async (callbackQuery) => {
           await userStats.save();
         }
         
+        // Récupérer les badges disponibles
+        const badges = await BadgeConfig.find({ isActive: true }).sort({ requiredLevel: 1 });
+        
         let message = `🛍️ <b>BOUTIQUE DE BADGES</b>\n`;
         message += `━━━━━━━━━━━━━━━━\n\n`;
+        message += `💰 Tes points: ${userStats.points}\n`;
+        message += `🎖️ Niveau: ${userStats.level}\n\n`;
         
-        if (userStats.points < 10) {
-          const pointsNeeded = 10 - userStats.points;
-          message += `🔒 <b>Boutique verrouillée</b>\n\n`;
-          message += `📊 Tes points actuels: ${userStats.points}\n`;
-          message += `🎯 Points requis: 10\n`;
-          message += `📈 Encore ${pointsNeeded} points à gagner\n\n`;
-          message += `💡 <i>Vote pour tes plugs préférés pour gagner des points !</i>\n`;
-          message += `<i>5 votes = 1 niveau = 3 points</i>`;
+        const keyboard = {
+          inline_keyboard: []
+        };
+        
+        // Afficher tous les badges disponibles
+        for (const badge of badges) {
+          const owned = userStats.ownedBadges.some(b => b.badgeId === badge.badgeId);
+          const canAfford = userStats.points >= badge.cost;
           
-          const keyboard = {
-            inline_keyboard: [
-              [{ text: '🏅 Voir mes stats', callback_data: 'my_badges' }],
-              [{ text: '🔙 Retour au menu', callback_data: 'back_to_main' }]
-            ]
-          };
-          
-          if (callbackQuery.message.text) {
-            await bot.editMessageText(message, {
-              chat_id: chatId,
-              message_id: messageId,
-              parse_mode: 'HTML',
-              reply_markup: keyboard
-            });
+          let badgeText = `${badge.emoji} ${badge.name}`;
+          if (owned) {
+            badgeText += ' ✅';
+          } else if (!canAfford) {
+            badgeText += ` (${badge.cost} pts)`;
           } else {
-            await bot.deleteMessage(chatId, messageId);
-            await bot.sendMessage(chatId, message, {
-              parse_mode: 'HTML',
-              reply_markup: keyboard
-            });
+            badgeText += ` - ${badge.cost} pts`;
           }
-        } else {
-          // Afficher la boutique normale
-          await bot.emit('callback_query', Object.assign({}, callbackQuery, {
-            data: 'badge_shop'
-          }));
+          
+          if (!owned && canAfford) {
+            keyboard.inline_keyboard.push([
+              { text: badgeText, callback_data: `buy_badge_${badge.badgeId}` }
+            ]);
+          }
         }
+        
+        // Ajouter le message d'info si pas assez de points
+        if (userStats.points < 10) {
+          message += `\n💡 <i>Vote pour gagner des points !</i>\n`;
+          message += `<i>5 votes = 1 niveau = 3 points</i>`;
+        }
+        
+        // Toujours ajouter les boutons de navigation
+        keyboard.inline_keyboard.push(
+          [{ text: '🏅 Voir mes badges', callback_data: 'my_badges' }],
+          [{ text: '🔙 Retour au menu', callback_data: 'back_to_main' }]
+        );
+        
+        // TOUJOURS supprimer et envoyer un nouveau message
+        try {
+          await bot.deleteMessage(chatId, messageId);
+        } catch (deleteError) {
+          console.log('Impossible de supprimer le message:', deleteError.message);
+        }
+        
+        await bot.sendMessage(chatId, message, {
+          parse_mode: 'HTML',
+          reply_markup: keyboard
+        });
         
         callbackAnswered = true;
       } catch (error) {
@@ -1424,96 +1441,81 @@ bot.on('callback_query', async (callbackQuery) => {
         const UserStats = require('./models/UserStats');
         const BadgeConfig = require('./models/BadgeConfig');
         
-        const userStats = await UserStats.findOne({ userId: callbackQuery.from.id });
+        // Initialiser les badges par défaut si nécessaire
+        await BadgeConfig.initializeDefaults();
         
-        if (!userStats || userStats.points < 10) {
-          await bot.answerCallbackQuery(callbackQuery.id, {
-            text: '❌ Minimum 10 points requis pour accéder à la boutique',
-            show_alert: true
+        // Récupérer ou créer les stats de l'utilisateur
+        let userStats = await UserStats.findOne({ userId: callbackQuery.from.id });
+        
+        if (!userStats) {
+          const User = require('./models/User');
+          const user = await User.findOne({ telegramId: callbackQuery.from.id });
+          
+          userStats = new UserStats({
+            userId: callbackQuery.from.id,
+            username: user?.username || callbackQuery.from.username || 'Utilisateur'
           });
-          return;
+          await userStats.save();
         }
         
-        const availableBadges = await BadgeConfig.find({
-          isActive: true,
-          'requirements.minLevel': { $lte: userStats.level }
-        }).sort('cost');
-        
-        const unboughtBadges = availableBadges.filter(badge => 
-          !userStats.badges.some(b => b.badgeId === badge.badgeId)
-        );
+        // Récupérer TOUS les badges disponibles
+        const badges = await BadgeConfig.find({ isActive: true }).sort({ cost: 1 });
         
         let message = `🛍️ <b>BOUTIQUE DE BADGES</b>\n`;
         message += `━━━━━━━━━━━━━━━━\n\n`;
-        message += `💎 Points disponibles: ${userStats.points}\n\n`;
+        message += `💰 Tes points: ${userStats.points}\n`;
+        message += `🎖️ Niveau: ${userStats.level}\n\n`;
         
-        if (unboughtBadges.length > 0) {
-          message += `<b>Badges disponibles:</b>\n\n`;
+        const keyboard = {
+          inline_keyboard: []
+        };
+        
+        let hasAvailableBadges = false;
+        
+        // Afficher tous les badges
+        for (const badge of badges) {
+          const owned = userStats.ownedBadges.some(b => b.badgeId === badge.badgeId);
+          const canAfford = userStats.points >= badge.cost;
           
-          const keyboard = {
-            inline_keyboard: []
-          };
-          
-          for (const badge of unboughtBadges) {
-            const canAfford = userStats.points >= badge.cost;
-            message += `${badge.emoji} <b>${badge.name}</b> - ${badge.cost} pts\n`;
-            message += `   ${badge.description}\n`;
+          if (!owned) {
+            hasAvailableBadges = true;
+            let badgeText = `${badge.emoji} ${badge.name}`;
             
             if (canAfford) {
+              badgeText += ` - ${badge.cost} pts`;
               keyboard.inline_keyboard.push([
-                { 
-                  text: `${badge.emoji} Acheter ${badge.name} (${badge.cost} pts)`, 
-                  callback_data: `buy_badge_${badge.badgeId}` 
-                }
+                { text: badgeText, callback_data: `buy_badge_${badge.badgeId}` }
               ]);
+            } else {
+              message += `${badge.emoji} <b>${badge.name}</b> - ${badge.cost} pts ❌\n`;
+              message += `   <i>${badge.description}</i>\n\n`;
             }
-            message += '\n';
-          }
-          
-          keyboard.inline_keyboard.push([
-            { text: '🔙 Retour aux badges', callback_data: 'my_badges' }
-          ]);
-          
-          if (callbackQuery.message.text) {
-            await bot.editMessageText(message, {
-              chat_id: chatId,
-              message_id: messageId,
-              parse_mode: 'HTML',
-              reply_markup: keyboard
-            });
-          } else {
-            await bot.deleteMessage(chatId, messageId);
-            await bot.sendMessage(chatId, message, {
-              parse_mode: 'HTML',
-              reply_markup: keyboard
-            });
-          }
-        } else {
-          message += `❌ Aucun badge disponible pour le moment`;
-          
-          if (callbackQuery.message.text) {
-            await bot.editMessageText(message, {
-              chat_id: chatId,
-              message_id: messageId,
-              parse_mode: 'HTML',
-              reply_markup: {
-                inline_keyboard: [
-                  [{ text: '🔙 Retour aux badges', callback_data: 'my_badges' }]
-                ]
-              }
-            });
-          } else {
-            await bot.deleteMessage(chatId, messageId);
-            await bot.sendMessage(chatId, message, {
-              parse_mode: 'HTML',
-              reply_markup: {
-                inline_keyboard: [
-                  [{ text: '🔙 Retour aux badges', callback_data: 'my_badges' }]
-                ]
-              }
-            });
           }
         }
+        
+        if (!hasAvailableBadges) {
+          message += `✅ Tu possèdes tous les badges disponibles !`;
+        } else if (userStats.points < 10) {
+          message += `\n💡 <i>Vote pour gagner des points !</i>\n`;
+          message += `<i>5 votes = 1 niveau = 3 points</i>`;
+        }
+        
+        keyboard.inline_keyboard.push(
+          [{ text: '🔙 Retour aux badges', callback_data: 'my_badges' }],
+          [{ text: '🔙 Retour au menu', callback_data: 'back_to_main' }]
+        );
+        
+        // TOUJOURS supprimer et envoyer un nouveau message
+        try {
+          await bot.deleteMessage(chatId, messageId);
+        } catch (deleteError) {
+          console.log('Impossible de supprimer le message:', deleteError.message);
+        }
+        
+        await bot.sendMessage(chatId, message, {
+          parse_mode: 'HTML',
+          reply_markup: keyboard
+        });
         
         callbackAnswered = true;
       } catch (error) {
