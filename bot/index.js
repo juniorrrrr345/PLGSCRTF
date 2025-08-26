@@ -2198,7 +2198,9 @@ bot.on('callback_query', async (callbackQuery) => {
         // Créer le message avec les badges disponibles
         let message = `🎁 <b>OFFRIR UN BADGE À ${plug.name}</b>\n`;
         message += `━━━━━━━━━━━━━━━━\n\n`;
-        message += `Choisis le badge à offrir:\n\n`;
+        message += `📦 <b>Tes badges disponibles:</b>\n`;
+        message += `Tu as ${availableBadges.length} badge${availableBadges.length > 1 ? 's' : ''} à offrir\n\n`;
+        message += `👇 <b>Choisis le badge à offrir:</b>\n\n`;
         
         const keyboard = {
           inline_keyboard: []
@@ -2206,10 +2208,10 @@ bot.on('callback_query', async (callbackQuery) => {
         
         // Lister les badges disponibles avec numéros
         availableBadges.forEach((badge, index) => {
-          message += `${index + 1}. ${badge.emoji} <b>${badge.name}</b>\n`;
-          message += `   <i>${badge.description || 'Badge spécial'}</i>\n\n`;
+          message += `${badge.emoji} <b>${badge.name}</b>\n`;
+          message += `└ <i>${badge.description || 'Badge spécial pour soutenir les plugs'}</i>\n\n`;
           keyboard.inline_keyboard.push([
-            { text: `${badge.emoji} ${badge.name}`, callback_data: `confirm_give_${badge.badgeId}_to_${plugId}` }
+            { text: `${badge.emoji} Offrir ${badge.name}`, callback_data: `confirm_give_${badge.badgeId}_to_${plugId}` }
           ]);
         });
         
