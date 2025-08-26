@@ -627,6 +627,7 @@ async function handleLike(bot, callbackQuery, plugId) {
   const chatId = callbackQuery.message.chat.id;
   const userId = callbackQuery.from.id;
   const Vote = require('../models/Vote');
+  const UserStats = require('../models/UserStats');
   
   try {
     // Vérifier l'utilisateur
@@ -726,7 +727,22 @@ async function handleLike(bot, callbackQuery, plugId) {
       });
     }
     
-    console.log(`✅ Vote enregistré pour user ${userId} et plug ${plugId}`);
+    // === SYSTÈME DE POINTS ET NIVEAUX ===
+    const UserStats = require('../models/UserStats');
+    
+    // Créer ou récupérer les stats de l'utilisateur
+    let userStats = await UserStats.findOne({ userId: userId });
+    if (!userStats) {
+      userStats = new UserStats({
+        userId: userId,
+        username: user.username || user.firstName || 'Utilisateur'
+      });
+    }
+    
+    // Ajouter le vote et calculer les points/niveau
+    const voteResult = await userStats.addVote(plugId, plug.name);
+    
+    console.log(`✅ Vote enregistré pour user ${userId} et plug ${plugId} - Niveau: ${voteResult.newLevel}`);
     
     // Mettre à jour les stats de parrainage si l'utilisateur est venu via un lien
     const ReferralClick = require('../models/ReferralClick');
@@ -752,9 +768,29 @@ async function handleLike(bot, callbackQuery, plugId) {
       }
     }
     
+    // Construire le message de succès avec les infos de niveau
+    let successMessage = `❤️ Vote enregistré pour ${plug.name} !\n\n`;
+    successMessage += `📊 Points: ${voteResult.totalPoints} (+${voteResult.pointsEarned})\n`;
+    successMessage += `🎯 Niveau: ${voteResult.newLevel}\n`;
+    successMessage += `🗳️ Votes totaux: ${userStats.totalVotes}\n`;
+    
+    if (voteResult.levelUp) {
+      successMessage += `\n🎉 NIVEAU SUPÉRIEUR ! Tu es maintenant niveau ${voteResult.newLevel} !`;
+      
+      if (voteResult.newLevel === 15) {
+        successMessage += `\n\n🎁 Tu peux maintenant acheter des badges !`;
+      }
+      
+      if (voteResult.badgePoints > 0) {
+        successMessage += `\n💎 Points de badge: ${voteResult.badgePoints}`;
+      }
+    }
+    
+    successMessage += `\n\n⏰ Prochain vote dans 30 minutes`;
+    
     // Répondre avec succès SANS supprimer le message
     await bot.answerCallbackQuery(callbackQuery.id, {
-      text: `❤️ Merci pour votre vote !\n\n✅ ${plug.name} a maintenant ${plug.likes} like${plug.likes > 1 ? 's' : ''}\n\n⏱️ Prochain vote possible dans 30 minutes`,
+      text: successMessage,
       show_alert: true
     });
     

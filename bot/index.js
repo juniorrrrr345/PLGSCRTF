@@ -891,16 +891,75 @@ bot.on('callback_query', async (callbackQuery) => {
     // Badges
     else if (data === 'my_badges') {
       try {
-        // Message temporaire en attendant l'implémentation complète
-        const message = `🏅 <b>MES BADGES ET RÉCOMPENSES</b>\n` +
-          `━━━━━━━━━━━━━━━━\n\n` +
-          `📊 <b>Statistiques</b>\n` +
-          `🎖️ Niveau: 1\n` +
-          `⭐ Points: 0\n` +
-          `🏆 Badges: 0\n` +
-          `🗳️ Votes totaux: 0\n\n` +
-          `❌ Tu n'as pas encore de badges.\n` +
-          `💡 Vote pour tes plugs préférés pour débloquer des badges !`;
+        const UserStats = require('./models/UserStats');
+        const BadgeConfig = require('./models/BadgeConfig');
+        
+        // Initialiser les badges par défaut si nécessaire
+        await BadgeConfig.initializeDefaults();
+        
+        // Récupérer les stats de l'utilisateur
+        let userStats = await UserStats.findOne({ userId: callbackQuery.from.id });
+        
+        if (!userStats) {
+          // Créer les stats si elles n'existent pas
+          const User = require('./models/User');
+          const user = await User.findOne({ telegramId: callbackQuery.from.id });
+          
+          userStats = new UserStats({
+            userId: callbackQuery.from.id,
+            username: user?.username || callbackQuery.from.username || 'Utilisateur'
+          });
+          await userStats.save();
+        }
+        
+        // Construire le message avec les vraies données
+        let message = `🏅 <b>MES BADGES ET RÉCOMPENSES</b>\n`;
+        message += `━━━━━━━━━━━━━━━━\n\n`;
+        message += `📊 <b>Statistiques</b>\n`;
+        message += `🎖️ Niveau: ${userStats.level}\n`;
+        message += `⭐ Points: ${userStats.points}\n`;
+        message += `💎 Points de badge: ${userStats.badgePoints}\n`;
+        message += `🏆 Badges: ${userStats.badges.length}\n`;
+        message += `🗳️ Votes totaux: ${userStats.totalVotes}\n\n`;
+        
+        // Progression vers le prochain niveau
+        const votesForNextLevel = (userStats.level * 5) - userStats.totalVotes;
+        if (votesForNextLevel > 0) {
+          message += `📈 <b>Prochain niveau dans ${votesForNextLevel} vote${votesForNextLevel > 1 ? 's' : ''}</b>\n\n`;
+        }
+        
+        // Afficher les badges possédés
+        if (userStats.badges.length > 0) {
+          message += `🏆 <b>Mes Badges:</b>\n`;
+          for (const badge of userStats.badges) {
+            message += `${badge.emoji} ${badge.name}\n`;
+          }
+          message += '\n';
+        }
+        
+        // Info sur les badges
+        if (userStats.level >= 15) {
+          message += `💎 Tu peux acheter des badges avec tes points !\n`;
+        } else {
+          const levelsNeeded = 15 - userStats.level;
+          message += `🔒 <i>Badges débloqués au niveau 15 (encore ${levelsNeeded} niveaux)</i>\n`;
+        }
+        
+        // Créer le clavier avec les boutons appropriés
+        const keyboard = {
+          inline_keyboard: []
+        };
+        
+        // Ajouter bouton boutique si niveau 15+ et points disponibles
+        if (userStats.level >= 15 && userStats.badgePoints > 0) {
+          keyboard.inline_keyboard.push([
+            { text: `🛍️ Boutique de badges (${userStats.badgePoints} pts)`, callback_data: 'badge_shop' }
+          ]);
+        }
+        
+        keyboard.inline_keyboard.push([
+          { text: '🔙 Retour au menu', callback_data: 'back_to_main' }
+        ]);
         
         // Vérifier si le message original contient du texte
         if (callbackQuery.message.text) {
@@ -908,22 +967,14 @@ bot.on('callback_query', async (callbackQuery) => {
             chat_id: chatId,
             message_id: messageId,
             parse_mode: 'HTML',
-            reply_markup: {
-              inline_keyboard: [
-                [{ text: '🔙 Retour au menu', callback_data: 'back_to_main' }]
-              ]
-            }
+            reply_markup: keyboard
           });
         } else {
           // Si c'est une image, supprimer et envoyer un nouveau message
           await bot.deleteMessage(chatId, messageId);
           await bot.sendMessage(chatId, message, {
             parse_mode: 'HTML',
-            reply_markup: {
-              inline_keyboard: [
-                [{ text: '🔙 Retour au menu', callback_data: 'back_to_main' }]
-              ]
-            }
+            reply_markup: keyboard
           });
         }
         callbackAnswered = true;
@@ -957,21 +1008,56 @@ bot.on('callback_query', async (callbackQuery) => {
     // Menu Classements
     else if (data === 'rankings_menu') {
       try {
-        const message = `🗳️ <b>CLASSEMENT PLUGS</b>\n` +
-          `━━━━━━━━━━━━━━━━\n\n` +
-          `📊 <b>Top 10 des plugs les plus votés</b>\n\n` +
-          `1. 🥇 Plug Premium - 1250 votes\n` +
-          `2. 🥈 Plug Elite - 980 votes\n` +
-          `3. 🥉 Plug Master - 875 votes\n` +
-          `4. 🏅 Plug Pro - 650 votes\n` +
-          `5. 🏅 Plug Expert - 520 votes\n` +
-          `6. 🏅 Plug Advanced - 485 votes\n` +
-          `7. 🏅 Plug Plus - 420 votes\n` +
-          `8. 🏅 Plug Standard - 380 votes\n` +
-          `9. 🏅 Plug Basic - 350 votes\n` +
-          `10. 🏅 Plug Starter - 325 votes\n\n` +
-          `📈 Mise à jour toutes les heures\n` +
-          `🗳️ Vote pour ton plug préféré !`;
+        const Plug = require('./models/Plug');
+        const UserStats = require('./models/UserStats');
+        
+        // Récupérer le top 10 des plugs
+        const topPlugs = await Plug.find({ isActive: true })
+          .sort({ likes: -1 })
+          .limit(10);
+        
+        // Récupérer le top 5 des utilisateurs
+        const topUsers = await UserStats.find()
+          .sort({ level: -1, totalVotes: -1, points: -1 })
+          .limit(5);
+        
+        let message = `🗳️ <b>CLASSEMENT PLUGS</b>\n`;
+        message += `━━━━━━━━━━━━━━━━\n\n`;
+        
+        // Top des plugs
+        message += `📊 <b>Top 10 des plugs les plus votés</b>\n\n`;
+        
+        if (topPlugs.length > 0) {
+          topPlugs.forEach((plug, index) => {
+            const medal = index === 0 ? '🥇' : index === 1 ? '🥈' : index === 2 ? '🥉' : '🏅';
+            message += `${index + 1}. ${medal} ${plug.name} - ${plug.likes || 0} votes\n`;
+          });
+        } else {
+          message += `Aucun plug disponible pour le moment.\n`;
+        }
+        
+        message += `\n━━━━━━━━━━━━━━━━\n\n`;
+        
+        // Top des utilisateurs
+        message += `👥 <b>Top 5 des votants</b>\n\n`;
+        
+        if (topUsers.length > 0) {
+          topUsers.forEach((user, index) => {
+            const medal = index === 0 ? '👑' : index === 1 ? '💎' : index === 2 ? '⭐' : '🌟';
+            message += `${index + 1}. ${medal} ${user.username} - Niv.${user.level} (${user.totalVotes} votes)\n`;
+          });
+          
+          // Info sur le leader mensuel
+          const leader = topUsers[0];
+          if (leader.badges.length > 0) {
+            message += `\n🏆 Leader du mois: ${leader.username} avec ${leader.badges.length} badge${leader.badges.length > 1 ? 's' : ''} !`;
+          }
+        } else {
+          message += `Aucun votant pour le moment.\n`;
+        }
+        
+        message += `\n\n📈 Mise à jour en temps réel\n`;
+        message += `🗳️ Vote pour monter dans le classement !`;
         
         const keyboard = {
           inline_keyboard: [
@@ -1295,22 +1381,257 @@ bot.on('callback_query', async (callbackQuery) => {
     }
     */
     
+    // Boutique de badges
+    else if (data === 'badge_shop') {
+      try {
+        const UserStats = require('./models/UserStats');
+        const BadgeConfig = require('./models/BadgeConfig');
+        
+        const userStats = await UserStats.findOne({ userId: callbackQuery.from.id });
+        
+        if (!userStats || userStats.level < 15) {
+          await bot.answerCallbackQuery(callbackQuery.id, {
+            text: '❌ Niveau 15 requis pour accéder à la boutique',
+            show_alert: true
+          });
+          return;
+        }
+        
+        const availableBadges = await BadgeConfig.find({
+          isActive: true,
+          'requirements.minLevel': { $lte: userStats.level }
+        }).sort('cost');
+        
+        const unboughtBadges = availableBadges.filter(badge => 
+          !userStats.badges.some(b => b.badgeId === badge.badgeId)
+        );
+        
+        let message = `🛍️ <b>BOUTIQUE DE BADGES</b>\n`;
+        message += `━━━━━━━━━━━━━━━━\n\n`;
+        message += `💎 Points disponibles: ${userStats.badgePoints}\n\n`;
+        
+        if (unboughtBadges.length > 0) {
+          message += `<b>Badges disponibles:</b>\n\n`;
+          
+          const keyboard = {
+            inline_keyboard: []
+          };
+          
+          for (const badge of unboughtBadges) {
+            const canAfford = userStats.badgePoints >= badge.cost;
+            message += `${badge.emoji} <b>${badge.name}</b> - ${badge.cost} pts\n`;
+            message += `   ${badge.description}\n`;
+            
+            if (badge.shopRewards?.freeAdDays > 0) {
+              message += `   🎁 Récompense: ${badge.shopRewards.freeAdDays} jours de pub gratuite\n`;
+            }
+            
+            if (canAfford) {
+              keyboard.inline_keyboard.push([
+                { 
+                  text: `${badge.emoji} Acheter ${badge.name} (${badge.cost} pts)`, 
+                  callback_data: `buy_badge_${badge.badgeId}` 
+                }
+              ]);
+            }
+            message += '\n';
+          }
+          
+          keyboard.inline_keyboard.push([
+            { text: '🔙 Retour aux badges', callback_data: 'my_badges' }
+          ]);
+          
+          if (callbackQuery.message.text) {
+            await bot.editMessageText(message, {
+              chat_id: chatId,
+              message_id: messageId,
+              parse_mode: 'HTML',
+              reply_markup: keyboard
+            });
+          } else {
+            await bot.deleteMessage(chatId, messageId);
+            await bot.sendMessage(chatId, message, {
+              parse_mode: 'HTML',
+              reply_markup: keyboard
+            });
+          }
+        } else {
+          message += `❌ Aucun badge disponible pour le moment`;
+          
+          if (callbackQuery.message.text) {
+            await bot.editMessageText(message, {
+              chat_id: chatId,
+              message_id: messageId,
+              parse_mode: 'HTML',
+              reply_markup: {
+                inline_keyboard: [
+                  [{ text: '🔙 Retour aux badges', callback_data: 'my_badges' }]
+                ]
+              }
+            });
+          } else {
+            await bot.deleteMessage(chatId, messageId);
+            await bot.sendMessage(chatId, message, {
+              parse_mode: 'HTML',
+              reply_markup: {
+                inline_keyboard: [
+                  [{ text: '🔙 Retour aux badges', callback_data: 'my_badges' }]
+                ]
+              }
+            });
+          }
+        }
+        
+        callbackAnswered = true;
+      } catch (error) {
+        console.error('Erreur badge_shop:', error);
+        callbackAnswered = true;
+      }
+    }
+    
+    // Achat de badge
+    else if (data.startsWith('buy_badge_')) {
+      try {
+        const badgeId = data.replace('buy_badge_', '');
+        const UserStats = require('./models/UserStats');
+        const BadgeConfig = require('./models/BadgeConfig');
+        
+        const userStats = await UserStats.findOne({ userId: callbackQuery.from.id });
+        const badge = await BadgeConfig.findOne({ badgeId: badgeId });
+        
+        if (!badge) {
+          await bot.answerCallbackQuery(callbackQuery.id, {
+            text: '❌ Badge introuvable',
+            show_alert: true
+          });
+          return;
+        }
+        
+        try {
+          await userStats.purchaseBadge(badge);
+          
+          let successMsg = `🎉 Félicitations ! Tu as acheté le badge ${badge.emoji} ${badge.name} !`;
+          
+          if (badge.shopRewards?.freeAdDays > 0) {
+            successMsg += `\n\n🎁 Récompense: ${badge.shopRewards.freeAdDays} jours de pub gratuite pour ta boutique !`;
+            successMsg += `\n\n📧 Contacte l'admin pour activer ta récompense.`;
+          }
+          
+          await bot.answerCallbackQuery(callbackQuery.id, {
+            text: successMsg,
+            show_alert: true
+          });
+          
+          // Retourner à la page des badges
+          await bot.emit('callback_query', Object.assign({}, callbackQuery, {
+            data: 'my_badges'
+          }));
+          
+        } catch (error) {
+          await bot.answerCallbackQuery(callbackQuery.id, {
+            text: `❌ ${error.message}`,
+            show_alert: true
+          });
+        }
+        
+        callbackAnswered = true;
+      } catch (error) {
+        console.error('Erreur buy_badge:', error);
+        callbackAnswered = true;
+      }
+    }
+    
     // ===== CALLBACK RETOUR AU MENU PRINCIPAL =====
     else if (data === 'back_to_main') {
       try {
         // Supprimer le message actuel
         await bot.deleteMessage(chatId, messageId);
-        // Afficher le menu principal
-        await showMainMenu(bot, chatId);
+        
+        // Récupérer les paramètres pour le menu
+        const Settings = require('./models/Settings');
+        const User = require('./models/User');
+        const Plug = require('./models/Plug');
+        
+        const settings = await Settings.findOne();
+        const userCount = await User.countDocuments() || 0;
+        const plugCount = await Plug.countDocuments() || 0;
+        
+        const welcomeMessage = settings?.welcomeMessage || 
+          '🔌 <b>Bienvenue sur PLUGS CRTFS !</b>\n\nLa marketplace exclusive des vendeurs certifiés.';
+        
+        const messageWithStats = `${welcomeMessage}\n\n🔌 <b>${plugCount} Plugs Disponibles</b> ✅\n\n👥 <b>${userCount} utilisateurs</b> nous font déjà confiance !`;
+        
+        const miniAppButtonText = settings?.miniAppButtonText || '🔌 MINI APP PLGS CRTFS';
+        const botUsername = process.env.TELEGRAM_BOT_USERNAME || 'PLGSCRTF_BOT';
+        const miniAppUrl = `https://t.me/${botUsername}/miniapp`;
+        
+        const keyboard = {
+          inline_keyboard: [
+            [{ text: miniAppButtonText, url: miniAppUrl }],
+            [{ text: '🔌 NOS PLUGS DU MOMENT', callback_data: 'plugs' }],
+            [{ text: '🏅 MES BADGES', callback_data: 'my_badges' }, { text: '🗳️ CLASSEMENT PLUGS', callback_data: 'rankings_menu' }],
+            [{ text: '🏆 TOP PARRAINS', callback_data: 'referrals' }],
+            [{ text: '✅ DEVENIR CERTIFIÉ', callback_data: 'apply' }],
+            [{ text: 'ℹ️ INFORMATIONS', callback_data: 'info' }]
+          ]
+        };
+        
+        // Ajouter les réseaux sociaux si disponibles
+        if (settings?.botSocialNetworks && settings.botSocialNetworks.length > 0) {
+          const sortedNetworks = settings.botSocialNetworks.sort((a, b) => (a.order || 0) - (b.order || 0));
+          
+          for (let i = 0; i < sortedNetworks.length; i += 2) {
+            const row = [];
+            const network1 = sortedNetworks[i];
+            
+            if (network1.name && network1.url) {
+              row.push({
+                text: `${network1.emoji || '🔗'} ${network1.name}`,
+                url: network1.url
+              });
+            }
+            
+            if (i + 1 < sortedNetworks.length) {
+              const network2 = sortedNetworks[i + 1];
+              if (network2.name && network2.url) {
+                row.push({
+                  text: `${network2.emoji || '🔗'} ${network2.name}`,
+                  url: network2.url
+                });
+              }
+            }
+            
+            if (row.length > 0) {
+              keyboard.inline_keyboard.push(row);
+            }
+          }
+        }
+        
+        // Envoyer le menu avec l'image si disponible
+        if (settings?.welcomeImage) {
+          try {
+            await bot.sendPhoto(chatId, settings.welcomeImage, {
+              caption: messageWithStats,
+              parse_mode: 'HTML',
+              reply_markup: keyboard
+            });
+          } catch (error) {
+            console.error('Erreur envoi image:', error);
+            await bot.sendMessage(chatId, messageWithStats, {
+              parse_mode: 'HTML',
+              reply_markup: keyboard
+            });
+          }
+        } else {
+          await bot.sendMessage(chatId, messageWithStats, {
+            parse_mode: 'HTML',
+            reply_markup: keyboard
+          });
+        }
+        
         callbackAnswered = true;
       } catch (error) {
         console.error('Erreur back_to_main:', error);
-        // En cas d'erreur, essayer quand même d'afficher le menu
-        try {
-          await showMainMenu(bot, chatId);
-        } catch (e) {
-          console.error('Impossible d\'afficher le menu:', e);
-        }
         callbackAnswered = true;
       }
     }
