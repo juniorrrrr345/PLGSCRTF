@@ -483,7 +483,17 @@ bot.onText(/\/buy\s*(\d+)?/, async (msg, match) => {
         message += '\n';
       });
       
-      await bot.sendMessage(chatId, message, { parse_mode: 'HTML' });
+      // Ajouter un bouton de retour au menu
+      const keyboard = {
+        inline_keyboard: [
+          [{ text: '🔙 Retour au menu', callback_data: 'main_menu' }]
+        ]
+      };
+      
+      await bot.sendMessage(chatId, message, { 
+        parse_mode: 'HTML',
+        reply_markup: keyboard
+      });
       return;
     }
     
@@ -493,31 +503,64 @@ bot.onText(/\/buy\s*(\d+)?/, async (msg, match) => {
     const canAfford = userStats.points >= badge.cost;
     const meetsLevel = userStats.level >= badge.requirements.minLevel;
     
+    // Créer un message temporaire qui sera remplacé
+    const tempMessage = await bot.sendMessage(chatId, '⏳ Traitement de l\'achat...', { parse_mode: 'HTML' });
+    
     if (!meetsLevel) {
-      await bot.sendMessage(chatId, 
+      await bot.editMessageText(
         `❌ Tu dois être niveau ${badge.requirements.minLevel} pour acheter ce badge.\n` +
         `Tu es actuellement niveau ${userStats.level}.`,
-        { parse_mode: 'HTML' }
+        {
+          chat_id: chatId,
+          message_id: tempMessage.message_id,
+          parse_mode: 'HTML',
+          reply_markup: {
+            inline_keyboard: [
+              [{ text: '🛍️ Retour à la boutique', callback_data: 'shop' }],
+              [{ text: '🔙 Menu principal', callback_data: 'main_menu' }]
+            ]
+          }
+        }
       );
       return;
     }
     
     if (owned) {
-      await bot.sendMessage(chatId, 
+      await bot.editMessageText(
         `❌ Tu possèdes déjà le badge ${badge.emoji} ${badge.name} !`,
-        { parse_mode: 'HTML' }
+        {
+          chat_id: chatId,
+          message_id: tempMessage.message_id,
+          parse_mode: 'HTML',
+          reply_markup: {
+            inline_keyboard: [
+              [{ text: '🛍️ Retour à la boutique', callback_data: 'shop' }],
+              [{ text: '🔙 Menu principal', callback_data: 'main_menu' }]
+            ]
+          }
+        }
       );
       return;
     }
     
     if (!canAfford) {
-      await bot.sendMessage(chatId, 
+      await bot.editMessageText(
         `❌ Tu n'as pas assez de points !\n\n` +
         `Badge: ${badge.emoji} ${badge.name}\n` +
         `Coût: ${badge.cost} points\n` +
         `Tes points: ${userStats.points}\n` +
         `Il te manque: ${badge.cost - userStats.points} points`,
-        { parse_mode: 'HTML' }
+        {
+          chat_id: chatId,
+          message_id: tempMessage.message_id,
+          parse_mode: 'HTML',
+          reply_markup: {
+            inline_keyboard: [
+              [{ text: '🛍️ Retour à la boutique', callback_data: 'shop' }],
+              [{ text: '🔙 Menu principal', callback_data: 'main_menu' }]
+            ]
+          }
+        }
       );
       return;
     }
@@ -535,17 +578,33 @@ bot.onText(/\/buy\s*(\d+)?/, async (msg, match) => {
       const keyboard = {
         inline_keyboard: [
           [{ text: '🔌 Voir les plugs', callback_data: 'plugs' }],
-          [{ text: '🏅 Mes badges', callback_data: 'my_badges' }]
+          [{ text: '🏅 Mes badges', callback_data: 'my_badges' }],
+          [{ text: '🛍️ Retour à la boutique', callback_data: 'shop' }]
         ]
       };
       
-      await bot.sendMessage(chatId, message, {
+      await bot.editMessageText(message, {
+        chat_id: chatId,
+        message_id: tempMessage.message_id,
         parse_mode: 'HTML',
         reply_markup: keyboard
       });
       
     } catch (error) {
-      await bot.sendMessage(chatId, `❌ ${error.message}`, { parse_mode: 'HTML' });
+      await bot.editMessageText(
+        `❌ ${error.message}`,
+        {
+          chat_id: chatId,
+          message_id: tempMessage.message_id,
+          parse_mode: 'HTML',
+          reply_markup: {
+            inline_keyboard: [
+              [{ text: '🛍️ Retour à la boutique', callback_data: 'shop' }],
+              [{ text: '🔙 Menu principal', callback_data: 'main_menu' }]
+            ]
+          }
+        }
+      );
     }
     
   } catch (error) {
