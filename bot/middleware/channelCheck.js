@@ -10,13 +10,24 @@ async function getChannelConfig() {
 
 async function checkChannelMembership(bot, userId) {
   try {
+    // Vérifier que l'userId est valide
+    if (!userId || userId === 'undefined') {
+      console.log('userId invalide pour la vérification du canal');
+      return true; // Permettre l'accès si l'userId est invalide
+    }
+    
     const { channelId } = await getChannelConfig();
     const member = await bot.getChatMember(channelId, userId);
     const allowedStatuses = ['member', 'administrator', 'creator'];
     return allowedStatuses.includes(member.status);
   } catch (error) {
+    // Si l'erreur est PARTICIPANT_ID_INVALID, permettre l'accès
+    if (error.message && error.message.includes('PARTICIPANT_ID_INVALID')) {
+      console.log('PARTICIPANT_ID_INVALID - Accès autorisé par défaut');
+      return true;
+    }
     console.error('Erreur vérification canal:', error.message);
-    return false;
+    return true; // Permettre l'accès en cas d'erreur pour éviter de bloquer les utilisateurs
   }
 }
 

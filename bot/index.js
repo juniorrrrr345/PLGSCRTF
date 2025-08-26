@@ -966,22 +966,17 @@ bot.on('callback_query', async (callbackQuery) => {
           { text: '🔙 Retour au menu', callback_data: 'back_to_main' }
         ]);
         
-        // Vérifier si le message original contient du texte
-        if (callbackQuery.message.text) {
-          await bot.editMessageText(message, {
-            chat_id: chatId,
-            message_id: messageId,
-            parse_mode: 'HTML',
-            reply_markup: keyboard
-          });
-        } else {
-          // Si c'est une image, supprimer et envoyer un nouveau message
+        // TOUJOURS supprimer et envoyer un nouveau message pour éviter les erreurs
+        try {
           await bot.deleteMessage(chatId, messageId);
-          await bot.sendMessage(chatId, message, {
-            parse_mode: 'HTML',
-            reply_markup: keyboard
-          });
+        } catch (deleteError) {
+          console.log('Impossible de supprimer le message:', deleteError.message);
         }
+        
+        await bot.sendMessage(chatId, message, {
+          parse_mode: 'HTML',
+          reply_markup: keyboard
+        });
       } catch (error) {
         console.error('Erreur my_badges:', error);
         // Ne pas afficher de message d'erreur
@@ -1017,22 +1012,17 @@ bot.on('callback_query', async (callbackQuery) => {
           ]
         };
         
-        // Vérifier si le message original contient du texte
-        if (callbackQuery.message.text) {
-          await bot.editMessageText(message, {
-            chat_id: chatId,
-            message_id: messageId,
-            parse_mode: 'HTML',
-            reply_markup: keyboard
-          });
-        } else {
-          // Si c'est une image, supprimer et envoyer un nouveau message
+        // TOUJOURS supprimer et envoyer un nouveau message pour éviter les erreurs
+        try {
           await bot.deleteMessage(chatId, messageId);
-          await bot.sendMessage(chatId, message, {
-            parse_mode: 'HTML',
-            reply_markup: keyboard
-          });
+        } catch (deleteError) {
+          console.log('Impossible de supprimer le message:', deleteError.message);
         }
+        
+        await bot.sendMessage(chatId, message, {
+          parse_mode: 'HTML',
+          reply_markup: keyboard
+        });
       } catch (error) {
         console.error('Erreur rankings_menu:', error);
         // Ne pas afficher de message d'erreur
