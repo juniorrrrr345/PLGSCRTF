@@ -944,10 +944,12 @@ bot.on('callback_query', async (callbackQuery) => {
         } catch (e) {
           console.error('Erreur envoi message:', e);
         }
-        await bot.answerCallbackQuery(callbackQuery.id, {
-          text: '✅ Chargement...',
-          show_alert: false
-        });
+        // Ne pas afficher d'alerte d'erreur
+        try {
+          await bot.answerCallbackQuery(callbackQuery.id);
+        } catch (err) {
+          // Ignorer
+        }
         callbackAnswered = true;
       }
     }
@@ -991,6 +993,9 @@ bot.on('callback_query', async (callbackQuery) => {
         callbackAnswered = true;
       } catch (error) {
         console.error('Erreur rankings_menu:', error);
+        try {
+          await bot.answerCallbackQuery(callbackQuery.id);
+        } catch (e) {}
         callbackAnswered = true;
       }
     }
@@ -1053,6 +1058,9 @@ bot.on('callback_query', async (callbackQuery) => {
         callbackAnswered = true;
       } catch (error) {
         console.error('Erreur rankings:', error);
+        try {
+          await bot.answerCallbackQuery(callbackQuery.id);
+        } catch (e) {}
         callbackAnswered = true;
       }
     }
@@ -1091,6 +1099,9 @@ bot.on('callback_query', async (callbackQuery) => {
         callbackAnswered = true;
       } catch (error) {
         console.error('Erreur battles_menu:', error);
+        try {
+          await bot.answerCallbackQuery(callbackQuery.id);
+        } catch (e) {}
         callbackAnswered = true;
       }
     }
@@ -1147,6 +1158,9 @@ bot.on('callback_query', async (callbackQuery) => {
         callbackAnswered = true;
       } catch (error) {
         console.error('Erreur battles:', error);
+        try {
+          await bot.answerCallbackQuery(callbackQuery.id);
+        } catch (e) {}
         callbackAnswered = true;
       }
     }
@@ -1198,6 +1212,9 @@ bot.on('callback_query', async (callbackQuery) => {
         callbackAnswered = true;
       } catch (error) {
         console.error('Erreur notifications:', error);
+        try {
+          await bot.answerCallbackQuery(callbackQuery.id);
+        } catch (e) {}
         callbackAnswered = true;
       }
     }
@@ -1256,6 +1273,29 @@ bot.on('callback_query', async (callbackQuery) => {
         callbackAnswered = true;
       } catch (error) {
         console.error('Erreur toggle pref:', error);
+        try {
+          await bot.answerCallbackQuery(callbackQuery.id);
+        } catch (e) {}
+        callbackAnswered = true;
+      }
+    }
+    
+    // ===== CALLBACK RETOUR AU MENU PRINCIPAL =====
+    else if (data === 'back_to_main') {
+      try {
+        // Supprimer le message actuel
+        await bot.deleteMessage(chatId, messageId);
+        // Afficher le menu principal
+        await showMainMenu(bot, chatId);
+        callbackAnswered = true;
+      } catch (error) {
+        console.error('Erreur back_to_main:', error);
+        // En cas d'erreur, essayer quand même d'afficher le menu
+        try {
+          await showMainMenu(bot, chatId);
+        } catch (e) {
+          console.error('Impossible d\'afficher le menu:', e);
+        }
         callbackAnswered = true;
       }
     }
